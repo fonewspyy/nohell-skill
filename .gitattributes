@@ -1,0 +1,5 @@
+# บังคับ LF เพื่อไม่ให้ shell script ถูก checkout เป็น CRLF บน Windows แล้ว CI บน Linux พัง (SHIP-03)
+* text=auto eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf

@@ -1,0 +1,14 @@
+# ทะเบียนวงจริง (เก็บเฉพาะ .example.yaml ไว้ใน repo นี้)
+CONSOLIDATIONS.yaml
+
+# เศษจาก sandbox/agent
+mnt/
+/tmp/
+
+# ระบบปฏิบัติการและ editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp

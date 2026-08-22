@@ -1,0 +1,128 @@
+# engineering-skills — skills that force an agent to think like a senior before it types
+
+[![validate](https://github.com/fonewspyy/nohell-skill/actions/workflows/validate.yml/badge.svg)](https://github.com/fonewspyy/nohell-skill/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+> **The skills are written in Thai.** This page explains what the repo is and how to install it; the skills themselves are Thai-language instructions the agent reads and follows. Claude handles Thai natively, so they work no matter what language you talk to it in — but reading or editing the rules yourself needs Thai. [CONTRIBUTING.md](CONTRIBUTING.md) explains why they aren't translated.
+
+The problem isn't that agents can't write code. The problem is that agents **start writing too early**, and accumulate debt faster than a human ever could. So this isn't another pile of rules — it's an enforced order of thinking.
+
+```
+skills/
+├── principal-engineer/   ← always enter here: Impact Map, Ask Gate, router
+├── kickoff/              ← starting something new: the agent drives, phase by phase
+├── nohell/               ← 401-entry anti-pattern catalog + machine-checkable rules + a DB scanner
+│   └── commands/nohell-dig.md   ← mine repo history for the hells that actually hurt
+├── business-rules/       ← rule ownership, effective dates, read/write symmetry, workflow, money
+├── archaeology/          ← evidence levels, caller inventory, finding rule copies by shape
+└── conventions/          ← naming, business vocabulary, the standard SP skeleton
+    └── templates/        ← copy-paste-ready SP templates (typed parameters, and JSON payload)
+
+docs/
+├── llm-reality.md        ← 60 pairs of belief vs. reality about LLMs and agents
+└── tooling-2026.md       ← tools that actually pay off for a one-person team, and when to switch
+```
+
+## The pipeline
+
+```
+work arrives
+   ↓
+principal-engineer  → 13-field Impact Map + Ask Gate    ← a blank field means: don't write code yet
+   ↓
+router picks the lenses this kind of work needs
+   ↓
+ponytail (external)  → does this need to be written at all?
+   ↓
+nohell's 12 core rules → will writing it this way become hell?
+   ↓
+specialist lenses    → business-rules / archaeology / a HELL-CATALOG category
+   ↓
+close the task using the same Impact Map as a checklist
+```
+
+## What each one answers
+
+| skill | the question it answers | when it loads |
+|---|---|---|
+| principal-engineer | what will this touch, and what do I still not know | every task, always loaded |
+| nohell (SKILL.md) | will writing it this way become hell | every task, always loaded (~1k tokens) |
+| nohell (HELL-CATALOG) | which specific hells live in this domain | only the categories the work touches, during review/audit |
+| business-rules | who owns this rule, and as of which date | anything touching money, stock, permissions, status, history |
+| archaeology | how does the system *actually* behave right now | before touching old code, before consolidating, whenever unsure |
+| kickoff | how do we start, and what haven't I asked yet | new projects, or a large feature starting from nothing |
+| conventions | what should this new thing be called, and what shape | every time you create an SP, table, file, function, or endpoint |
+
+## Install
+
+```sh
+git clone https://github.com/fonewspyy/nohell-skill.git
+cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
+# or scoped to one project
+cp -r nohell-skill/skills/* .claude/skills/
+```
+
+Then point your project's `AGENTS.md` / `CLAUDE.md` at `skills/principal-engineer/SKILL.md` as the first gate.
+
+The `/nohell-dig` command installs separately — Claude Code reads slash commands from `commands/`, not from `skills/`:
+
+```sh
+cp nohell-skill/skills/nohell/commands/nohell-dig.md ~/.claude/commands/
+```
+
+These belong in the **target repo**, not here:
+
+- `CONSOLIDATIONS.yaml` (from `skills/nohell/CONSOLIDATIONS.example.yaml`) — the register of open consolidation cycles
+- `docs/impact/` — one Impact Map per task
+- `docs/adr/` — decisions that are expensive to reverse
+- `docs/archaeology/` — investigation results
+
+## The catalog
+
+401 entries across 23 categories. Every entry is one row:
+`ID | priority | the hell | what you'll see in the wild | the enforceable rule that replaces it`.
+
+`ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE`
+
+**P1** wrong data / outage / leak · **P2** unmaintainable long-term · **P3** makes life worse
+
+68 of the entries are machine-checkable and carry a detection command in `skills/nohell/hell-rules.yaml`;
+`skills/nohell/detect-sqlserver.sql` scans a live SQL Server and maps what it finds back to catalog IDs.
+
+## Consistency check
+
+This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. The validator checks eight things:
+header count · per-category counts · duplicate IDs · numbering gaps · missing priorities · malformed rows ·
+**IDs referenced by a skill or doc that don't exist in the catalog** · **counts declared in other files that have drifted**
+
+```sh
+sh scripts/validate-catalog.sh
+```
+
+CI runs the same script on every push.
+
+## External skills used alongside
+
+| skill | role | overlap with this repo |
+|---|---|---|
+| ponytail | reduces what the agent *builds* | none — ponytail governs volume, nohell governs shape |
+| caveman | reduces what the agent *says* | none at all, different half of the problem |
+| impeccable | UI work | pairs with the `FE` category in the catalog |
+
+## Why there are no separate frontend/ backend/ database/ security/ folders
+
+Because that would be **`SSOT-01` committed against ourselves**: creating C (a new skill) without deleting A (the existing catalog category), until the SQL rules live in two places and drift apart.
+
+The catalog is already split by domain across 23 categories. What was missing was *knowing which category this task needs* — and that's the router in `principal-engineer`, not another folder.
+
+A new skill is only justified when it carries a **process** the catalog can't express. `business-rules`, `archaeology`, `kickoff`, and `conventions` clear that bar. "frontend" doesn't — it's a list of things not to do, which is exactly what the catalog is for.
+
+## Not yet covered
+
+No categories yet for **MOBILE** (offline/sync/barcode scanners/duplicate submits over flaky warehouse wifi), **AI-ML** (datasets, leakage, preprocessing parity, thresholds, drift), **INFRA** (containers, reverse proxies, TLS, backup/DR), or **NET** (connection pools, keep-alive, proxy timeouts, backpressure — currently scattered across `ERR`/`PERF`).
+
+These belong as new categories in the existing catalog, not as new skills. Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[MIT](LICENSE)

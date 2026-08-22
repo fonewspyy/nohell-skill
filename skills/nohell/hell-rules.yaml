@@ -1,0 +1,412 @@
+# nohell — ชุดกฎที่ตรวจอัตโนมัติได้
+# ใช้กับ CI gate: severity P1 = block, P2 = warn, P3 = report
+# ข้อที่ไม่อยู่ในไฟล์นี้ = ต้องใช้คนหรือ agent อ่าน (ดู HELL-CATALOG.md)
+#
+# detect.kind: regex | grep | sql | cmd | manual-checklist
+# ทุก regex ตั้งใจให้ over-match ไว้ก่อน แล้วใช้ allow เพื่อยกเว้น — false positive ถูกกว่า false negative
+
+version: 1
+gate:
+  block_on: [P1]
+  warn_on: [P2]
+  report_on: [P3]
+
+rules:
+
+  # ---------- SQL / T-SQL ----------
+  - id: SQL-01
+    severity: P1
+    title: God SP
+    detect: { kind: sql, script: detect-sqlserver.sql, query: sp_size_ranking }
+    threshold: { lines: 800, or_branches_on_action_param: 5 }
+
+  - id: SQL-02
+    severity: P1
+    title: logic ซ้ำข้าม SP
+    detect: { kind: sql, script: detect-sqlserver.sql, query: duplicate_sp_bodies }
+
+  - id: SQL-04
+    severity: P1
+    title: dynamic SQL ต่อสตริง
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)(@sql\\s*=\\s*@sql\\s*\\+|EXEC\\s*\\(\\s*@)" }
+    allow_comment: "nohell-allow: SQL-04"
+
+  - id: SQL-05
+    severity: P2
+    title: SELECT * ใน SP/View
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)SELECT\\s+\\*\\s+FROM" }
+
+  - id: SQL-06
+    severity: P2
+    title: cursor
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)\\bDECLARE\\s+\\w+\\s+CURSOR\\b" }
+
+  - id: SQL-08
+    severity: P1
+    title: scalar UDF ใน predicate
+    detect: { kind: sql, script: detect-sqlserver.sql, query: scalar_udf_usage }
+
+  - id: SQL-10
+    severity: P1
+    title: non-SARGable predicate
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)WHERE[^\\n]*\\b(CONVERT|CAST|YEAR|MONTH|LEFT|SUBSTRING|ISNULL)\\s*\\(" }
+
+  - id: SQL-15
+    severity: P1
+    title: NOLOCK
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)(WITH\\s*\\(\\s*NOLOCK|READUNCOMMITTED)" }
+
+  - id: SQL-16
+    severity: P1
+    title: CATCH ที่กลืน error
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)BEGIN\\s+CATCH(?:(?!THROW|RAISERROR).)*?END\\s+CATCH" }
+
+  - id: SQL-17
+    severity: P1
+    title: ไม่มี XACT_ABORT ใน SP ที่มี transaction
+    detect: { kind: sql, script: detect-sqlserver.sql, query: tx_without_xact_abort }
+
+  - id: SQL-19
+    severity: P1
+    title: magic status code
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)(Status|Type|Flag)\\w*\\s*(=|IN)\\s*\\(?\\s*'?\\d{1,2}'?" }
+
+  - id: SQL-20
+    severity: P2
+    title: debug code ค้างใน SP
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?im)^\\s*(PRINT\\b|SELECT\\s+\\*\\s+FROM\\s+#|IF\\s+@Debug)" }
+
+  - id: SQL-23
+    severity: P1
+    title: DDL นอก migration
+    detect: { kind: cmd, run: "git diff --name-only origin/main... | grep -E '\\.sql$' | grep -v '^migrations/'" }
+
+  - id: SQL-26
+    severity: P2
+    title: WHILE loop update ทีละแถว
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)WHILE\\s*\\(?[^\\n]{0,80}\\n(?:.{0,400}?)UPDATE\\s" }
+
+  - id: SQL-27
+    severity: P3
+    title: ชื่อขึ้นต้น sp_
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)CREATE\\s+(OR\\s+ALTER\\s+)?PROCEDURE\\s+(\\[?dbo\\]?\\.)?\\[?sp_" }
+
+  - id: SQL-29
+    severity: P1
+    title: ฟิลด์ใน JSON payload ที่เปลี่ยนพฤติกรรมของ SP
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)\"(action|actionType|mode|command|cmd|operation|op)\"\\s*:\\s*\"" }
+    also:   { kind: regex, glob: "**/*.sql", pattern: "(?i)JSON_VALUE\\s*\\(\\s*@\\w+\\s*,\\s*'\\$\\.(action|mode|command|cmd|op)" }
+    note: payload พาข้อมูลได้ ห้ามพาคำสั่ง — คือ @ActionType (SQL-01) ที่ย้ายไปซ่อนในที่ที่ linter มองไม่เห็น
+    allow_comment: "nohell-allow: SQL-29"
+
+  - id: SQL-30
+    severity: P1
+    title: OPENJSON ที่ไม่มี WITH
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)OPENJSON\\s*\\((?:[^()]|\\([^()]*\\))*\\)(?!\\s*(?:AS\\s+\\w+\\s*)?WITH\\s*\\()" }
+    note: ไม่มี WITH = ทุกค่าเป็น nvarchar(4000) แล้วเกิด implicit conversion ตอน join (SQL-11)
+    allow_comment: "nohell-allow: SQL-30"
+
+  - id: SQL-31
+    severity: P1
+    title: JSON payload ที่ไม่มีสัญญาประกาศไว้
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)@\\w*[Jj]son\\w*\\s+nvarchar\\s*\\(\\s*max\\s*\\)" }
+    note: >
+      over-match โดยตั้งใจ — ทุก param JSON จะถูกจับ ให้ใส่ allow comment เฉพาะตัวที่มีบล็อกสัญญา
+      (รายชื่อคีย์ ชนิด บังคับ/ไม่บังคับ และการปฏิเสธคีย์ที่ไม่รู้จัก) เขียนกำกับไว้จริง
+    allow_comment: "nohell-allow: SQL-31"
+
+  # ---------- schema ----------
+  - id: DATA-01
+    severity: P1
+    title: ตารางไม่มี primary key
+    detect: { kind: sql, script: detect-sqlserver.sql, query: tables_without_pk }
+
+  - id: DATA-04
+    severity: P1
+    title: float กับคอลัมน์เงิน
+    detect: { kind: sql, script: detect-sqlserver.sql, query: float_money_columns }
+
+  - id: DATA-05
+    severity: P1
+    title: วันที่เก็บเป็นสตริง
+    detect: { kind: sql, script: detect-sqlserver.sql, query: date_like_string_columns }
+
+  - id: DATA-10
+    severity: P1
+    title: ความสัมพันธ์ที่ไม่มี FK
+    detect: { kind: sql, script: detect-sqlserver.sql, query: id_columns_without_fk }
+
+  - id: DATA-19
+    severity: P1
+    title: FK ที่ไม่มี index
+    detect: { kind: sql, script: detect-sqlserver.sql, query: fk_without_index }
+
+  - id: DATA-21
+    severity: P1
+    title: int identity ใกล้ล้น
+    detect: { kind: sql, script: detect-sqlserver.sql, query: identity_headroom }
+    threshold: { used_percent: 70 }
+
+  - id: DATA-25
+    severity: P1
+    title: business key ไม่มี unique constraint
+    detect: { kind: sql, script: detect-sqlserver.sql, query: docno_without_unique }
+
+  # ---------- โค้ดแอป ----------
+  - id: CODE-04
+    severity: P1
+    title: magic number ในเงื่อนไขธุรกิจ
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(status|state|type|code)\\s*[=!]==?\\s*[0-9]{1,3}\\b" }
+
+  - id: CODE-07
+    severity: P3
+    title: commented-out code
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js,sql}", pattern: "(?m)^\\s*(//|--)\\s*(if|for|while|return|const|let|var|SELECT|UPDATE|INSERT)\\b" }
+
+  - id: CODE-18
+    severity: P3
+    title: TODO ไร้เจ้าของ
+    detect: { kind: regex, glob: "**/*", pattern: "(?i)(TODO|FIXME|HACK)(?!\\()" }
+    fix_hint: "รูปแบบที่ยอมรับ: TODO(ชื่อ, YYYY-MM-DD): เหตุผล"
+
+  - id: CODE-20
+    severity: P1
+    title: any / dynamic
+    detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "(?<![\\w.])any(?![\\w])" }
+    allow_comment: "nohell-allow: CODE-20"
+
+  - id: CODE-21
+    severity: P1
+    title: as any
+    detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "as\\s+any\\b" }
+
+  - id: CODE-02
+    severity: P2
+    title: ฟังก์ชันยาวเกินไป
+    detect: { kind: cmd, run: "npx eslint --rule '{\"max-lines-per-function\":[\"error\",120]}'" }
+
+  # ---------- error / resilience ----------
+  - id: ERR-01
+    severity: P1
+    title: catch ว่างเปล่า
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}" }
+
+  - id: ERR-02
+    severity: P1
+    title: catch แล้ว return null
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?s)catch\\s*\\([^)]*\\)\\s*\\{[^}]{0,200}?return\\s+(null|undefined|\\[\\]|0)\\s*;?[^}]{0,20}\\}" }
+
+  - id: ERR-09
+    severity: P1
+    title: retry ไม่จำกัดจำนวน
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)while\\s*\\(\\s*true\\s*\\)[^\\n]{0,80}\\n(?:.{0,300}?)(retry|fetch|axios|HttpClient)" }
+
+  - id: ERR-11
+    severity: P1
+    title: HTTP call ไม่มี timeout
+    detect: { kind: regex, glob: "**/*.{ts,tsx,js}", pattern: "(?<!AbortSignal\\.)fetch\\s*\\([^)]*\\)(?![^;]{0,120}signal)" }
+
+  - id: PERF-09
+    severity: P1
+    title: block async
+    detect: { kind: regex, glob: "**/*.cs", pattern: "\\.(Result|Wait\\(\\))\\b" }
+
+  # ---------- security ----------
+  - id: SEC-01
+    severity: P1
+    title: SQL injection จากการต่อสตริง
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(SELECT|INSERT|UPDATE|DELETE)[^\"'`\\n]{0,80}(\\+\\s*\\w+|\\$\\{|\\bformat\\()" }
+
+  - id: SEC-02
+    severity: P1
+    title: secret ใน repo
+    detect: { kind: cmd, run: "gitleaks detect --no-banner" }
+
+  - id: SEC-04
+    severity: P1
+    title: hash รหัสผ่านที่อ่อนแอ
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js,sql}", pattern: "(?i)\\b(MD5|SHA1)\\b" }
+
+  - id: SEC-10
+    severity: P1
+    title: CORS เปิดกว้าง
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js,json,yaml}", pattern: "(?i)(Access-Control-Allow-Origin\\s*[:=]\\s*[\"']?\\*|origin\\s*:\\s*[\"']\\*[\"'])" }
+
+  - id: SEC-15
+    severity: P1
+    title: dependency ที่มีช่องโหว่
+    detect: { kind: cmd, run: "pnpm audit --audit-level high" }
+
+  - id: SEC-18
+    severity: P1
+    title: connection string ใช้สิทธิ์สูงสุด
+    detect: { kind: regex, glob: "**/*.{json,config,env,yaml}", pattern: "(?i)(User\\s*Id|uid)\\s*=\\s*(sa|root|admin)\\b" }
+
+  - id: OBS-05
+    severity: P1
+    title: log ข้อมูลอ่อนไหว
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(log|logger|console)\\.\\w+\\([^)]*\\b(password|token|secret|apikey|citizen|idcard|cardno)\\b" }
+
+  # ---------- config / ship ----------
+  - id: CFG-02
+    severity: P1
+    title: branch ตาม environment ในโค้ดธุรกิจ
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(NODE_ENV|ASPNETCORE_ENVIRONMENT|env)\\s*[=!]==?\\s*[\"'](prod|production)[\"']" }
+
+  - id: CFG-03
+    severity: P2
+    title: hard-code URL/IP
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(https?://(?!localhost)[\\w.-]+|\\b\\d{1,3}(\\.\\d{1,3}){3}\\b)" }
+
+  - id: CFG-04
+    severity: P2
+    title: path ตายตัวแบบ Windows
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js,sql}", pattern: "[A-Za-z]:\\\\\\\\?[\\w\\\\ .-]+" }
+
+  - id: CFG-08
+    severity: P1
+    title: ค่าเริ่มต้นที่อันตราย
+    detect: { kind: regex, glob: "**/*.{json,yaml,config,env}", pattern: "(?i)(debug\\s*[:=]\\s*true|EnableSensitiveDataLogging|AllowAnonymous\\s*[:=]\\s*true)" }
+
+  - id: SHIP-05
+    severity: P1
+    title: migration ที่ไม่ idempotent
+    detect: { kind: regex, glob: "migrations/**/*.sql", pattern: "(?i)^(?!.*IF\\s+(NOT\\s+)?EXISTS).*\\b(CREATE|ALTER|DROP)\\s+(TABLE|INDEX|PROCEDURE|VIEW)" }
+
+  - id: SHIP-15
+    severity: P1
+    title: dependency ไม่ pin
+    detect: { kind: regex, glob: "**/package.json", pattern: "\"[^\"]+\"\\s*:\\s*\"(\\*|latest|\\^?0\\.0\\.0)\"" }
+
+  - id: SHIP-09
+    severity: P3
+    title: commit ใหญ่เกินไป
+    detect: { kind: cmd, run: "git diff --stat origin/main... | tail -1" }
+    threshold: { files: 40 }
+
+  # ---------- test ----------
+  - id: TEST-03
+    severity: P1
+    title: flaky test
+    detect: { kind: cmd, run: "npm test -- --runInBand --repeat 3" }
+
+  - id: TEST-06
+    severity: P3
+    title: sleep ในเทส
+    detect: { kind: regex, glob: "**/*.{test,spec}.{ts,tsx,js}", pattern: "(setTimeout|sleep|Thread\\.Sleep|delay)\\s*\\(\\s*[0-9]{3,}" }
+
+  - id: TEST-15
+    severity: P3
+    title: เทสที่ถูก skip
+    detect: { kind: regex, glob: "**/*.{test,spec}.{ts,tsx,js}", pattern: "\\b(it|test|describe)\\.(skip|todo)\\b|\\[Ignore\\]" }
+
+  - id: AI-13
+    severity: P1
+    title: คอมมิตที่แก้บั๊กพร้อมลบเทส
+    detect: { kind: cmd, run: "git diff --stat origin/main... -- '**/*.test.*' '**/*.spec.*'" }
+    condition: "มีบรรทัดเทสถูกลบในคอมมิตที่ประเภทเป็น fix"
+
+  # ---------- frontend ----------
+  - id: FE-07
+    severity: P1
+    title: endpoint ที่ไม่ validate ด้วย schema
+    detect: { kind: regex, glob: "**/routes/**/*.ts", pattern: "(?s)\\.(post|put|patch)\\((?:(?!zValidator|parse\\(|safeParse).)*?\\)" }
+
+  - id: FE-14
+    severity: P3
+    title: console.log ค้าง
+    detect: { kind: regex, glob: "src/**/*.{ts,tsx,js}", pattern: "console\\.(log|debug|dir)\\(" }
+
+  - id: FE-13
+    severity: P3
+    title: import ไลบรารีทั้งก้อน
+    detect: { kind: regex, glob: "**/*.{ts,tsx,js}", pattern: "from\\s+['\"](lodash|moment|rxjs)['\"]" }
+
+  # ---------- SSOT / วง C: สร้าง C แล้วต้องลบ A,B ----------
+  - id: SSOT-01
+    severity: P1
+    title: สร้าง C แล้วไม่ลบ A/B
+    detect: { kind: cmd, run: "nohell consolidation-check" }
+    condition: >
+      PR ที่เพิ่มไฟล์/SP ใหม่ซึ่งมีชื่อหรือ dependency ทับกับของเดิม
+      ต้องมี id ใน CONSOLIDATIONS.yaml ที่อ้างถึงของเดิมในรายการ remove
+    fix_hint: "เพิ่มบรรทัดในทะเบียน หรือลบของเดิมใน PR เดียวกันไปเลย"
+
+  - id: SSOT-02
+    severity: P1
+    title: ขึ้นสถานะ C2 โดยไม่มีหลักฐานความเท่ากัน
+    detect: { kind: cmd, run: "nohell consolidation-check --require equivalence_evidence --state C2,C3,C4" }
+
+  - id: SSOT-03
+    severity: P1
+    title: C ที่รับ flag ครอบทุกเคส (God SP ตัวใหม่)
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)@(Action|Mode|Type|Flag)\\w*\\s+\\w*(char|int)" }
+    threshold: { distinct_branch_values: 5 }
+
+  - id: SSOT-04
+    severity: P1
+    title: ไม่มีบัญชีผู้เรียกของ A/B
+    detect: { kind: cmd, run: "nohell consolidation-check --require callers_remaining" }
+    helper: { kind: sql, script: detect-sqlserver.sql, query: sp_call_graph }
+
+  - id: SSOT-07
+    severity: P2
+    title: งาน consolidation ที่บรรทัดสุทธิเพิ่ม
+    detect: { kind: cmd, run: "git diff --numstat origin/main... | awk '{a+=$1;d+=$2} END{print a-d}'" }
+    condition: "ใช้เฉพาะ PR ที่อ้าง id ของ CONSOLIDATIONS.yaml — ค่าต้องติดลบ"
+
+  - id: SSOT-10
+    severity: P1
+    title: วง C ค้างเกินกำหนด
+    detect: { kind: cmd, run: "nohell consolidation-check --expired" }
+    threshold: { max_days_in_C2: 30, max_days_total: 90 }
+
+  - id: SSOT-11
+    severity: P1
+    title: ยกเลิกแล้วทิ้ง C ไว้
+    detect: { kind: manual-checklist }
+    items: ["ถ้าถอนวง C ออกจากทะเบียน ต้องมีคอมมิตที่ลบ C ในรอบเดียวกัน"]
+
+  - id: SSOT-15
+    severity: P1
+    title: ทางเขียนของเดิมยังเปิดอยู่หลังประกาศ SSOT
+    detect: { kind: sql, script: detect-sqlserver.sql, query: duplicate_sp_dependencies }
+    condition: "ตารางที่ประกาศเป็นแหล่งเดียว ต้องมีผู้เขียนเพียงเส้นทางเดียว"
+
+  - id: SSOT-17
+    severity: P3
+    title: ชื่อที่บอกว่าเป็นเวอร์ชันใหม่
+    detect: { kind: regex, glob: "**/*.{sql,ts,tsx,cs}", pattern: "(?i)(_?v[2-9]\\b|_new\\b|_final\\b|_latest\\b|Copy(Of)?\\b)" }
+
+  # ---------- fitness function (วัดแนวโน้ม ไม่ใช่จุดเดียว) ----------
+  - id: LEG-15
+    severity: P2
+    title: fitness function — ห้ามแย่ลง
+    detect: { kind: cmd, run: "nohell metrics" }
+    metrics:
+      - { name: sp_count,            direction: non_increasing }
+      - { name: total_sql_loc,       direction: non_increasing }
+      - { name: max_sp_lines,        direction: non_increasing }
+      - { name: duplicate_sp_groups, direction: non_increasing }
+      - { name: any_count,           direction: non_increasing }
+      - { name: nolock_count,        direction: non_increasing }
+      - { name: todo_count,          direction: non_increasing }
+
+  # ---------- ข้อที่ตรวจอัตโนมัติไม่ได้ แต่บังคับผ่าน checklist ของ PR ----------
+  - id: PR-CHECKLIST
+    severity: P1
+    detect: { kind: manual-checklist }
+    items:
+      - "ARCH-08: rule ที่แก้ครั้งนี้ มีอยู่ที่อื่นในระบบหรือไม่ (ค้นก่อนตอบ)"
+      - "SQL-02: มี SP อื่นที่ทำเรื่องเดียวกันหรือไม่"
+      - "TXN-06: เส้นทางนี้รันซ้ำแล้วผลเหมือนเดิมหรือไม่"
+      - "ERR-15: ถ้าพัง จะตามจาก log ได้หรือไม่"
+      - "API-02: การเปลี่ยนแปลงนี้ทำให้ผู้ใช้เดิมพังหรือไม่"
+      - "LEG-02: มีตาข่าย (เทส/ข้อมูลจริง) ก่อนแตะโค้ดเก่าหรือไม่"
+      - "AI-06: business rule ในโค้ดนี้อ้างแหล่งได้หรือไม่ หรือเป็นการเดา"
+      - "AI-05: รันจริงจนจบเส้นทางแล้วหรือยัง"
+      - "TEAM-16: ก้อนนี้มีเจ้าของหรือไม่"
+      - "SSOT-01: PR นี้สร้างของใหม่ทับของเดิมหรือไม่ ถ้าใช่ ของเดิมจะถูกลบเมื่อไหร่ ใครลบ"
+      - "SSOT-02: พิสูจน์แล้วหรือยังว่าของที่จะรวมทำเรื่องเดียวกันจริง ไม่ใช่แค่หน้าตาเหมือน"
+      - "SSOT-13: ข้อมูลรวมเป็นแหล่งเดียวด้วยหรือยัง หรือรวมแค่โค้ด"
+      - "nohell-debt: ทางลัดที่ทิ้งไว้ถูกบันทึกหรือยัง"

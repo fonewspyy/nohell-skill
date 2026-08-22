@@ -1,0 +1,63 @@
+# ทะเบียนวง C — คัดลอกไฟล์นี้ไปไว้ที่รากของ repo เป้าหมายในชื่อ CONSOLIDATIONS.yaml
+#
+# กติกา: ทุกครั้งที่สร้าง "C" เพื่อแทน "A กับ B" ต้องมีบรรทัดที่นี่ก่อน merge
+# วงที่ปิดแล้ว (state: closed) ให้ลบออกจากไฟล์ — ทะเบียนนี้เก็บเฉพาะหนี้ที่ยังเดินอยู่
+#
+# state: C0 รู้ว่าซ้ำ | C1 พิสูจน์แล้วว่าเท่ากัน | C2 มี C แล้วแต่ A,B ยังทำงาน (อันตราย)
+#        C3 A,B เป็นเปลือก | C4 ย้ายผู้เรียกครบ | C5 ลบแล้ว | C6 ปิดประตูแล้ว
+
+defaults:
+  max_days_in_C2: 30          # อยู่สถานะ "มีสามที่" ได้ไม่เกินเท่านี้
+  max_days_total: 90          # เกินแล้วต้องเลือก: ลบให้จบ หรือยกเลิกแล้วลบ C
+  require_net_negative: true  # PR ที่ปิดวงต้องมีบรรทัดสุทธิติดลบ
+
+consolidations:
+
+  - id: SSOT-2026-001
+    what: การคำนวณยอดรวมพร้อมภาษีของเอกสารขาย
+    keep:   dbo.Sales_CalculateDocumentTotal          # = C
+    remove:                                            # = A, B, ...
+      - dbo.sp_CalcTotal_Order
+      - dbo.sp_CalcTotal_Invoice
+      - src/services/legacy/calcTotal.ts
+    owner: <ชื่อคนที่จะกดลบ>
+    state: C2
+    opened: 2026-08-22
+    delete_by: 2026-09-20
+    equivalence_evidence:                              # ด่าน C1 — ไม่มีอันนี้ห้ามขึ้น C2
+      method: shadow-run
+      note: เทียบผลกับเอกสารจริง 90 วันย้อนหลัง ต่างกัน 0 รายการจาก 41,208
+    callers_remaining:                                 # ตัวชี้ความคืบหน้าตัวเดียวที่นับได้
+      dbo.sp_CalcTotal_Order: 6
+      dbo.sp_CalcTotal_Invoice: 11
+      src/services/legacy/calcTotal.ts: 2
+    data_ssot:                                         # SSOT-13 — logic อย่างเดียวไม่พอ
+      status: pending
+      note: ยังอ่านทั้ง OrderSummary และ InvoiceSummary ต้องรวมเป็นตารางเดียวก่อนปิดวง
+    close_door:                                        # SSOT-18 — กันไม่ให้เกิด A ตัวใหม่
+      rule: เพิ่มกฎ regex ห้ามชื่อ SP ที่ขึ้นต้นด้วย sp_CalcTotal
+      status: pending
+
+  - id: SSOT-2026-002
+    what: การตรวจสิทธิ์ผู้ใช้ต่อคลังสินค้า
+    keep: dbo.Auth_UserWarehouseAccess
+    remove:
+      - dbo.sp_CheckUserWH
+      - dbo.fn_HasWarehouse
+    owner: <ชื่อ>
+    state: C1
+    opened: 2026-08-22
+    delete_by: 2026-10-15
+    equivalence_evidence:
+      method: decision-table
+      note: ต่างกันที่การจัดการผู้ใช้ที่ถูกระงับ — ยังไม่ยืนยันว่าอันไหนถูก ต้องถามเจ้าของกระบวนการก่อน
+    callers_remaining:
+      dbo.sp_CheckUserWH: 23
+      dbo.fn_HasWarehouse: 9
+
+# ตัวอย่างวงที่ตัดสินใจ "ไม่รวม" — บันทึกไว้กันคนมาเสนอซ้ำ (SSOT-14)
+declined:
+  - what: การคำนวณต้นทุนของใบรับเข้า กับ ของใบโอนย้าย
+    reason: หน้าตาเหมือนกันแต่เป็นคนละกฎทางบัญชี และเปลี่ยนคนละจังหวะ (AHA/WET)
+    decided: 2026-08-22
+    adr: docs/adr/0031-do-not-merge-costing-rules.md
