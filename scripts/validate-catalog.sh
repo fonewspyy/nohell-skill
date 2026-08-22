@@ -52,7 +52,7 @@ noprio=$(grep -E '^\| [A-Z]+-[0-9]+ \|' "$CATALOG" \
          | grep -oE '^\| [A-Z]+-[0-9]+' | sed 's/^| //' | tr '\n' ' ')
 [ -z "$noprio" ] || bad "ไม่มีระดับ P1/P2/P3: $noprio"
 
-# 6 — ทุกแถวต้องมีครบ 5 ช่อง และ "กฎแทน" ต้องไม่ว่าง
+# 6 — ทุกแถวต้องมีครบ 6 ช่อง และ "กฎแทน" กับ "ใช้กับ" ต้องไม่ว่าง
 #     ในเนื้อความมี pipe ที่ escape ไว้ (\|) ซึ่งไม่ใช่ตัวแบ่งช่อง ต้องตัดทิ้งก่อนนับ
 #     ใช้ index() ไม่ใช้ regex เพราะ [\] ใน gawk ไปจับ pipe ที่ไม่ได้ escape ด้วย
 thin=$(awk '
@@ -66,7 +66,8 @@ thin=$(awk '
     out = out rest
     n = split(out, f, "|")
     gsub(/^[ \t]+|[ \t]+$/, "", f[6])
-    if (n != 7 || f[6] == "") { gsub(/^[ \t]+|[ \t]+$/, "", f[2]); printf "%s ", f[2] }
+    gsub(/^[ \t]+|[ \t]+$/, "", f[7])
+    if (n != 8 || f[6] == "" || f[7] == "") { gsub(/^[ \t]+|[ \t]+$/, "", f[2]); printf "%s ", f[2] }
   }' "$CATALOG")
 [ -z "$thin" ] || bad "แถวไม่ครบช่อง หรือไม่มี 'กฎแทน': $thin"
 
@@ -123,6 +124,24 @@ if [ -f "$skillmd" ]; then
     fi
   fi
 fi
+
+# 11 — ค่าในช่อง "ใช้กับ" ต้องอยู่ในชุดที่อนุญาต ไม่งั้น router กรองตาม stack ไม่ได้
+badstack=$(awk -v ok="|ทุกที่|RDBMS|SQL Server|มี SP|TS/JS|.NET|เว็บ|" '
+  /^\| [A-Z]+-[0-9]+ \|/ {
+    out = ""; rest = $0
+    bs = sprintf("%c", 92)
+    while ((at = index(rest, bs "|")) > 0) {
+      out = out substr(rest, 1, at - 1)
+      rest = substr(rest, at + 2)
+    }
+    out = out rest
+    n = split(out, f, "|")
+    if (n == 8) {
+      v = f[7]; gsub(/^[ \t]+|[ \t]+$/, "", v)
+      if (index(ok, "|" v "|") == 0) { gsub(/^[ \t]+|[ \t]+$/, "", f[2]); printf "%s(%s) ", f[2], v }
+    }
+  }' "$CATALOG")
+[ -z "$badstack" ] || bad "ช่อง 'ใช้กับ' มีค่าที่ไม่อยู่ในชุดที่อนุญาต: $badstack"
 
 if [ "$fail" -eq 0 ]; then
   p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")

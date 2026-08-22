@@ -15,7 +15,11 @@ gate:
   # แล้วคนจะปิด gate ทิ้ง — gate ที่ถูกปิดมีค่าเท่ากับไม่มี
   mode: ratchet              # ratchet = เทียบกับ baseline · absolute = นับทุก hit (ใช้กับ greenfield เท่านั้น)
   baseline: .nohell-baseline.json   # รันครั้งแรกเพื่อบันทึกจำนวนปัจจุบัน แล้ว commit ไฟล์นี้
-  block_on: [P1]             # ใน ratchet mode = block เมื่อจำนวนเพิ่มจาก baseline
+  compare: per_rule          # ต้องเทียบแยกรายกฎ ห้ามเทียบยอดรวม
+  # ยอดรวมตัวเดียวทำให้ของใหม่ซ่อนหลังของเก่าที่ถูกลบได้:
+  # ลบ NOLOCK 50 จุดแล้วเพิ่ม SQL injection 3 จุด ยอดรวมลดลง gate ผ่านฉลุย
+  # (บทเรียนจาก repo จริงที่ทำ ratchet มาก่อน แล้วเขียนไว้ว่าเจอรูนี้มาแล้ว)
+  block_on: [P1]             # ใน ratchet mode = block เมื่อ "กฎใดกฎหนึ่ง" มีจำนวนเพิ่มจาก baseline
   warn_on: [P2]
   report_on: [P3]
   always_block: []           # ID ที่ block ทันทีแม้ยังไม่เกิน baseline (ใส่เองตามความพร้อมของทีม)

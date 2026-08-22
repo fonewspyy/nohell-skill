@@ -117,6 +117,12 @@ against an existing codebase produces thousands of P1 hits on day one (measured:
 across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
 **don't add more**, not **don't have any**.
 
+**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (80%) are
+stack-independent, the rest are tagged `RDBMS` (49), `SQL Server` (13), `มี SP` / stored-procedure shops (7),
+`เว็บ` / web (17), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
+`SQL` entries did not apply at all and nothing in the file said so. Filter before you read — a Python +
+PostgreSQL shop reads 407 of 447 and skips the other 40.
+
 **3. Regex is the first pass, not the verdict.** Several rules over-match deliberately (`SQL-31` flags every
 `@iJson nvarchar(max)`), per the philosophy stated at the top of the rules file: a false positive is cheaper
 than a false negative. Output is meant to be read by a person or an agent, not blocked on directly.
