@@ -63,15 +63,11 @@ sh scripts/validate-catalog.sh
 |---|---|
 | หมวด `MOBILE` | offline/sync/scanner/duplicate submit บนเน็ตโรงงาน — ตอนนี้ไม่มีหมวดไหนรับ |
 | หมวด `AI-ML` | dataset, leakage, preprocessing parity, threshold, drift |
-| หมวด `INFRA` | container, reverse proxy, TLS, backup/DR |
+| หมวด `INFRA` | container, reverse proxy, TLS, backup/DR — คนละเรื่องกับ `TOOL` ที่พูดถึงค่าเริ่มต้นของเครื่องมือ |
 | หมวด `NET` | connection pool, keep-alive, proxy timeout, backpressure — ตอนนี้กระจายอยู่ใน `ERR`/`PERF` |
-| กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 68 จาก 401 ข้อ ที่เหลือยังต้องใช้คนอ่าน |
+| กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 68 จาก 447 ข้อ — หมวดใหม่ทั้งห้า (`TYPE` `AGG` `MEAS` `REG` `TOOL`) ยังไม่มีกฎอัตโนมัติเลยสักข้อ |
 | ตัวสแกนฐานข้อมูลอื่น | `detect-sqlserver.sql` มีแล้ว ยังไม่มีของ PostgreSQL / MySQL |
 | ตัวรัน `hell-rules.yaml` | ตอนนี้เป็นสเปกอย่างเดียว ยังไม่มีโปรแกรมที่อ่านแล้วรันจริง (ต้องรองรับ `engine: pcre2`, `exclude:`, `allow_comment:` และ `gate.mode: ratchet`) |
-| หมวด `MEAS` | เครื่องมือวัดที่ตั้งค่าไม่เหมือน production แล้วให้ผลที่เชื่อไม่ได้ — เช่น รันด้วย client ที่ `QUOTED_IDENTIFIER` ต่างจากของจริง หรือสถิติที่ถูกล้างเมื่อ object ถูก `ALTER` |
-| หมวด `AGG` | `MAX()`/`TOP 1` บนเซ็ตที่มีแถวคนละชนิดปนกัน หรือมีหลายเจ้าของต่อหนึ่งคีย์ธุรกิจ — `DATA-14` ใกล้สุดแต่พูดเรื่องคอลัมน์ ไม่ใช่ aggregate |
-| หมวด `TYPE` | type inference ในเลขคณิต เช่น `POWER()` ใน T-SQL คืนชนิดตาม argument ตัวแรก ทำให้เงินผิดเงียบทั้งตาราง |
-| หมวด `REG` | allowlist/registry สองชั้นที่เดินจากกัน — เพิ่ม route/permission ที่ชั้นหนึ่งแต่ลืมอีกชั้น แล้วพังก่อนถึง handler |
 
 ## ลิขสิทธิ์
 

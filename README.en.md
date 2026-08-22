@@ -11,7 +11,7 @@ The problem isn't that agents can't write code. The problem is that agents **sta
 skills/
 ├── principal-engineer/   ← always enter here: Impact Map, Ask Gate, router
 ├── kickoff/              ← starting something new: the agent drives, phase by phase
-├── nohell/               ← 401-entry anti-pattern catalog + machine-checkable rules + a DB scanner
+├── nohell/               ← 447-entry anti-pattern catalog + machine-checkable rules + a DB scanner
 │   └── commands/nohell-dig.md   ← mine repo history for the hells that actually hurt
 ├── business-rules/       ← rule ownership, effective dates, read/write symmetry, workflow, money
 ├── archaeology/          ← evidence levels, caller inventory, finding rule copies by shape
@@ -79,10 +79,10 @@ These belong in the **target repo**, not here:
 
 ## The catalog
 
-401 entries across 23 categories. Every entry is one row:
+447 entries across 28 categories. Every entry is one row:
 `ID | priority | the hell | what you'll see in the wild | the enforceable rule that replaces it`.
 
-`ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE`
+`ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE` `TYPE` `AGG` `MEAS` `REG` `TOOL`
 
 **P1** wrong data / outage / leak · **P2** unmaintainable long-term · **P3** makes life worse
 
@@ -98,9 +98,10 @@ header count · per-category counts · duplicate IDs · numbering gaps · missin
 
 ```sh
 sh scripts/validate-catalog.sh
+python scripts/build-summary.py --check   # does the summary table still match reality?
 ```
 
-CI runs the same script on every push.
+CI runs both on every push. The summary table at the end of `HELL-CATALOG.md` is generated, not hand-maintained — it had silently lost an entire 18-entry category before that was enforced.
 
 ## Known limitations — read before wiring this into CI
 
@@ -111,7 +112,7 @@ Rust regex (plain `rg`) and `grep -E` **reject them outright**. If your runner s
 silent and passes everything — worse than having no gate. Run them with `rg -P`; they declare `engine: pcre2`
 and the validator enforces that they keep doing so.
 
-**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 215 of 401 entries are P1. Turning on absolute mode
+**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 215 of 447 entries are P1. Turning on absolute mode
 against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits
 across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
 **don't add more**, not **don't have any**.
@@ -138,7 +139,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Because that would be **`SSOT-01` committed against ourselves**: creating C (a new skill) without deleting A (the existing catalog category), until the SQL rules live in two places and drift apart.
 
-The catalog is already split by domain across 23 categories. What was missing was *knowing which category this task needs* — and that's the router in `principal-engineer`, not another folder.
+The catalog is already split by domain across 28 categories. What was missing was *knowing which category this task needs* — and that's the router in `principal-engineer`, not another folder.
 
 A new skill is only justified when it carries a **process** the catalog can't express. `business-rules`, `archaeology`, `kickoff`, and `conventions` clear that bar. "frontend" doesn't — it's a list of things not to do, which is exactly what the catalog is for.
 

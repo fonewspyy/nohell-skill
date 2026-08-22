@@ -11,3 +11,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: ตรวจว่าแคตตาล็อกสอดคล้องกับตัวเอง
         run: sh scripts/validate-catalog.sh
+      - name: ตรวจว่าตารางสรุปตรงกับข้อมูลจริง
+        run: python3 scripts/build-summary.py --check

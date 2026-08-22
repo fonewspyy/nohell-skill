@@ -108,11 +108,12 @@ rules:
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)CREATE\\s+(OR\\s+ALTER\\s+)?PROCEDURE\\s+(\\[?dbo\\]?\\.)?\\[?sp_" }
 
   - id: SQL-29
-    severity: P1
+    severity: P2
     title: ฟิลด์ใน JSON payload ที่เปลี่ยนพฤติกรรมของ SP
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)\"(action|actionType|mode|command|cmd|operation|op)\"\\s*:\\s*\"" }
     also:   { kind: regex, glob: "**/*.sql", pattern: "(?i)JSON_VALUE\\s*\\(\\s*@\\w+\\s*,\\s*'\\$\\.(action|mode|command|cmd|op)" }
-    note: payload พาข้อมูลได้ ห้ามพาคำสั่ง — คือ @ActionType (SQL-01) ที่ย้ายไปซ่อนในที่ที่ linter มองไม่เห็น
+    note: >
+      payload พาข้อมูลได้ ห้ามพาคำสั่ง — — คือ @ActionType (SQL-01) ที่ย้ายไปซ่อนในที่ที่ linter มองไม่เห็น
     allow_comment: "nohell-allow: SQL-29"
 
   - id: SQL-30

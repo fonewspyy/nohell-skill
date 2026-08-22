@@ -1,7 +1,7 @@
 ---
 name: nohell
 description: >
-  แคตตาล็อก anti-pattern ระดับ enterprise (401 ข้อ) + กฎบังคับ.
+  แคตตาล็อก anti-pattern ระดับ enterprise (447 ข้อ) + กฎบังคับ.
   ใช้เมื่อจะเขียน/รีวิว/รีแฟกเตอร์โค้ดหรือ stored procedure ในระบบงานจริง
   เพื่อกันไม่ให้เกิด spaghetti, duplicated logic, God SP, silent data corruption.
   คู่กับ ponytail: ponytail คุมว่า "อย่าเขียนเกิน", nohell คุมว่า "อย่าเขียนแบบที่จะกลายเป็นนรก".
@@ -93,7 +93,7 @@ C6  ปิดประตู: มีกฎตรวจไม่ให้มี�
 ```
 nohell/
 ├── SKILL.md              ← ไฟล์นี้ (โหลดตลอด, ~3–4k tokens)
-├── HELL-CATALOG.md       ← 401 ข้อ 23 หมวด (โหลดตามหมวดเวลา audit)
+├── HELL-CATALOG.md       ← 447 ข้อ 28 หมวด (โหลดตามหมวดเวลา audit)
 ├── hell-rules.yaml       ← ชุดที่ตรวจอัตโนมัติได้ + คำสั่งตรวจ
 ├── detect-sqlserver.sql  ← สคริปต์สแกน SQL Server (God SP, dup logic, schema smell)
 └── CONSOLIDATIONS.example.yaml ← เทมเพลตทะเบียนวง C (คัดลอกไปไว้ที่ราก repo เป้าหมาย)
@@ -106,6 +106,7 @@ nohell/
 `OBS` log/observability · `SEC` security · `CFG` config/secret · `SHIP` build/deploy/migration ·
 `TEST` การทดสอบ · `PERF` performance · `INT` integration/messaging · `JOB` batch/scheduler ·
 `TIME` วันเวลา/เงิน/ภาษา · `FILE` ไฟล์/รายงาน · `SSOT` การรวมและการลบของเดิม · `LEG` legacy/refactor · `TEAM` คน/กระบวนการ ·
-`AI` โค้ดที่ agent สร้าง · `FE` frontend
+`AI` โค้ดที่ agent สร้าง · `FE` frontend · `TYPE` ชนิดข้อมูล/การแปลงโดยปริยาย · `AGG` การรวมยอด · `MEAS` การวัดที่เชื่อไม่ได้ ·
+`REG` ทะเบียนที่ต้องอัปเดตพร้อมกัน · `TOOL` ค่าเริ่มต้นของเครื่องมือ
 
 ระดับ: **P1** = ทำให้ข้อมูลผิด/ระบบล่ม/ข้อมูลรั่ว · **P2** = ทำให้แก้ไม่ไหวในระยะยาว · **P3** = ทำให้ชีวิตแย่ลง
