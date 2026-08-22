@@ -3,13 +3,24 @@
 # ข้อที่ไม่อยู่ในไฟล์นี้ = ต้องใช้คนหรือ agent อ่าน (ดู HELL-CATALOG.md)
 #
 # detect.kind: regex | grep | sql | cmd | manual-checklist
+# engine: pcre2  = pattern ใช้ lookahead/lookbehind ต้องรันด้วย `rg -P` หรือ PCRE2 เท่านั้น
+#                  บน Rust regex (rg ปกติ) หรือ grep -E จะ parse error — ถ้าตัวรันกลืน error
+#                  gate จะเงียบแล้วผ่านทุกอย่าง ซึ่งแย่กว่าไม่มี gate
 # ทุก regex ตั้งใจให้ over-match ไว้ก่อน แล้วใช้ allow เพื่อยกเว้น — false positive ถูกกว่า false negative
 
 version: 1
 gate:
-  block_on: [P1]
+  # brownfield: ห้าม "เพิ่ม" ไม่ใช่ห้าม "มี"
+  # เปิด absolute วันแรกบน repo เก่าจะได้ P1 หลักพัน (ทดสอบจริง: NOLOCK ตัวเดียว 6,355 hit)
+  # แล้วคนจะปิด gate ทิ้ง — gate ที่ถูกปิดมีค่าเท่ากับไม่มี
+  mode: ratchet              # ratchet = เทียบกับ baseline · absolute = นับทุก hit (ใช้กับ greenfield เท่านั้น)
+  baseline: .nohell-baseline.json   # รันครั้งแรกเพื่อบันทึกจำนวนปัจจุบัน แล้ว commit ไฟล์นี้
+  block_on: [P1]             # ใน ratchet mode = block เมื่อจำนวนเพิ่มจาก baseline
   warn_on: [P2]
   report_on: [P3]
+  always_block: []           # ID ที่ block ทันทีแม้ยังไม่เกิน baseline (ใส่เองตามความพร้อมของทีม)
+  # ตัวชี้วัดที่ต้องไม่แย่ลงอยู่ใน LEG-15 (nolock_count, any_count, todo_count, ...)
+  # ratchet mode คือการต่อ LEG-15 เข้ากับ gate ให้เป็นกลไกเดียวกัน
 
 rules:
 
@@ -60,6 +71,7 @@ rules:
     severity: P1
     title: CATCH ที่กลืน error
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)BEGIN\\s+CATCH(?:(?!THROW|RAISERROR).)*?END\\s+CATCH" }
+    engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: SQL-17
     severity: P1
@@ -74,7 +86,11 @@ rules:
   - id: SQL-20
     severity: P2
     title: debug code ค้างใน SP
-    detect: { kind: regex, glob: "**/*.sql", pattern: "(?im)^\\s*(PRINT\\b|SELECT\\s+\\*\\s+FROM\\s+#|IF\\s+@Debug)" }
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?im)^\\s*(PRINT\\s+(@|CAST\\(|CONVERT\\(|CONCAT\\()|SELECT\\s+\\*\\s+FROM\\s+#|IF\\s+@Debug)" }
+    note: >
+      PRINT ที่ตามด้วย string literal คงที่ (deploy footer / operator log) ไม่ใช่ debug code
+      จับเฉพาะ PRINT ที่พ่นค่าตัวแปรหรือนิพจน์ออกมา
+    allow_comment: "nohell-allow: SQL-20"
 
   - id: SQL-23
     severity: P1
@@ -105,6 +121,7 @@ rules:
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)OPENJSON\\s*\\((?:[^()]|\\([^()]*\\))*\\)(?!\\s*(?:AS\\s+\\w+\\s*)?WITH\\s*\\()" }
     note: ไม่มี WITH = ทุกค่าเป็น nvarchar(4000) แล้วเกิด implicit conversion ตอน join (SQL-11)
     allow_comment: "nohell-allow: SQL-30"
+    engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: SQL-31
     severity: P1
@@ -166,14 +183,17 @@ rules:
   - id: CODE-18
     severity: P3
     title: TODO ไร้เจ้าของ
-    detect: { kind: regex, glob: "**/*", pattern: "(?i)(TODO|FIXME|HACK)(?!\\()" }
+    detect: { kind: regex, glob: "**/*", pattern: "(?i)(TODO|FIXME|HACK)[: ]" }
     fix_hint: "รูปแบบที่ยอมรับ: TODO(ชื่อ, YYYY-MM-DD): เหตุผล"
+    exclude: ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**", "**/vendor/**", "**/*.lock", "**/*-lock.json"]
+    note: ไม่ยกเว้น node_modules แล้วตัวเลขจะเป็นหลักพันจากโค้ดที่ไม่ใช่ของเรา
 
   - id: CODE-20
     severity: P1
     title: any / dynamic
-    detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "(?<![\\w.])any(?![\\w])" }
+    detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "(?i)(:\\s*any\\b|<any>|as\\s+any\\b|any\\[\\]|Array<any>|Promise<any>|Record<[^>]*,\\s*any>|\\(\\w+:\\s*any[,)])" }
     allow_comment: "nohell-allow: CODE-20"
+    note: ผูกกับตำแหน่ง type เท่านั้น ไม่จับคำว่า any ในประโยคภาษาอังกฤษ
 
   - id: CODE-21
     severity: P1
@@ -205,6 +225,7 @@ rules:
     severity: P1
     title: HTTP call ไม่มี timeout
     detect: { kind: regex, glob: "**/*.{ts,tsx,js}", pattern: "(?<!AbortSignal\\.)fetch\\s*\\([^)]*\\)(?![^;]{0,120}signal)" }
+    engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: PERF-09
     severity: P1
@@ -257,6 +278,7 @@ rules:
     severity: P2
     title: hard-code URL/IP
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(https?://(?!localhost)[\\w.-]+|\\b\\d{1,3}(\\.\\d{1,3}){3}\\b)" }
+    engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: CFG-04
     severity: P2
@@ -272,6 +294,7 @@ rules:
     severity: P1
     title: migration ที่ไม่ idempotent
     detect: { kind: regex, glob: "migrations/**/*.sql", pattern: "(?i)^(?!.*IF\\s+(NOT\\s+)?EXISTS).*\\b(CREATE|ALTER|DROP)\\s+(TABLE|INDEX|PROCEDURE|VIEW)" }
+    engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: SHIP-15
     severity: P1
@@ -311,6 +334,7 @@ rules:
     severity: P1
     title: endpoint ที่ไม่ validate ด้วย schema
     detect: { kind: regex, glob: "**/routes/**/*.ts", pattern: "(?s)\\.(post|put|patch)\\((?:(?!zValidator|parse\\(|safeParse).)*?\\)" }
+    engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: FE-14
     severity: P3
@@ -376,7 +400,9 @@ rules:
   - id: SSOT-17
     severity: P3
     title: ชื่อที่บอกว่าเป็นเวอร์ชันใหม่
-    detect: { kind: regex, glob: "**/*.{sql,ts,tsx,cs}", pattern: "(?i)(_?v[2-9]\\b|_new\\b|_final\\b|_latest\\b|Copy(Of)?\\b)" }
+    detect: { kind: regex, glob: "**/*.{sql,ts,tsx,cs}", pattern: "(?i)(CREATE|ALTER)\\s+(OR\\s+ALTER\\s+)?(PROCEDURE|PROC|VIEW|FUNCTION|TABLE)\\s+[\\w\\[.\\]]*(_?v[2-9]|_new|_final|_latest|_copy|copyof)\\b" }
+    also:   { kind: regex, glob: "**/*.{ts,tsx,cs}", pattern: "(?i)(class|interface|type|enum)\\s+\\w*(V[2-9]|_new|_final|_latest|Copy)\\b" }
+    note: ผูกกับจุดที่ตั้งชื่อ object ใหม่ ไม่จับ #temp/CTE ชื่อ _FINAL/_LATEST ซึ่งเป็นชื่อ stage ไม่ใช่เวอร์ชัน
 
   # ---------- fitness function (วัดแนวโน้ม ไม่ใช่จุดเดียว) ----------
   - id: LEG-15

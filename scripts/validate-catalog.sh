@@ -96,6 +96,34 @@ if [ -f "$skillmd" ]; then
   [ -z "$wrongn" ] || bad "$skillmd เขียนจำนวนข้อผิด (จริง $total): $wrongn"
 fi
 
+# 9 — pattern ที่ใช้ lookahead/lookbehind ต้องประกาศ engine: pcre2
+#     ไม่งั้นตัวรันบน Rust regex/grep -E จะ parse error แล้ว gate เงียบ = ผ่านทุกอย่าง
+rules="$(dirname "$CATALOG")/hell-rules.yaml"
+if [ -f "$rules" ]; then
+  unmarked=$(awk '
+    /^  - id: / { if (id != "" && look && !pcre) printf "%s ", id; id = $3; look = 0; pcre = 0; next }
+    /engine: pcre2/ { pcre = 1 }
+    /pattern:/ {
+      if (index($0, "(?=") || index($0, "(?!") || index($0, "(?<")) look = 1
+    }
+    END { if (id != "" && look && !pcre) printf "%s ", id }
+  ' "$rules")
+  [ -z "$unmarked" ] || bad "pattern ใช้ lookaround แต่ไม่ได้ประกาศ engine: pcre2 — gate จะเงียบบน rg/grep ปกติ: $unmarked"
+fi
+
+# 10 — คำอ้างขนาด token ของไฟล์ที่ "โหลดตลอด" ต้องยังตรงกับขนาดจริง
+#      เนื้อหาผสมไทย/อังกฤษของ repo นี้ ≈ 3.4 ไบต์ต่อ token (วัดจากสัดส่วนอักขระไทย)
+if [ -f "$skillmd" ]; then
+  declared=$(grep -oE 'โหลดตลอด, ~[0-9]+–[0-9]+k' "$skillmd" | grep -oE '[0-9]+–[0-9]+')
+  if [ -n "$declared" ]; then
+    lo=${declared%%–*}; hi=${declared##*–}
+    est=$(( $(wc -c < "$skillmd") / 3400 ))
+    if [ "$est" -lt "$lo" ] || [ "$est" -gt "$hi" ]; then
+      bad "$skillmd อ้างว่า ~${lo}–${hi}k tokens แต่ประมาณจากขนาดไฟล์จริงได้ ~${est}k"
+    fi
+  fi
+fi
+
 if [ "$fail" -eq 0 ]; then
   p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")
   p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")

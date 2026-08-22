@@ -46,7 +46,7 @@ close the task using the same Impact Map as a checklist
 | skill | the question it answers | when it loads |
 |---|---|---|
 | principal-engineer | what will this touch, and what do I still not know | every task, always loaded |
-| nohell (SKILL.md) | will writing it this way become hell | every task, always loaded (~1k tokens) |
+| nohell (SKILL.md) | will writing it this way become hell | every task, always loaded (~3–4k tokens) |
 | nohell (HELL-CATALOG) | which specific hells live in this domain | only the categories the work touches, during review/audit |
 | business-rules | who owns this rule, and as of which date | anything touching money, stock, permissions, status, history |
 | archaeology | how does the system *actually* behave right now | before touching old code, before consolidating, whenever unsure |
@@ -91,15 +91,40 @@ These belong in the **target repo**, not here:
 
 ## Consistency check
 
-This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. The validator checks eight things:
+This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. The validator checks ten things:
 header count · per-category counts · duplicate IDs · numbering gaps · missing priorities · malformed rows ·
-**IDs referenced by a skill or doc that don't exist in the catalog** · **counts declared in other files that have drifted**
+**IDs referenced by a skill or doc that don't exist in the catalog** · **counts declared in other files that have drifted** ·
+**patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that no longer match the file**
 
 ```sh
 sh scripts/validate-catalog.sh
 ```
 
 CI runs the same script on every push.
+
+## Known limitations — read before wiring this into CI
+
+Field-tested against a real enterprise repo (389 SQL Server files + .NET + TypeScript). What that found:
+
+**1. Six rules require PCRE2.** `SQL-16`, `SQL-30`, `ERR-11`, `CFG-03`, `SHIP-05`, `FE-07` use lookaround.
+Rust regex (plain `rg`) and `grep -E` **reject them outright**. If your runner swallows that error, the gate goes
+silent and passes everything — worse than having no gate. Run them with `rg -P`; they declare `engine: pcre2`
+and the validator enforces that they keep doing so.
+
+**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 215 of 401 entries are P1. Turning on absolute mode
+against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits
+across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
+**don't add more**, not **don't have any**.
+
+**3. Regex is the first pass, not the verdict.** Several rules over-match deliberately (`SQL-31` flags every
+`@iJson nvarchar(max)`), per the philosophy stated at the top of the rules file: a false positive is cheaper
+than a false negative. Output is meant to be read by a person or an agent, not blocked on directly.
+
+**4. Recall against real bugs is ~42%.** Tested against 19 production bugs recorded in a real repo: 8 caught
+directly, 12 if partial matches count. The hits cluster in the money/SSOT categories — the surfaces that bleed
+most often. The misses cluster into named gaps with no category yet (measurement tools configured unlike prod ·
+aggregates over mixed-kind row sets · numeric type inference · two-layer registries drifting apart).
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## External skills used alongside
 

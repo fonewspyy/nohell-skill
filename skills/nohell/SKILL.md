@@ -92,7 +92,7 @@ C6  ปิดประตู: มีกฎตรวจไม่ให้มี�
 
 ```
 nohell/
-├── SKILL.md              ← ไฟล์นี้ (โหลดตลอด, ~1k tokens)
+├── SKILL.md              ← ไฟล์นี้ (โหลดตลอด, ~3–4k tokens)
 ├── HELL-CATALOG.md       ← 401 ข้อ 23 หมวด (โหลดตามหมวดเวลา audit)
 ├── hell-rules.yaml       ← ชุดที่ตรวจอัตโนมัติได้ + คำสั่งตรวจ
 ├── detect-sqlserver.sql  ← สคริปต์สแกน SQL Server (God SP, dup logic, schema smell)
