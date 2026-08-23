@@ -183,7 +183,11 @@ rules:
   - id: CODE-07
     severity: P3
     title: commented-out code
-    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js,sql}", pattern: "(?m)^\\s*(//|--)\\s*(if|for|while|return|const|let|var|SELECT|UPDATE|INSERT)\\b" }
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js,sql}", pattern: "(?m)^\\s*(//|#)\\s*(if\\s*\\(|for\\s*\\(|while\\s*\\(|switch\\s*\\(|return\\s+[\\w\"'\\[\\{\\(]|(const|let|var)\\s+\\w+\\s*=|\\w+(\\.\\w+)+\\s*\\(|await\\s+\\w+).*[;{:]\\s*$" }
+    note: >
+      ต้องมีไวยากรณ์ของโค้ดจริงตามหลังเครื่องหมายคอมเมนต์ ไม่ใช่แค่คำแรกเป็นคีย์เวิร์ด
+      ประโยคอังกฤษขึ้นต้นด้วย for/let/return เป็นเรื่องปกติ
+      ตัด SQL ออกจาก pattern ทั้งหมดเพราะ SQL-21 รับหน้าที่ commented-out block ของ SQL อยู่แล้ว
 
   - id: CODE-18
     severity: P3
@@ -199,11 +203,6 @@ rules:
     detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "(?i)(:\\s*any\\b|<any>|as\\s+any\\b|any\\[\\]|Array<any>|Promise<any>|Record<[^>]*,\\s*any>|\\(\\w+:\\s*any[,)])" }
     allow_comment: "nohell-allow: CODE-20"
     note: ผูกกับตำแหน่ง type เท่านั้น ไม่จับคำว่า any ในประโยคภาษาอังกฤษ
-
-  - id: CODE-21
-    severity: P1
-    title: as any
-    detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "as\\s+any\\b" }
 
   - id: CODE-02
     severity: P2
@@ -241,7 +240,12 @@ rules:
   - id: SEC-01
     severity: P1
     title: SQL injection จากการต่อสตริง
-    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(SELECT|INSERT|UPDATE|DELETE)[^\"'`\\n]{0,80}(\\+\\s*\\w+|\\$\\{|\\bformat\\()" }
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)\\b(INSERT\\s+INTO\\b|DELETE\\s+FROM\\b|UPDATE\\s+[\\w.\\[\\]]+\\s+SET\\b|SELECT\\b[^;]{0,200}?\\bFROM\\b)[^;]{0,200}?(\\$\\{|\\+\\s*\\w+|\\bformat\\()" }
+    note: >
+      บังคับให้ต้องมีรูปร่างของคำสั่ง SQL จริง (INSERT INTO / DELETE FROM / UPDATE x SET / SELECT..FROM)
+      ไม่ใช่แค่มีคำว่า select-insert-update-delete โผล่ในข้อความ
+      วัดบน repo จริง: pattern เดิมให้ 221 hit โดยเป็นช่องโหว่จริง 0 เพราะคำว่า "Inserted" และ "selection"
+      ถูกนับเป็น SQL keyword
 
   - id: SEC-02
     severity: P1
@@ -282,8 +286,12 @@ rules:
   - id: CFG-03
     severity: P2
     title: hard-code URL/IP
-    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(https?://(?!localhost)[\\w.-]+|\\b\\d{1,3}(\\.\\d{1,3}){3}\\b)" }
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)https?://(?![^/\\s\"']*(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]|example\\.(com|org|net)|schema\\.org|nextjs\\.org|w3\\.org|[\\w.-]+\\.(invalid|test|example|localhost))\\b)[\\w.-]+|\\b(?!127\\.0\\.0\\.1\\b|0\\.0\\.0\\.0\\b|255\\.255\\.255\\.255\\b|192\\.0\\.2\\.\\d|198\\.51\\.100\\.\\d|203\\.0\\.113\\.\\d)\\d{1,3}(\\.\\d{1,3}){3}\\b" }
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
+    exclude: ['**/__tests__/**', '**/*.test.*', '**/*.spec.*', '**/*.d.ts', '**/generated/**', '**/*.gen.ts', '**/*.openapi.ts']
+    note: >
+      ยกเว้น loopback โดเมนตัวอย่าง และช่วง IP สำหรับเอกสารตาม RFC 5737
+      และไม่สแกนไฟล์เทสกับไฟล์ที่ generate เพราะ URL/IP ในนั้นคือ fixture ไม่ใช่คอนฟิก
 
   - id: CFG-04
     severity: P2

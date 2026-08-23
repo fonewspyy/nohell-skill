@@ -55,8 +55,11 @@ close the task using the same Impact Map as a checklist
 
 ## Install
 
+**Always install from a tag; never track `main`.** Rules change between releases — if your agent reads
+`main`, its behaviour shifts mid-sprint with no record of why. See [CHANGELOG.md](CHANGELOG.md).
+
 ```sh
-git clone https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v0.9.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 # or scoped to one project
 cp -r nohell-skill/skills/* .claude/skills/
@@ -123,7 +126,13 @@ stack-independent, the rest are tagged `RDBMS` (49), `SQL Server` (13), `มี 
 `SQL` entries did not apply at all and nothing in the file said so. Filter before you read — a Python +
 PostgreSQL shop reads 407 of 447 and skips the other 40.
 
-**3. Regex is the first pass, not the verdict.** Several rules over-match deliberately (`SQL-31` flags every
+**3. The automated layer is triage, not a gate.** Measured on a real codebase (MySQL + TS, 1,413 files):
+P1 rules pointed at 473 of 1,413 files (33%), which contained 16 of the 18 files with real bugs —
+**a lift of only 2.66x over random**. It caught **0 of the 21 verified bugs**, because every one of them was
+semantic. What actually works is the **catalog as a lens a person or agent reads**: 71% recall
+(86% counting partial matches). Use the regex layer to decide which files to read first, not to block.
+
+**3b. Regex is the first pass, not the verdict.** Several rules over-match deliberately (`SQL-31` flags every
 `@iJson nvarchar(max)`), per the philosophy stated at the top of the rules file: a false positive is cheaper
 than a false negative. Output is meant to be read by a person or an agent, not blocked on directly.
 

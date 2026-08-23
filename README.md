@@ -82,8 +82,11 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 
 ## ติดตั้ง
 
+**ติดตั้งด้วย tag เสมอ ห้าม track `main`** — กฎในแคตตาล็อกเปลี่ยนได้ระหว่างทาง ถ้า agent อ่านจาก `main`
+พฤติกรรมจะเปลี่ยนกลาง sprint โดยไม่มีใครรู้ว่าทำไมผลไม่เหมือนเมื่อวาน (ดู [CHANGELOG.md](CHANGELOG.md))
+
 ```sh
-git clone https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v0.9.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
 # หรือเฉพาะโปรเจกต์นี้
 cp -r nohell-skill/skills/* .claude/skills/
@@ -135,7 +138,13 @@ Rust regex (`rg` ปกติ) และ `grep -E` จะ **parse error** ถ้
 เพิ่มหลังทดสอบกับ repo MySQL แล้วพบว่า 17 จาก 31 ข้อในหมวด `SQL` ใช้ไม่ได้เลยโดยไม่มีอะไรบอกไว้
 กรองก่อนอ่านเสมอ — ร้าน Python + PostgreSQL อ่าน 407 ข้อ ข้ามอีก 40 ไปได้
 
-**3. regex คือด่านแรก ไม่ใช่คำตัดสิน** — หลายกฎ over-match โดยตั้งใจ (`SQL-31` จับทุก `@iJson nvarchar(max)`)
+**3. ชั้นอัตโนมัติคือ triage ไม่ใช่ gate** — วัดบน repo จริง (MySQL + TS, 1,413 ไฟล์):
+กฎ P1 ชี้ไป 473 จาก 1,413 ไฟล์ (33%) ซึ่งมีไฟล์ที่มีบั๊กจริงอยู่ 16 จาก 18 → **lift เหนือการสุ่มแค่ 2.66 เท่า**
+และ **จับบั๊กที่ verify แล้วทั้ง 21 ข้อได้ 0 ข้อ** เพราะทุกข้อเป็นบั๊กเชิงความหมายที่ regex เข้าไม่ถึง
+ส่วนที่ทำงานจริงคือ **เลนส์แคตตาล็อกที่คนหรือ agent อ่าน** — recall 71% (86% ถ้านับที่จับได้ครึ่งเดียว)
+ใช้ regex คัดว่าจะอ่านไฟล์ไหนก่อน ไม่ใช่ใช้ block
+
+**3b. regex คือด่านแรก ไม่ใช่คำตัดสิน** — หลายกฎ over-match โดยตั้งใจ (`SQL-31` จับทุก `@iJson nvarchar(max)`)
 ตามปรัชญาในหัวไฟล์: false positive ถูกกว่า false negative ผลที่ได้ต้องมีคนหรือ agent อ่านต่อ
 ไม่ใช่เอาไป block ตรงๆ
 
