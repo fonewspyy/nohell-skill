@@ -87,7 +87,11 @@ These belong in the **target repo**, not here:
 
 `ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE` `TYPE` `AGG` `MEAS` `REG` `TOOL`
 
-**P1** wrong data / outage / leak · **P2** unmaintainable long-term · **P3** makes life worse
+**P1** 136 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
+**P2** 154 — loud breakage (crash, error, hang) that recovers without touching historical data
+**P3** 157 — the cost of reading and maintaining
+
+All 447 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
 
 68 of the entries are machine-checkable and carry a detection command in `skills/nohell/hell-rules.yaml`;
 `skills/nohell/detect-sqlserver.sql` scans a live SQL Server and maps what it finds back to catalog IDs.

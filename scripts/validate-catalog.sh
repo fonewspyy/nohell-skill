@@ -143,6 +143,23 @@ badstack=$(awk -v ok="|ทุกที่|RDBMS|SQL Server|มี SP|TS/JS|.NET|
   }' "$CATALOG")
 [ -z "$badstack" ] || bad "ช่อง 'ใช้กับ' มีค่าที่ไม่อยู่ในชุดที่อนุญาต: $badstack"
 
+# 12 — severity ใน hell-rules.yaml ต้องเดินตามแคตตาล็อก ห้ามมีสองแหล่งที่ไม่ตรงกัน
+if [ -f "$rules" ]; then
+  sevmiss=$(awk '
+    FNR == NR {
+      if ($0 ~ /^\| [A-Z]+-[0-9]+ \| P[123] \|/) {
+        split($0, f, "|"); id = f[2]; sv = f[3]
+        gsub(/^[ 	]+|[ 	]+$/, "", id); gsub(/^[ 	]+|[ 	]+$/, "", sv)
+        cat[id] = sv
+      }
+      next
+    }
+    /^  - id: / { cur = $3; next }
+    /^    severity: / { if (cur != "" && cat[cur] != "" && cat[cur] != $2) printf "%s(กฎ %s/แคตตาล็อก %s) ", cur, $2, cat[cur]; cur = "" }
+  ' "$CATALOG" "$rules")
+  [ -z "$sevmiss" ] || bad "severity ใน hell-rules ไม่ตรงกับแคตตาล็อก: $sevmiss"
+fi
+
 if [ "$fail" -eq 0 ]; then
   p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")
   p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")

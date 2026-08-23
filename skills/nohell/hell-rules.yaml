@@ -30,7 +30,7 @@ rules:
 
   # ---------- SQL / T-SQL ----------
   - id: SQL-01
-    severity: P1
+    severity: P3
     title: God SP
     detect: { kind: sql, script: detect-sqlserver.sql, query: sp_size_ranking }
     threshold: { lines: 800, or_branches_on_action_param: 5 }
@@ -47,7 +47,7 @@ rules:
     allow_comment: "nohell-allow: SQL-04"
 
   - id: SQL-05
-    severity: P2
+    severity: P1
     title: SELECT * ใน SP/View
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)SELECT\\s+\\*\\s+FROM" }
 
@@ -57,12 +57,12 @@ rules:
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)\\bDECLARE\\s+\\w+\\s+CURSOR\\b" }
 
   - id: SQL-08
-    severity: P1
+    severity: P2
     title: scalar UDF ใน predicate
     detect: { kind: sql, script: detect-sqlserver.sql, query: scalar_udf_usage }
 
   - id: SQL-10
-    severity: P1
+    severity: P2
     title: non-SARGable predicate
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)WHERE[^\\n]*\\b(CONVERT|CAST|YEAR|MONTH|LEFT|SUBSTRING|ISNULL)\\s*\\(" }
 
@@ -72,18 +72,18 @@ rules:
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)(WITH\\s*\\(\\s*NOLOCK|READUNCOMMITTED)" }
 
   - id: SQL-16
-    severity: P1
+    severity: P2
     title: CATCH ที่กลืน error
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)BEGIN\\s+CATCH(?:(?!THROW|RAISERROR).)*?END\\s+CATCH" }
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: SQL-17
-    severity: P1
+    severity: P2
     title: ไม่มี XACT_ABORT ใน SP ที่มี transaction
     detect: { kind: sql, script: detect-sqlserver.sql, query: tx_without_xact_abort }
 
   - id: SQL-19
-    severity: P1
+    severity: P3
     title: magic status code
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)(Status|Type|Flag)\\w*\\s*(=|IN)\\s*\\(?\\s*'?\\d{1,2}'?" }
 
@@ -97,7 +97,7 @@ rules:
     allow_comment: "nohell-allow: SQL-20"
 
   - id: SQL-23
-    severity: P1
+    severity: P3
     title: DDL นอก migration
     detect: { kind: cmd, run: "git diff --name-only origin/main... | grep -E '\\.sql$' | grep -v '^migrations/'" }
 
@@ -121,7 +121,7 @@ rules:
     allow_comment: "nohell-allow: SQL-29"
 
   - id: SQL-30
-    severity: P1
+    severity: P2
     title: OPENJSON ที่ไม่มี WITH
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)OPENJSON\\s*\\((?:[^()]|\\([^()]*\\))*\\)(?!\\s*(?:AS\\s+\\w+\\s*)?WITH\\s*\\()" }
     note: ไม่มี WITH = ทุกค่าเป็น nvarchar(4000) แล้วเกิด implicit conversion ตอน join (SQL-11)
@@ -129,7 +129,7 @@ rules:
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: SQL-31
-    severity: P1
+    severity: P3
     title: JSON payload ที่ไม่มีสัญญาประกาศไว้
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)@\\w*[Jj]son\\w*\\s+nvarchar\\s*\\(\\s*max\\s*\\)" }
     note: >
@@ -159,12 +159,12 @@ rules:
     detect: { kind: sql, script: detect-sqlserver.sql, query: id_columns_without_fk }
 
   - id: DATA-19
-    severity: P1
+    severity: P2
     title: FK ที่ไม่มี index
     detect: { kind: sql, script: detect-sqlserver.sql, query: fk_without_index }
 
   - id: DATA-21
-    severity: P1
+    severity: P2
     title: int identity ใกล้ล้น
     detect: { kind: sql, script: detect-sqlserver.sql, query: identity_headroom }
     threshold: { used_percent: 70 }
@@ -176,7 +176,7 @@ rules:
 
   # ---------- โค้ดแอป ----------
   - id: CODE-04
-    severity: P1
+    severity: P3
     title: magic number ในเงื่อนไขธุรกิจ
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(status|state|type|code)\\s*[=!]==?\\s*[0-9]{1,3}\\b" }
 
@@ -198,20 +198,20 @@ rules:
     note: ไม่ยกเว้น node_modules แล้วตัวเลขจะเป็นหลักพันจากโค้ดที่ไม่ใช่ของเรา
 
   - id: CODE-20
-    severity: P1
+    severity: P2
     title: any / dynamic
     detect: { kind: regex, glob: "**/*.{ts,tsx}", pattern: "(?i)(:\\s*any\\b|<any>|as\\s+any\\b|any\\[\\]|Array<any>|Promise<any>|Record<[^>]*,\\s*any>|\\(\\w+:\\s*any[,)])" }
     allow_comment: "nohell-allow: CODE-20"
     note: ผูกกับตำแหน่ง type เท่านั้น ไม่จับคำว่า any ในประโยคภาษาอังกฤษ
 
   - id: CODE-02
-    severity: P2
+    severity: P3
     title: ฟังก์ชันยาวเกินไป
     detect: { kind: cmd, run: "npx eslint --rule '{\"max-lines-per-function\":[\"error\",120]}'" }
 
   # ---------- error / resilience ----------
   - id: ERR-01
-    severity: P1
+    severity: P2
     title: catch ว่างเปล่า
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}" }
 
@@ -221,18 +221,18 @@ rules:
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?s)catch\\s*\\([^)]*\\)\\s*\\{[^}]{0,200}?return\\s+(null|undefined|\\[\\]|0)\\s*;?[^}]{0,20}\\}" }
 
   - id: ERR-09
-    severity: P1
+    severity: P2
     title: retry ไม่จำกัดจำนวน
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)while\\s*\\(\\s*true\\s*\\)[^\\n]{0,80}\\n(?:.{0,300}?)(retry|fetch|axios|HttpClient)" }
 
   - id: ERR-11
-    severity: P1
+    severity: P2
     title: HTTP call ไม่มี timeout
     detect: { kind: regex, glob: "**/*.{ts,tsx,js}", pattern: "(?<!AbortSignal\\.)fetch\\s*\\([^)]*\\)(?![^;]{0,120}signal)" }
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: PERF-09
-    severity: P1
+    severity: P2
     title: block async
     detect: { kind: regex, glob: "**/*.cs", pattern: "\\.(Result|Wait\\(\\))\\b" }
 
@@ -279,12 +279,12 @@ rules:
 
   # ---------- config / ship ----------
   - id: CFG-02
-    severity: P1
+    severity: P2
     title: branch ตาม environment ในโค้ดธุรกิจ
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)(NODE_ENV|ASPNETCORE_ENVIRONMENT|env)\\s*[=!]==?\\s*[\"'](prod|production)[\"']" }
 
   - id: CFG-03
-    severity: P2
+    severity: P3
     title: hard-code URL/IP
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)https?://(?![^/\\s\"']*(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]|example\\.(com|org|net)|schema\\.org|nextjs\\.org|w3\\.org|[\\w.-]+\\.(invalid|test|example|localhost))\\b)[\\w.-]+|\\b(?!127\\.0\\.0\\.1\\b|0\\.0\\.0\\.0\\b|255\\.255\\.255\\.255\\b|192\\.0\\.2\\.\\d|198\\.51\\.100\\.\\d|203\\.0\\.113\\.\\d)\\d{1,3}(\\.\\d{1,3}){3}\\b" }
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
@@ -304,13 +304,13 @@ rules:
     detect: { kind: regex, glob: "**/*.{json,yaml,config,env}", pattern: "(?i)(debug\\s*[:=]\\s*true|EnableSensitiveDataLogging|AllowAnonymous\\s*[:=]\\s*true)" }
 
   - id: SHIP-05
-    severity: P1
+    severity: P2
     title: migration ที่ไม่ idempotent
     detect: { kind: regex, glob: "migrations/**/*.sql", pattern: "(?i)^(?!.*IF\\s+(NOT\\s+)?EXISTS).*\\b(CREATE|ALTER|DROP)\\s+(TABLE|INDEX|PROCEDURE|VIEW)" }
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: SHIP-15
-    severity: P1
+    severity: P2
     title: dependency ไม่ pin
     detect: { kind: regex, glob: "**/package.json", pattern: "\"[^\"]+\"\\s*:\\s*\"(\\*|latest|\\^?0\\.0\\.0)\"" }
 
@@ -322,7 +322,7 @@ rules:
 
   # ---------- test ----------
   - id: TEST-03
-    severity: P1
+    severity: P3
     title: flaky test
     detect: { kind: cmd, run: "npm test -- --runInBand --repeat 3" }
 
@@ -332,12 +332,12 @@ rules:
     detect: { kind: regex, glob: "**/*.{test,spec}.{ts,tsx,js}", pattern: "(setTimeout|sleep|Thread\\.Sleep|delay)\\s*\\(\\s*[0-9]{3,}" }
 
   - id: TEST-15
-    severity: P3
+    severity: P2
     title: เทสที่ถูก skip
     detect: { kind: regex, glob: "**/*.{test,spec}.{ts,tsx,js}", pattern: "\\b(it|test|describe)\\.(skip|todo)\\b|\\[Ignore\\]" }
 
   - id: AI-13
-    severity: P1
+    severity: P2
     title: คอมมิตที่แก้บั๊กพร้อมลบเทส
     detect: { kind: cmd, run: "git diff --stat origin/main... -- '**/*.test.*' '**/*.spec.*'" }
     condition: "มีบรรทัดเทสถูกลบในคอมมิตที่ประเภทเป็น fix"
@@ -350,7 +350,7 @@ rules:
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
 
   - id: FE-14
-    severity: P3
+    severity: P2
     title: console.log ค้าง
     detect: { kind: regex, glob: "src/**/*.{ts,tsx,js}", pattern: "console\\.(log|debug|dir)\\(" }
 
@@ -361,7 +361,7 @@ rules:
 
   # ---------- SSOT / วง C: สร้าง C แล้วต้องลบ A,B ----------
   - id: SSOT-01
-    severity: P1
+    severity: P3
     title: สร้าง C แล้วไม่ลบ A/B
     detect: { kind: cmd, run: "nohell consolidation-check" }
     condition: >
@@ -375,31 +375,31 @@ rules:
     detect: { kind: cmd, run: "nohell consolidation-check --require equivalence_evidence --state C2,C3,C4" }
 
   - id: SSOT-03
-    severity: P1
+    severity: P3
     title: C ที่รับ flag ครอบทุกเคส (God SP ตัวใหม่)
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)@(Action|Mode|Type|Flag)\\w*\\s+\\w*(char|int)" }
     threshold: { distinct_branch_values: 5 }
 
   - id: SSOT-04
-    severity: P1
+    severity: P3
     title: ไม่มีบัญชีผู้เรียกของ A/B
     detect: { kind: cmd, run: "nohell consolidation-check --require callers_remaining" }
     helper: { kind: sql, script: detect-sqlserver.sql, query: sp_call_graph }
 
   - id: SSOT-07
-    severity: P2
+    severity: P3
     title: งาน consolidation ที่บรรทัดสุทธิเพิ่ม
     detect: { kind: cmd, run: "git diff --numstat origin/main... | awk '{a+=$1;d+=$2} END{print a-d}'" }
     condition: "ใช้เฉพาะ PR ที่อ้าง id ของ CONSOLIDATIONS.yaml — ค่าต้องติดลบ"
 
   - id: SSOT-10
-    severity: P1
+    severity: P2
     title: วง C ค้างเกินกำหนด
     detect: { kind: cmd, run: "nohell consolidation-check --expired" }
     threshold: { max_days_in_C2: 30, max_days_total: 90 }
 
   - id: SSOT-11
-    severity: P1
+    severity: P3
     title: ยกเลิกแล้วทิ้ง C ไว้
     detect: { kind: manual-checklist }
     items: ["ถ้าถอนวง C ออกจากทะเบียน ต้องมีคอมมิตที่ลบ C ในรอบเดียวกัน"]
@@ -419,7 +419,7 @@ rules:
 
   # ---------- fitness function (วัดแนวโน้ม ไม่ใช่จุดเดียว) ----------
   - id: LEG-15
-    severity: P2
+    severity: P3
     title: fitness function — ห้ามแย่ลง
     detect: { kind: cmd, run: "nohell metrics" }
     metrics:
