@@ -110,6 +110,21 @@ else
   [ -z "$declchk" ] || bad "มีไฟล์เขียนจำนวน check ของ validator ผิด (จริง $nchk): $declchk"
 fi
 
+# (ยังอยู่ในข้อ 8) จำนวนกฎใน hell-rules.yaml ต้องตรงกับที่เอกสารประกาศ
+#      pattern ต้องแคบ: "NNN จาก 447 ข้อ" ลอย ๆ จับผิดสองที่ — 407 คือจำนวนที่ร้าน Go อ่าน
+#      และ 215 คือคำอ้างจำนวน P1 จึงผูกกับคำว่า ตรวจอัตโนมัติได้ / machine-checkable เท่านั้น
+_rulesf=$(dirname "$CATALOG")/hell-rules.yaml
+if [ -f "$_rulesf" ]; then
+  nrules=$(grep -cE "^  - id: " "$_rulesf")
+  _declr=$(grep -rhoE "ตรวจอัตโนมัติได้ [0-9]+ จาก|[0-9]+ of the entries are machine-checkable" skills docs "$_root"/*.md 2>/dev/null)
+  if [ "$(printf "%s" "$_declr" | grep -c .)" -lt 2 ]; then
+    bad "หาคำประกาศจำนวนกฎอัตโนมัติไม่เจอครบสองที่ — ตัวตรวจนี้กำลังเงียบ"
+  else
+    declr=$(printf "%s" "$_declr" | grep -oE "[0-9]+" | sort -u | grep -vx "$nrules" | tr "\n" " ")
+    [ -z "$declr" ] || bad "มีไฟล์เขียนจำนวนกฎใน hell-rules.yaml ผิด (จริง $nrules): $declr"
+  fi
+fi
+
 # 9 — pattern ที่ใช้ lookahead/lookbehind ต้องประกาศ engine: pcre2
 #     ไม่งั้นตัวรันบน Rust regex/grep -E จะ parse error แล้ว gate เงียบ = ผ่านทุกอย่าง
 rules="$(dirname "$CATALOG")/hell-rules.yaml"
