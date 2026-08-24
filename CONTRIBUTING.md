@@ -111,7 +111,7 @@ sh scripts/validate-catalog.sh
 | หมวด `NET` | connection pool, keep-alive, proxy timeout, backpressure — ตอนนี้กระจายอยู่ใน `ERR`/`PERF` |
 | กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 67 จาก 447 ข้อ — หมวดใหม่ทั้งห้า (`TYPE` `AGG` `MEAS` `REG` `TOOL`) ยังไม่มีกฎอัตโนมัติเลยสักข้อ |
 | ตัวสแกนฐานข้อมูลอื่น | `detect-sqlserver.sql` มีแล้ว ยังไม่มีของ PostgreSQL / MySQL |
-| ตัวรัน `hell-rules.yaml` | ตอนนี้เป็นสเปกอย่างเดียว ยังไม่มีโปรแกรมที่อ่านแล้วรันจริง (ต้องรองรับ `engine: pcre2`, `multiline: true`, `exclude:`, `allow_comment:` และ `gate.mode: ratchet`) |
+| ขยาย `scripts/nohell-check.py` | ตัวรันมีแล้วและรองรับ `engine: pcre2` · `multiline: true` · `exclude:` · `allow_comment:` · `.nohellignore` · โหมด diff-only ที่เป็น `ratchet` ในตัว **ที่ยังไม่ทำคือ** `kind: cmd` 13 ข้อ (เรียกของนอก ต้องคิดเรื่อง arbitrary execution ก่อน) และ `kind: sql` 12 ข้อ (ต้องต่อฐานข้อมูล) ทั้ง 27 ข้อขึ้นในรายงานว่าไม่ได้ตรวจอยู่แล้ว |
 
 ## ลิขสิทธิ์
 

@@ -6,10 +6,28 @@
 > ถ้า agent ของคุณอ่านจาก `main` พฤติกรรมจะเปลี่ยนกลาง sprint โดยไม่มีใครรู้
 >
 > ```sh
-> git clone --branch v0.10.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+> git clone --branch v0.11.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 > ```
 
 ## [Unreleased]
+
+## [0.11.0] — 2026-08-24
+
+### Added — eval harness ของตัว skill (Phase 2 บางส่วน)
+
+`eval/` เป็นเครื่องมือของผู้ดูแล ผู้ติดตั้งไม่ได้รับ (ติดตั้งได้แค่ `skills/*`)
+
+- 24 เคส: 12 จากบั๊ก production จริงที่แมปเข้าแคตตาล็อกด้วย D1 · 10 เคสสะอาด · 2 เคสที่คำตอบถูกคือหยุดถาม
+- provider คือ `claude -p` headless **ไม่ต้องใช้ API key** และไม่มีการอ่าน/เก็บ credential
+- ตัดสินด้วย exact match ของ ID ไม่ใช้ LLM judge (D4)
+- มี error แม้เคสเดียว = หยุด ไม่เขียน baseline คืน exit 2 — เคสที่ยิงไม่ออกได้คำตอบว่าง
+  ซึ่งถูกนับเป็น recall 0 แล้วเฉลี่ยออกมาเป็นตัวเลขที่หน้าตาเหมือนผลวัด (วัดมาแล้ว 21/24 ล้ม
+  แต่รายงานพิมพ์ "recall 8.3%")
+
+⚠️ **ยังไม่มี `eval/baseline.json`** — หนึ่งเคส = หนึ่ง session ⇒ 24 เคส × 3 รอบ = 72 session
+ต่อการรันหนึ่งครั้ง ชน session limit ระหว่างทาง เลขที่วัดได้ก่อนชน: recall 83.3% (sd 0.0 สามรอบ)
+· false alarm 11 ID · error 0 — ยังไม่ commit เพราะครบแค่รอบเดียวหลังแก้ fixture
+
 
 ### Added — `nohell-check` ตัวรันกฎอัตโนมัติ (Phase 3 ข้อ 1+3)
 
@@ -243,7 +261,8 @@ validator ข้อ 8 ให้จับซ้ำไม่ได้ — แก�
   ตารางสรุปท้ายไฟล์เคยไม่มีหมวด `SSOT` (18 ข้อ) — ทั้งหมดถูกตรวจโดย validator แล้ว
 - คำอ้าง "โหลดตลอด ~1k token" ต่ำไป 3–4 เท่า วัดได้ ~3–4k (validator ข้อ 10 เฝ้าอยู่)
 
-[Unreleased]: https://github.com/fonewspyy/nohell-skill/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/fonewspyy/nohell-skill/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.11.0
 [0.10.2]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.2
 [0.10.1]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.1
 [0.10.0]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.0

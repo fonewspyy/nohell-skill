@@ -59,7 +59,7 @@ close the task using the same Impact Map as a checklist
 `main`, its behaviour shifts mid-sprint with no record of why. See [CHANGELOG.md](CHANGELOG.md).
 
 ```sh
-git clone --branch v0.10.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v0.11.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 # or scoped to one project
 cp -r nohell-skill/skills/* .claude/skills/
