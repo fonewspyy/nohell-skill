@@ -13,6 +13,9 @@ bad() { say "FAIL  $*"; fail=1; }
 ids=$(grep -oE '^\| [A-Z]+-[0-9]+' "$CATALOG" | sed 's/^| //')
 total=$(printf '%s\n' "$ids" | grep -c .)
 ncat=$(printf '%s\n' "$ids" | sed 's/-[0-9]*$//' | sort -u | grep -c .)
+p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")
+p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")
+p3=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P3 ' "$CATALOG")
 
 # 1 — ตัวเลขในหัวไฟล์ต้องเท่ากับจำนวน row จริง
 titled=$(sed -n '1s/.*— \([0-9]*\) .*/\1/p' "$CATALOG")
@@ -125,6 +128,17 @@ if [ -f "$_rulesf" ]; then
   fi
 fi
 
+# (ยังอยู่ในข้อ 8) คำอ้างจำนวน P1 ในเอกสารต้องตรงกับแคตตาล็อก
+#      เลขนี้อยู่ในย่อหน้าที่ใช้เถียงว่าทำไม gate.mode ต้องเป็น ratchet ผิดแล้วข้อสรุปเสียน้ำหนัก
+#      ดึงเลขตัวหน้าด้วยการ grep ซ้อนสองชั้น ชั้นในจับทั้งวลี ชั้นนอกเอาเลขที่ต้นวลี
+_declp1=$(grep -rhoE "[0-9]+ จาก [0-9]+ ข้อเป็น P1|[0-9]+ of [0-9]+ entries are P1" skills docs "$_root"/*.md 2>/dev/null)
+if [ "$(printf "%s" "$_declp1" | grep -c .)" -lt 2 ]; then
+  bad "หาคำประกาศจำนวน P1 ในเอกสารไม่เจอครบสองภาษา — ตัวตรวจนี้กำลังเงียบ"
+else
+  declp1=$(printf "%s" "$_declp1" | grep -oE "^[0-9]+" | sort -u | grep -vx "$p1" | tr "\n" " ")
+  [ -z "$declp1" ] || bad "มีไฟล์เขียนจำนวน P1 ผิด (จริง $p1): $declp1"
+fi
+
 # 9 — pattern ที่ใช้ lookahead/lookbehind ต้องประกาศ engine: pcre2
 #     ไม่งั้นตัวรันบน Rust regex/grep -E จะ parse error แล้ว gate เงียบ = ผ่านทุกอย่าง
 rules="$(dirname "$CATALOG")/hell-rules.yaml"
@@ -214,9 +228,6 @@ if [ -f "$rules" ]; then
 fi
 
 if [ "$fail" -eq 0 ]; then
-  p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")
-  p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")
-  p3=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P3 ' "$CATALOG")
   say "OK    $total ข้อ · $ncat หมวด · P1 $p1 · P2 $p2 · P3 $p3 · สอดคล้องกันทั้งหมด"
 else
   say ""

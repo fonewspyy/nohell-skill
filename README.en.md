@@ -127,7 +127,7 @@ that has to match), so they need `rg -U`. Same silent failure if you omit it —
 validator check 13 enforces it. Note `[^\n]` alone does **not** need `-U` — it excludes newlines
 rather than matching them.
 
-**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 215 of 447 entries are P1. Turning on absolute mode
+**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 136 of 447 entries are P1. Turning on absolute mode
 against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits
 across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
 **don't add more**, not **don't have any**.
