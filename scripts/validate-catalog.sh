@@ -160,6 +160,31 @@ if [ -f "$rules" ]; then
   [ -z "$sevmiss" ] || bad "severity ใน hell-rules ไม่ตรงกับแคตตาล็อก: $sevmiss"
 fi
 
+# 13 — pattern ที่จับข้ามบรรทัด (มี \n เป็นสิ่งที่ต้อง match) ต้องประกาศ multiline: true
+#      เหตุผลเดียวกับข้อ 9: rg ปกติ parse error แล้วถ้าตัวรันกลืน error gate จะรายงาน 0
+#      ทั้งที่มีของจริง — วัดแล้ว SQL-26 หายไป 11 hit ใน 7 ไฟล์
+#      ต้องตัด [^...] ออกก่อนตรวจ เพราะ [^\n] "กัน" บรรทัดใหม่ ไม่ได้ "match" มัน จึงไม่ต้องใช้ -U
+if [ -f "$rules" ]; then
+  nomulti=$(awk '
+    /^  - id: / { if (id != "" && need && !ml) printf "%s ", id; id = $3; need = 0; ml = 0; next }
+    /multiline: true/ { ml = 1 }
+    /pattern:/ {
+      bs = sprintf("%c", 92)
+      esc = bs bs "n"                          # สามอักขระดิบที่อยู่ในไฟล์
+      s = $0
+      while ((a = index(s, "[^")) > 0) {       # ตัด negated class ทิ้งก่อน
+        rest = substr(s, a + 2)
+        b = index(rest, "]")
+        if (b == 0) break
+        s = substr(s, 1, a - 1) substr(rest, b + 1)
+      }
+      if (index(s, esc) > 0) need = 1
+    }
+    END { if (id != "" && need && !ml) printf "%s ", id }
+  ' "$rules")
+  [ -z "$nomulti" ] || bad "pattern จับข้ามบรรทัดแต่ไม่ได้ประกาศ multiline: true — gate จะเงียบบน rg ปกติ: $nomulti"
+fi
+
 if [ "$fail" -eq 0 ]; then
   p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")
   p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")

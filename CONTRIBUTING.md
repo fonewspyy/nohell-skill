@@ -83,6 +83,7 @@ sh scripts/validate-catalog.sh
 | ตัวอย่าง **ที่ต้องจับ** อย่างน้อย 2 อัน | พิสูจน์ว่ามันทำงาน |
 | ตัวอย่าง **ที่ต้องไม่จับ** อย่างน้อย 2 อัน | positive test อย่างเดียวหลอกตัวเองได้ — เคยเจอมาแล้วในกฎที่จับคำว่า `any` ในคอมเมนต์ภาษาอังกฤษทุกบรรทัด |
 | `engine: pcre2` ถ้าใช้ lookaround | `rg` ปกติกับ `grep -E` จะ parse error ถ้าตัวรันกลืน error gate จะเงียบ = ผ่านทุกอย่าง (validator ข้อ 9 บังคับ) |
+| `multiline: true` ถ้า pattern จับข้ามบรรทัด | เหตุผลเดียวกัน: `\n` ที่ต้อง match ทำให้ `rg` ปกติ parse error ต้องรันด้วย `-U` — `[^\n]` อย่างเดียวไม่ต้องประกาศ เพราะมันกันบรรทัดใหม่ ไม่ได้ match มัน (validator ข้อ 13 บังคับ) |
 | `exclude:` ถ้า glob กว้าง | `**/*` ที่ไม่กัน `node_modules` เคยให้ผล 8,069 hit ทั้งที่ในโค้ดจริงมี 0 |
 | ผูกกับ **ตำแหน่งทางไวยากรณ์** ไม่ใช่คำโดดๆ | `_final` ในชื่อ `#T_FINAL` คือชื่อ stage ของ pipeline ไม่ใช่ชื่อเวอร์ชัน — จับตอนประกาศ object เท่านั้น |
 
@@ -108,9 +109,9 @@ sh scripts/validate-catalog.sh
 | หมวด `AI-ML` | dataset, leakage, preprocessing parity, threshold, drift |
 | หมวด `INFRA` | container, reverse proxy, TLS, backup/DR — คนละเรื่องกับ `TOOL` ที่พูดถึงค่าเริ่มต้นของเครื่องมือ |
 | หมวด `NET` | connection pool, keep-alive, proxy timeout, backpressure — ตอนนี้กระจายอยู่ใน `ERR`/`PERF` |
-| กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 68 จาก 447 ข้อ — หมวดใหม่ทั้งห้า (`TYPE` `AGG` `MEAS` `REG` `TOOL`) ยังไม่มีกฎอัตโนมัติเลยสักข้อ |
+| กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 67 จาก 447 ข้อ — หมวดใหม่ทั้งห้า (`TYPE` `AGG` `MEAS` `REG` `TOOL`) ยังไม่มีกฎอัตโนมัติเลยสักข้อ |
 | ตัวสแกนฐานข้อมูลอื่น | `detect-sqlserver.sql` มีแล้ว ยังไม่มีของ PostgreSQL / MySQL |
-| ตัวรัน `hell-rules.yaml` | ตอนนี้เป็นสเปกอย่างเดียว ยังไม่มีโปรแกรมที่อ่านแล้วรันจริง (ต้องรองรับ `engine: pcre2`, `exclude:`, `allow_comment:` และ `gate.mode: ratchet`) |
+| ตัวรัน `hell-rules.yaml` | ตอนนี้เป็นสเปกอย่างเดียว ยังไม่มีโปรแกรมที่อ่านแล้วรันจริง (ต้องรองรับ `engine: pcre2`, `multiline: true`, `exclude:`, `allow_comment:` และ `gate.mode: ratchet`) |
 
 ## ลิขสิทธิ์
 

@@ -6,6 +6,9 @@
 # engine: pcre2  = pattern ใช้ lookahead/lookbehind ต้องรันด้วย `rg -P` หรือ PCRE2 เท่านั้น
 #                  บน Rust regex (rg ปกติ) หรือ grep -E จะ parse error — ถ้าตัวรันกลืน error
 #                  gate จะเงียบแล้วผ่านทุกอย่าง ซึ่งแย่กว่าไม่มี gate
+# multiline: true = pattern จับข้ามบรรทัด (มี \n เป็นสิ่งที่ต้อง match) ต้องรันด้วย `rg -U`
+#                  ไม่ประกาศ = parse error เงียบแบบเดียวกับ pcre2 ข้างบน (validator ข้อ 13 บังคับ)
+#                  `[^\n]` อย่างเดียวไม่ต้องประกาศ — มันกันบรรทัดใหม่ ไม่ได้ match มัน
 # ทุก regex ตั้งใจให้ over-match ไว้ก่อน แล้วใช้ allow เพื่อยกเว้น — false positive ถูกกว่า false negative
 
 version: 1
@@ -105,6 +108,7 @@ rules:
     severity: P2
     title: WHILE loop update ทีละแถว
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)WHILE\\s*\\(?[^\\n]{0,80}\\n(?:.{0,400}?)UPDATE\\s" }
+    multiline: true   # \n ข้ามบรรทัด — rg ต้องใช้ -U
 
   - id: SQL-27
     severity: P3
@@ -224,6 +228,7 @@ rules:
     severity: P2
     title: retry ไม่จำกัดจำนวน
     detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)while\\s*\\(\\s*true\\s*\\)[^\\n]{0,80}\\n(?:.{0,300}?)(retry|fetch|axios|HttpClient)" }
+    multiline: true   # \n ข้ามบรรทัด — rg ต้องใช้ -U
 
   - id: ERR-11
     severity: P2
