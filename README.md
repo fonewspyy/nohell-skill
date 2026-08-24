@@ -136,6 +136,35 @@ python scripts/build-summary.py --check   # ตารางสรุปท้า
 
 CI รันทั้งสองตัวนี้ทุก push · ตารางสรุปท้าย `HELL-CATALOG.md` generate จากข้อมูลจริง ห้ามแก้มือ
 
+## รันกฎอัตโนมัติ — `nohell-check`
+
+โหมดหลักคือ **diff-only**: อ่านเฉพาะบรรทัดที่ *เพิ่ม* จาก `git diff` แล้วรันกฎกับบรรทัดนั้น
+hit บนบรรทัดที่เพิ่มคือของใหม่โดยนิยาม จึงเป็น `ratchet` (ห้ามเพิ่ม ไม่ใช่ห้ามมี) ในตัวเอง
+**ไม่ต้องล้าง hit เก่าก่อนเปิด gate** ซึ่งเป็นเหตุผลที่ gate แบบ absolute ถูกปิดทิ้งเสมอ
+
+```sh
+pip install pyyaml                                  # ต้องมี ไม่ใช่ stdlib
+python scripts/nohell-check.py                      # diff เทียบ origin/main
+python scripts/nohell-check.py --base HEAD~1
+python scripts/nohell-check.py --full               # ทั้ง repo (ไฟล์ที่ git ติดตาม)
+python scripts/nohell-check.py --full --baseline    # เขียน .nohell-baseline.json
+```
+
+exit code เป็นสัญญา: `0` ผ่าน · `1` เจอกฎระดับ `gate.block_on` บนบรรทัดที่เพิ่ม ·
+**`2` รันไม่ได้** (ไม่มี `rg` / ไม่มี PCRE2 / pattern compile ไม่ผ่าน) — ห้ามกลืน `2` เป็น `0`
+เพราะ gate ที่เงียบแล้วผ่านทุกอย่างแย่กว่าไม่มี gate
+
+| ตัวนี้รัน | ตัวนี้ **ไม่** รัน (ขึ้นในรายงานทุกครั้ง) |
+|---|---|
+| `kind: regex` 40 ข้อ พร้อม flag ที่แต่ละกฎประกาศ (`engine: pcre2` → `-P` · `multiline: true` → `-U`) | `kind: cmd` 13 ข้อ — เรียกของนอก (eslint / gitleaks / pnpm audit) การรันคำสั่งจากคอนฟิกเป็นทางเปิดให้ arbitrary execution |
+| `allow_comment` และ `exclude` ของแต่ละกฎ | `kind: sql` 12 ข้อ — ต้องต่อฐานข้อมูล ใช้ `detect-sqlserver.sql` เอง |
+| `.nohellignore` ระดับ repo | `kind: manual-checklist` 2 ข้อ — ต้องคนอ่าน |
+
+`.nohellignore` มีไว้เพื่อกรณีเดียว: **ไฟล์ที่นิยามกฎย่อมตรงกับกฎของตัวเอง** — ห้ามใช้เลี่ยงงาน
+ถ้าจะยกเว้นรายจุดให้ใช้ `allow_comment` ของกฎนั้น
+
+เทสของตัวรันอยู่ที่ `scripts/test-nohell-check.sh` (10 เคส diff ที่รู้คำตอบ ตรวจสองทาง)
+
 ## ข้อจำกัดที่รู้อยู่ — อ่านก่อนเอาไปต่อ CI
 
 ผ่านการทดสอบจริงบน repo enterprise (SQL Server 389 ไฟล์ + .NET + TypeScript) แล้ว สิ่งที่พบ:

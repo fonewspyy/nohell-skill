@@ -118,6 +118,36 @@ python scripts/build-summary.py --check   # does the summary table still match r
 
 CI runs both on every push. The summary table at the end of `HELL-CATALOG.md` is generated, not hand-maintained — it had silently lost an entire 18-entry category before that was enforced.
 
+## Running the automated layer — `nohell-check`
+
+The primary mode is **diff-only**: it reads only the *added* lines from `git diff` and runs the
+rules against those. A hit on an added line is new by definition, so diff-only **is** the
+`ratchet` (don't add more, not don't have any). You do not have to clear old hits before turning
+the gate on — needing to is why absolute-mode gates always get switched off.
+
+```sh
+pip install pyyaml                                  # required, not stdlib
+python scripts/nohell-check.py                      # diff against origin/main
+python scripts/nohell-check.py --base HEAD~1
+python scripts/nohell-check.py --full               # whole repo (git-tracked files)
+python scripts/nohell-check.py --full --baseline    # write .nohell-baseline.json
+```
+
+Exit codes are a contract: `0` clean · `1` a `gate.block_on` rule hit an added line ·
+**`2` could not run** (no `rg`, no PCRE2, pattern failed to compile). Never swallow `2` as `0` —
+a gate that goes silent and passes everything is worse than no gate at all.
+
+| It runs | It does **not** run (reported every time, never hidden) |
+|---|---|
+| 40 `kind: regex` rules with the flags each declares (`engine: pcre2` → `-P`, `multiline: true` → `-U`) | 13 `kind: cmd` — they shell out to eslint / gitleaks / pnpm audit; running commands from a config file is an arbitrary-execution hole |
+| per-rule `allow_comment` and `exclude` | 12 `kind: sql` — needs a live database; run `detect-sqlserver.sql` yourself |
+| repo-level `.nohellignore` | 2 `kind: manual-checklist` — a human has to read these |
+
+`.nohellignore` exists for exactly one case: **a file that defines the rules will match its own
+rules.** Do not use it to dodge work — to exempt a single line, use that rule's `allow_comment`.
+
+Runner tests live in `scripts/test-nohell-check.sh` (10 known-answer diff cases, both directions).
+
 ## Known limitations — read before wiring this into CI
 
 Field-tested against a real enterprise repo (389 SQL Server files + .NET + TypeScript). What that found:

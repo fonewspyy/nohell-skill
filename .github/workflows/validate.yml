@@ -9,7 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # nohell-check ต้องมีประวัติเพื่อ diff เทียบ base ของ PR
       - name: ตรวจว่าแคตตาล็อกสอดคล้องกับตัวเอง
         run: sh scripts/validate-catalog.sh
-      - name: ตรวจว่าตารางสรุปตรงกับข้อมูลจริง
+      - name: ตรวจว่าตัวเลขที่ประกาศตรงกับของจริง
         run: python3 scripts/build-summary.py --check
+
+      # pyyaml ไม่ใช่ stdlib — nohell-check ประกาศชัดว่าต้องมี และ fail ดังถ้าไม่มี
+      # ติดตั้งที่นี่ให้เห็น ดีกว่าให้ runner เดาว่ามีหรือไม่มี
+      - name: ติดตั้ง pyyaml
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: เทสของ nohell-check (เคส diff ที่รู้คำตอบ)
+        run: sh scripts/test-nohell-check.sh
+        env:
+          PY: python3
+
+      # กินยาตัวเอง — บน PR ให้รันกฎกับบรรทัดที่ PR นี้เพิ่มเท่านั้น
+      # ไม่ใช้ --full เพราะจะเป็นการตัดสินโค้ดเก่า ซึ่งไม่ใช่สิ่งที่ ratchet ทำ
+      - name: nohell-check diff-only
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/nohell-check.py --base "origin/${{ github.base_ref }}"
