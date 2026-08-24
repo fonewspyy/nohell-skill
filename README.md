@@ -92,6 +92,15 @@ cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ท�
 cp -r nohell-skill/skills/* .claude/skills/
 ```
 
+ตัวรันกฎอยู่ที่ `scripts/nohell-check.py` **ไม่ได้อยู่ใน `skills/`** จึงไม่ถูกคัดลอกไปด้วย
+ให้เก็บโฟลเดอร์ที่ clone ไว้แล้วเรียกจากที่นั่น หรือคัดลอกเฉพาะไฟล์นั้นไปไว้ที่ไหนก็ได้ —
+มันหา `hell-rules.yaml` เองจาก `~/.claude/skills/nohell/` ที่เพิ่งติดตั้ง
+
+```sh
+cd /path/to/repo-ที่จะตรวจ
+python /path/to/nohell-skill/scripts/nohell-check.py        # diff-only
+```
+
 แล้วให้ `AGENTS.md`/`CLAUDE.md` ของโปรเจกต์ชี้มาที่ `skills/principal-engineer/SKILL.md` เป็นด่านแรก
 
 คำสั่ง `/nohell-dig` ต้องวางแยก เพราะ Claude Code อ่าน slash command จาก `commands/` ไม่ใช่จาก `skills/`:

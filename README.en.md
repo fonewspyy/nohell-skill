@@ -73,6 +73,15 @@ The `/nohell-dig` command installs separately — Claude Code reads slash comman
 cp nohell-skill/skills/nohell/commands/nohell-dig.md ~/.claude/commands/
 ```
 
+The rule runner lives at `scripts/nohell-check.py`, **not** under `skills/`, so the copy above
+does not deliver it. Keep the clone and call it from there, or copy just that file anywhere —
+it locates `hell-rules.yaml` on its own, including at `~/.claude/skills/nohell/`.
+
+```sh
+cd /path/to/repo-under-test
+python /path/to/nohell-skill/scripts/nohell-check.py        # diff-only
+```
+
 These belong in the **target repo**, not here:
 
 - `CONSOLIDATIONS.yaml` (from `skills/nohell/CONSOLIDATIONS.example.yaml`) — the register of open consolidation cycles

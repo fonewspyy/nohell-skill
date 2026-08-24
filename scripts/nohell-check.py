@@ -25,9 +25,31 @@ exit code เป็นสัญญา
 """
 import argparse, json, os, re, subprocess, sys
 
-RULES = os.path.join('skills', 'nohell', 'hell-rules.yaml')
-BASELINE = '.nohell-baseline.json'
-IGNORE = '.nohellignore'
+REL = os.path.join('skills', 'nohell', 'hell-rules.yaml')
+BASELINE = '.nohell-baseline.json'      # ของ repo ที่ถูกตรวจ — cwd-relative ถูกแล้ว
+IGNORE = '.nohellignore'                # เช่นกัน
+
+
+def find_rules(explicit):
+    """หา hell-rules.yaml ตามลำดับที่คนใช้จริงจะมีมัน
+
+    ตัวนี้มีหน้าที่ไป gate repo *คนอื่น* การหาไฟล์กฎจาก cwd อย่างเดียวจึงพังทันที
+    ที่ออกจาก repo ตัวเอง — วัดแล้ว: รันจาก repo อื่นได้ "ไม่พบ skills/nohell/hell-rules.yaml"
+    ทั้งที่ผู้ใช้ยืนอยู่ที่รากของ repo ตัวเองถูกต้องแล้ว
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    home = os.path.expanduser('~')
+    for p in ([explicit] if explicit else []) + [
+        os.path.join(os.path.dirname(here), REL),        # เคลนรีโปมาไว้ข้าง ๆ สคริปต์
+        os.path.join(os.getcwd(), REL),                  # รันจากรากรีโปนี้เอง
+        os.path.join(home, '.claude', 'skills', 'nohell', 'hell-rules.yaml'),
+        os.path.join(home, '.config', 'claude', 'skills', 'nohell', 'hell-rules.yaml'),
+    ]:
+        if p and os.path.exists(p):
+            return p
+    die('หา hell-rules.yaml ไม่เจอ ลองแล้วทั้ง --rules · ข้างสคริปต์ · '
+        './skills/nohell/ · ~/.claude/skills/nohell/\n'
+        '  ระบุเองด้วย --rules /path/to/hell-rules.yaml')
 
 
 def die(msg):
@@ -35,17 +57,16 @@ def die(msg):
     raise SystemExit(2)
 
 
-def load_rules():
+def load_rules(explicit=None):
     try:
         import yaml
     except ImportError:
         die('ต้องมี pyyaml — ติดตั้งด้วย `pip install pyyaml`\n'
             '  (เขียน YAML parser เองคือ reinvent library และ parser ที่ผิดเงียบ '
             'คือบั๊กที่ตัวนี้ตั้งใจกัน)')
-    if not os.path.exists(RULES):
-        die('ไม่พบ %s — ต้องรันจากรากของ repo' % RULES)
-    with open(RULES, encoding='utf-8') as fh:
-        return yaml.safe_load(fh)
+    path = find_rules(explicit)
+    with open(path, encoding='utf-8') as fh:
+        return yaml.safe_load(fh), path
 
 
 def check_engine():
@@ -189,9 +210,10 @@ def main():
     ap.add_argument('--base', default='origin/main', help='ref ที่ใช้เทียบ (ค่าเริ่มต้น origin/main)')
     ap.add_argument('--full', action='store_true', help='สแกนทั้ง repo ไม่ใช่แค่ diff')
     ap.add_argument('--baseline', action='store_true', help='เขียน %s (ใช้กับ --full)' % BASELINE)
+    ap.add_argument('--rules', help='พาธของ hell-rules.yaml (ปกติหาเองได้)')
     args = ap.parse_args()
 
-    cfg = load_rules()
+    cfg, rules_path = load_rules(args.rules)
     check_engine()
     gate = cfg.get('gate') or {}
     block_on = set(gate.get('block_on') or [])
@@ -258,6 +280,7 @@ def main():
 
     scope = 'ทั้ง repo' if args.full else 'บรรทัดที่เพิ่มเทียบ %s' % args.base
     print()
+    print('กฎจาก: %s' % rules_path)
     print('ขอบเขต: %s · กฎที่รัน %d ข้อ · block %d · warn %d'
           % (scope, len(runnable), blocked, warned))
     print(report_skipped(skipped, len(runnable)))
