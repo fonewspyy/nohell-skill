@@ -108,7 +108,8 @@ ASSUMED   เดา                                                   ← ห้
 | รีแฟกเตอร์ / รวมโค้ด | archaeology → SSOT (วง C) → LEG → TEST-08 characterization → ponytail |
 | ต่อระบบภายนอก (SAP/API/webhook) | INT → API → ERR → TXN (idempotency) → OBS → SEC |
 | งาน batch / scheduler | JOB → TXN → TIME (cutoff) → OBS → ERR |
-| เปลี่ยน schema / migration | Impact Map (เน้น DATA + HISTORY) → DATA → SHIP-05..07 → SSOT-13 → TEST |
+| เปลี่ยน schema / migration | **data-migration** (แผนหกขั้น) → Impact Map (เน้น DATA + HISTORY) → DATA → SHIP-05..07 → SSOT-13 → TEST |
+| ย้ายข้อมูลข้ามตาราง/ฐาน · รวมสองตารางที่เก็บเรื่องเดียวกัน | **data-migration** → archaeology (ของเดิมทำงานยังไง) → SSOT วง C → business-rules (นิยามฟิลด์ที่จะย้าย) |
 | ทำรายงาน / export | FILE → TIME → PERF → SEC-14 (masking) → business-rules (ตัวเลขต้องมาจากแหล่งเดียวกับหน้าจอ) |
 | "ทำไมระบบถึงเป็นแบบนี้" | archaeology เท่านั้น ห้ามแก้โค้ดในรอบนั้น |
 | ตรวจสุขภาพทั้ง repo | `/nohell-dig` (ขุดประวัติ) → `detect-sqlserver.sql` (เฉพาะร้าน SQL Server) |

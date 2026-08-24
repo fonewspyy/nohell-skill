@@ -16,6 +16,8 @@ skills/
 │   └── commands/nohell-dig.md   ← ขุดประวัติ repo หา "นรกซ้ำซาก" ที่เจ็บจริง
 ├── business-rules/       ← SSOT ของกฎ, effective date, read/write symmetry, workflow, เงิน
 ├── archaeology/          ← ระดับหลักฐาน, บัญชีผู้เรียก, ค้นสำเนากฎด้วยรูปร่าง
+├── data-migration/       ← ย้ายข้อมูลหกขั้นที่หยุดได้ทุกขั้น: expand-contract, dual-write,
+│                            backfill ที่ resume ได้, shadow-read, cutover, ปิดทางเขียนเก่า
 └── conventions/          ← ชื่อ, คำศัพท์ธุรกิจ, โครง SP มาตรฐาน, การตั้งชื่อตัวแปร
     └── templates/        ← เทมเพลต SP ที่คัดลอกไปใช้ได้เลย (แบบพารามิเตอร์แยก และแบบรับ JSON)
 
