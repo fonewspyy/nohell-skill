@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "sql",
+  "must_ask": false,
+  "expected_ids": [
+    "PERF-05"
+  ],
+  "task": "โค้ดนี้ใช้เวลา 122 วินาทีทุกครั้งที่ผู้ใช้กดปุ่ม รายงาน ID ในแคตตาล็อกที่เกี่ยวข้อง",
+  "why": "กรองด้วยสองคอลัมน์ที่ไม่มี index ร่วม บนตาราง 40 ล้านแถว — วัดจริง 122 วินาที เหลือ 48 มิลลิวินาที",
+  "snippet": "-- ไม่มี index บน (TranType, ShipmentID)\nSELECT TOP 1 TranType, ShipmentID, CreatedAt\nFROM   dbo.TransactionHistory\nWHERE  TranType = @type AND ShipmentID = @id\nORDER  BY CreatedAt DESC;",
+  "id": "b03-missing-index"
+}

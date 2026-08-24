@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "sql",
+  "must_ask": false,
+  "expected_ids": [
+    "SHIP-05"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่สคริปต์ deploy นี้ละเมิด",
+  "why": "สคริปต์ migration รันซ้ำแล้วผลไม่เหมือนเดิม",
+  "snippet": "ALTER TABLE dbo.Driver ADD Phone2 nvarchar(20);\nINSERT INTO dbo.DriverAudit (DriverID, Note)\nSELECT DriverID, 'backfill' FROM dbo.Driver;",
+  "id": "b12-migration-not-idempotent"
+}

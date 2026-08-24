@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "csharp",
+  "must_ask": false,
+  "expected_ids": [
+    "ERR-02"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "catch แล้ว log แล้ว return null ทำให้ผู้เรียกเดินต่อด้วยค่าที่ดูปกติ",
+  "snippet": "public async Task<DoorAssignment> ResolveDoor(string loadNo)\n{\n    try\n    {\n        return await _repo.GetDoorAsync(loadNo);\n    }\n    catch (Exception ex)\n    {\n        _log.LogWarning(ex, \"resolve door failed\");\n        return null;\n    }\n}",
+  "id": "b07-catch-return-null"
+}

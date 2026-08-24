@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "sql",
+  "must_ask": false,
+  "expected_ids": [
+    "SQL-15"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "อ่านข้อมูลที่กำลังถูกแก้ ได้แถวที่ยังไม่ commit",
+  "snippet": "SELECT o.OrderNo, o.Qty\nFROM   dbo.OrderHeader o WITH (NOLOCK)\nJOIN   dbo.OrderLine  l WITH (NOLOCK) ON l.OrderNo = o.OrderNo\nWHERE  o.Status = 3;",
+  "id": "b01-nolock"
+}

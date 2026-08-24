@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "csharp",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "public const int StatusClosed = 9;\n\nif (shipment.Status == StatusClosed)\n{\n    return Result.AlreadyClosed;\n}",
+  "id": "c06-named-constant"
+}

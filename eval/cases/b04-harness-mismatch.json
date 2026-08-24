@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "text",
+  "must_ask": false,
+  "expected_ids": [
+    "MEAS-01"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่วิธีวัดนี้ละเมิด",
+  "why": "วัดด้วย client ที่ SET options ต่างจากที่แอปจริงใช้ แล้วเห็น full scan ที่ production ไม่เคยเกิด",
+  "snippet": "ทีมวัด performance ด้วย client บรรทัดคำสั่ง แล้วรายงานว่าคิวรีนี้ full scan\nแต่แอปจริงเรียกผ่าน driver คนละตัว\nclient บรรทัดคำสั่งรันด้วย QUOTED_IDENTIFIER OFF ซึ่งทำให้ index บน computed column ถูกเมิน\nรายงานไม่ได้บันทึก SET options ที่ใช้ตอนวัดไว้เลย",
+  "id": "b04-harness-mismatch"
+}

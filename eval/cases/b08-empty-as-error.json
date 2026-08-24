@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "typescript",
+  "must_ask": false,
+  "expected_ids": [
+    "ERR-06"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "ผลว่างเป็นสถานะปกติของธุรกิจ ไม่ใช่ความล้มเหลว รวมสองอย่างทำให้ผู้เรียกที่ยิงหลายสายพังทั้งชุด",
+  "snippet": "const rows = await db.query(sql, params)\nif (!rows.length) {\n  return NextResponse.json({ error: 'no data' }, { status: 422 })\n}\nreturn NextResponse.json(rows)",
+  "id": "b08-empty-as-error"
+}

@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "typescript",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "const rows = await db.query(sql, params)\nreturn NextResponse.json({ items: rows, count: rows.length })",
+  "id": "c05-typed-result"
+}

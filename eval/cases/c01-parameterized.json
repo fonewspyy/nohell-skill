@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "sql",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "SELECT OrderNo, Qty\nFROM   dbo.OrderLine\nWHERE  OrderNo = @orderNo AND LineNo = @lineNo;",
+  "id": "c01-parameterized"
+}

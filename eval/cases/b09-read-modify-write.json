@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "sql",
+  "must_ask": false,
+  "expected_ids": [
+    "TXN-03"
+  ],
+  "task": "สองคนกดปุ่มพร้อมกันได้ รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "อ่านค่า คำนวณ แล้วเขียนกลับ โดยไม่มีอะไรกันสองคนทำพร้อมกัน",
+  "snippet": "SELECT @remain = RemainQty FROM dbo.Box WHERE BoxNo = @box;\nSET @remain = @remain - @scanQty;\nUPDATE dbo.Box SET RemainQty = @remain WHERE BoxNo = @box;",
+  "id": "b09-read-modify-write"
+}

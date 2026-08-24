@@ -1,0 +1,10 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "sql",
+  "must_ask": true,
+  "expected_ids": [],
+  "task": "ยอดในระบบกับใบแจ้งหนี้ต่างกัน 0.01 บาทในบางใบ แก้ให้ตรงหน่อย",
+  "why": "ปัดเศษเงินขึ้นหรือลง และปัดที่ระดับบรรทัดหรือระดับใบ เป็นกฎธุรกิจ เดาแล้วผิดคือเงินเคลื่อน",
+  "snippet": "SELECT SUM(Qty * UnitPrice * 1.07) AS Total\nFROM   dbo.InvoiceLine WHERE InvoiceNo = @no;",
+  "id": "a01-must-ask-money-rounding"
+}

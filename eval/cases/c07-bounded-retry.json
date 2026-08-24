@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "typescript",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "for (let attempt = 0; attempt < 3; attempt++) {\n  try { return await postOnce(body) }\n  catch (e) {\n    if (!isRetryable(e) || attempt === 2) throw e\n    await sleep(200 * 2 ** attempt)\n  }\n}",
+  "id": "c07-bounded-retry"
+}

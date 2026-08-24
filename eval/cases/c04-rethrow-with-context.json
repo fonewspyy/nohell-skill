@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "csharp",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "try\n{\n    return await _repo.GetDoorAsync(loadNo);\n}\ncatch (SqlException ex)\n{\n    throw new DoorResolveException($\"resolve door failed for {loadNo}\", ex);\n}",
+  "id": "c04-rethrow-with-context"
+}

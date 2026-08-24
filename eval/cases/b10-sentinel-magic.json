@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "sql",
+  "must_ask": false,
+  "expected_ids": [
+    "SQL-19"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "เลขที่มีความหมายทางธุรกิจถูกฝังเป็นค่าคงที่ ไม่มีชื่อและไม่มีที่อยู่",
+  "snippet": "INSERT INTO dbo.ShipmentList (LoadNo, Status)\nSELECT '9999999999', 9\nFROM   dbo.Bill WHERE BillNo = @bill;\n-- รายงานทุกตัวต้องจำเองว่าต้องกรองเลขนี้ออก",
+  "id": "b10-sentinel-magic"
+}
