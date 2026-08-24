@@ -72,10 +72,17 @@ def ask(case):
         sys.stderr.write('ไม่พบคำสั่ง claude — eval ตัวนี้ใช้ Claude Code headless เป็น provider\n')
         raise SystemExit(2)
     except subprocess.TimeoutExpired:
-        return '', True
+        return '', 'timeout หลัง 300 วินาที'
     if r.returncode != 0:
-        return '', True
-    return r.stdout.strip(), False
+        # ห้ามกลืน — คำตอบว่างจะถูกนับเป็น recall 0 แล้วสรุปออกมาเป็นตัวเลขที่ดูเหมือนผลวัด
+        # วัดจริงมาแล้ว: session limit หมด 21/24 เคสล้ม แต่รายงานยังพิมพ์ "recall 8.3%" ออกมา
+        # เอา stdout ก่อน — claude -p พิมพ์ error ที่คนอ่านรู้เรื่องลงที่นั่น
+        # ("You've hit your session limit") ส่วน stderr มักเป็น noise ของ hook/ปลั๊กอินอื่น
+        why = (r.stdout or '').strip().split('\n')[0][:120]
+        if not why:
+            why = (r.stderr or '').strip().split('\n')[0][:120]
+        return '', why or ('exit %d' % r.returncode)
+    return r.stdout.strip(), None
 
 
 def judge(case, reply):
@@ -98,10 +105,12 @@ def one_run(cases, verbose, jobs):
         replies = list(ex.map(ask, cases))
 
     rec, fa, ask_hit, errs = [], 0, [], 0
-    detail = {}
+    detail, why = {}, []
     for c, (reply, err) in zip(cases, replies):
         if err:
             errs += 1
+            if err not in why:
+                why.append(err)
         r, f, a = judge(c, reply)
         if r is not None:
             rec.append(r)
@@ -117,6 +126,7 @@ def one_run(cases, verbose, jobs):
         'false_alarm_ids': fa,
         'must_ask_hit': round(sum(ask_hit) / len(ask_hit), 4) if ask_hit else 0.0,
         'errors': errs,
+        'error_reasons': why,
         'detail': detail,
     }
 
@@ -143,6 +153,17 @@ def main():
         r = runs[-1]
         print('  recall %.1f%% · false alarm %d ID · must-ask %.0f%% · error %d'
               % (r['recall'] * 100, r['false_alarm_ids'], r['must_ask_hit'] * 100, r['errors']))
+        if r['errors']:
+            # หยุดทันที ไม่รันรอบต่อไป และไม่เอาเลขนี้ไปเฉลี่ย
+            sys.stderr.write('\nFAIL  รอบนี้มี %d เคสที่ยิงไม่สำเร็จ — ตัวเลขข้างบนไม่ใช่ผลวัด\n'
+                             % r['errors'])
+            for w in r['error_reasons']:
+                sys.stderr.write('      %s\n' % w)
+            sys.stderr.write('      ไม่เขียน baseline เพราะ baseline ที่มาจากรอบที่ยิงไม่ออก\n'
+                             '      คือตัวเลขที่หน้าตาเหมือนผลวัดแต่ไม่ได้วัดอะไรเลย\n')
+            if _SANDBOX:
+                shutil.rmtree(_SANDBOX[0], ignore_errors=True)
+            return 2
 
     summary = {}
     for k in ('recall', 'false_alarm_ids', 'must_ask_hit'):
