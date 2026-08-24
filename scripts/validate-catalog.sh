@@ -16,6 +16,7 @@ ncat=$(printf '%s\n' "$ids" | sed 's/-[0-9]*$//' | sort -u | grep -c .)
 p1=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P1 ' "$CATALOG")
 p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")
 p3=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P3 ' "$CATALOG")
+skillmd=$(dirname "$CATALOG")/SKILL.md
 
 # 1 — ตัวเลขในหัวไฟล์ต้องเท่ากับจำนวน row จริง
 titled=$(sed -n '1s/.*— \([0-9]*\) .*/\1/p' "$CATALOG")
@@ -87,57 +88,11 @@ if [ -d skills ]; then
   [ -z "$dangling" ] || bad "มี ID ที่ถูกอ้างถึงแต่ไม่มีในแคตตาล็อก: $dangling"
 fi
 
-# 8 — ตัวเลขที่ประกาศไว้ในไฟล์อื่นต้องตรงกับของจริง (ดริฟต์มาแล้วสามรอบ)
-wrongcat=$(grep -rhoE '[0-9]+ หมวด' skills docs ./*.md 2>/dev/null \
-           | grep -oE '^[0-9]+' | sort -u | grep -vx "$ncat" | tr '\n' ' ')
-[ -z "$wrongcat" ] || bad "มีไฟล์เขียนจำนวนหมวดผิด (จริง $ncat): $wrongcat"
-
-skillmd=$(dirname "$CATALOG")/SKILL.md
-if [ -f "$skillmd" ]; then
-  # เลขแคตตาล็อกเป็นสามหลักเสมอ "กฎแกน 12 ข้อ" จึงไม่โดนจับ
-  wrongn=$(grep -oE '[0-9]{3,} ข้อ' "$skillmd" | grep -oE '^[0-9]+' \
-           | sort -u | grep -vx "$total" | tr '\n' ' ')
-  [ -z "$wrongn" ] || bad "$skillmd เขียนจำนวนข้อผิด (จริง $total): $wrongn"
-fi
-
-# (ยังอยู่ในข้อ 8) จำนวน check ของ validator เองต้องตรงกับที่ README ประกาศ
-#      REG-07: ทะเบียนเขียนมือที่ไม่มีใครตรวจ — เลขนี้ค้างที่ 10 อยู่สามคอมมิตก่อนจะมีบรรทัดนี้
-#      อ้างจาก $0 ไม่ใช่ cwd เพราะถ้า glob ไม่เจอไฟล์ ตัวตรวจจะเงียบแล้วผ่าน = บั๊กที่กำลังกันอยู่
-_root=$(dirname "$0")/..
-nchk=$(grep -cE "^# [0-9]+ —" "$0")
-_decl=$(grep -hoE --exclude=CHANGELOG.md "ตรวจ [0-9]+ อย่าง|checks [0-9]+ things" "$_root"/*.md 2>/dev/null)
-if [ "$(printf "%s" "$_decl" | grep -c .)" -lt 2 ]; then
-  bad "หาคำประกาศจำนวน check ใน README ไม่เจอครบสองภาษา — ตัวตรวจนี้กำลังเงียบ"
-else
-  declchk=$(printf "%s" "$_decl" | grep -oE "[0-9]+" | sort -u | grep -vx "$nchk" | tr "\n" " ")
-  [ -z "$declchk" ] || bad "มีไฟล์เขียนจำนวน check ของ validator ผิด (จริง $nchk): $declchk"
-fi
-
-# (ยังอยู่ในข้อ 8) จำนวนกฎใน hell-rules.yaml ต้องตรงกับที่เอกสารประกาศ
-#      pattern ต้องแคบ: "NNN จาก 447 ข้อ" ลอย ๆ จับผิดสองที่ — 407 คือจำนวนที่ร้าน Go อ่าน
-#      และ 215 คือคำอ้างจำนวน P1 จึงผูกกับคำว่า ตรวจอัตโนมัติได้ / machine-checkable เท่านั้น
-_rulesf=$(dirname "$CATALOG")/hell-rules.yaml
-if [ -f "$_rulesf" ]; then
-  nrules=$(grep -cE "^  - id: " "$_rulesf")
-  _declr=$(grep -rhoE --exclude=CHANGELOG.md "ตรวจอัตโนมัติได้ [0-9]+ จาก|[0-9]+ of the entries are machine-checkable" skills docs "$_root"/*.md 2>/dev/null)
-  if [ "$(printf "%s" "$_declr" | grep -c .)" -lt 2 ]; then
-    bad "หาคำประกาศจำนวนกฎอัตโนมัติไม่เจอครบสองที่ — ตัวตรวจนี้กำลังเงียบ"
-  else
-    declr=$(printf "%s" "$_declr" | grep -oE "[0-9]+" | sort -u | grep -vx "$nrules" | tr "\n" " ")
-    [ -z "$declr" ] || bad "มีไฟล์เขียนจำนวนกฎใน hell-rules.yaml ผิด (จริง $nrules): $declr"
-  fi
-fi
-
-# (ยังอยู่ในข้อ 8) คำอ้างจำนวน P1 ในเอกสารต้องตรงกับแคตตาล็อก
-#      เลขนี้อยู่ในย่อหน้าที่ใช้เถียงว่าทำไม gate.mode ต้องเป็น ratchet ผิดแล้วข้อสรุปเสียน้ำหนัก
-#      ดึงเลขตัวหน้าด้วยการ grep ซ้อนสองชั้น ชั้นในจับทั้งวลี ชั้นนอกเอาเลขที่ต้นวลี
-_declp1=$(grep -rhoE --exclude=CHANGELOG.md "[0-9]+ จาก [0-9]+ ข้อเป็น P1|[0-9]+ of [0-9]+ entries are P1" skills docs "$_root"/*.md 2>/dev/null)
-if [ "$(printf "%s" "$_declp1" | grep -c .)" -lt 2 ]; then
-  bad "หาคำประกาศจำนวน P1 ในเอกสารไม่เจอครบสองภาษา — ตัวตรวจนี้กำลังเงียบ"
-else
-  declp1=$(printf "%s" "$_declp1" | grep -oE "^[0-9]+" | sort -u | grep -vx "$p1" | tr "\n" " ")
-  [ -z "$declp1" ] || bad "มีไฟล์เขียนจำนวน P1 ผิด (จริง $p1): $declp1"
-fi
+# 8 — (เลิกใช้ 2026-08-24 — ย้ายไป scripts/build-summary.py)
+#     เดิมเป็น assertion ห้าชุดว่าตัวเลขที่เอกสารประกาศยังตรงกับของจริง ตอนนี้ build-summary.py
+#     เป็นเจ้าของเรื่องนี้ทั้งหมด และมันแก้ให้ถูก ไม่ใช่แค่บอกว่าผิด ตาราง FACTS ในไฟล์นั้น
+#     คือที่เดียวที่ประกาศว่าเลขไหนต้องตรงกับอะไร
+#     ไม่ renumber ไม่ reuse เลข 8 ตามกฎการเลิกใช้แถวในแคตตาล็อก (CONTRIBUTING.md)
 
 # 9 — pattern ที่ใช้ lookahead/lookbehind ต้องประกาศ engine: pcre2
 #     ไม่งั้นตัวรันบน Rust regex/grep -E จะ parse error แล้ว gate เงียบ = ผ่านทุกอย่าง

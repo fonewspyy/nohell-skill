@@ -59,7 +59,7 @@ close the task using the same Impact Map as a checklist
 `main`, its behaviour shifts mid-sprint with no record of why. See [CHANGELOG.md](CHANGELOG.md).
 
 ```sh
-git clone --branch v0.10.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v0.10.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 # or scoped to one project
 cp -r nohell-skill/skills/* .claude/skills/
@@ -98,12 +98,18 @@ All 447 entries were re-rated against one written criterion (see [CONTRIBUTING.m
 
 ## Consistency check
 
-This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. The validator checks 13 things:
-header count · per-category counts · duplicate IDs · numbering gaps · missing priorities · malformed rows ·
-**IDs referenced by a skill or doc that don't exist in the catalog** · **counts declared in other files that have drifted** ·
-**patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that no longer match the file** ·
-`ใช้กับ` values outside the allowed set · severities in `hell-rules.yaml` that disagree with the catalog ·
-**patterns that match across lines without declaring `multiline: true`**
+This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. Two tools split the work.
+
+`validate-catalog.sh` checks the catalog **shape**: header count · per-category counts · duplicate IDs ·
+numbering gaps · missing priorities · malformed rows · **IDs referenced by a skill or doc that do not exist
+in the catalog** · **patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that
+no longer match the file** · `ใช้กับ` values outside the allowed set · severities in `hell-rules.yaml` that
+disagree with the catalog · **patterns that match across lines without declaring `multiline: true`**
+
+`build-summary.py` owns **every number the docs declare** — the summary table and the counts written into
+prose. Its `FACTS` table is the single place that says which number must equal what, and without `--check`
+it **rewrites them correctly** rather than just complaining. A number a human has to maintain is a number
+that will drift.
 
 ```sh
 sh scripts/validate-catalog.sh
