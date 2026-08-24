@@ -6,12 +6,15 @@
 > ถ้า agent ของคุณอ่านจาก `main` พฤติกรรมจะเปลี่ยนกลาง sprint โดยไม่มีใครรู้
 >
 > ```sh
-> git clone --branch v0.9.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+> git clone --branch v0.10.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 > ```
 
 ## [Unreleased]
 
-## [0.9.1] — 2026-08-24
+## [0.10.0] — 2026-08-24
+
+> tag `v0.9.1` ถูกปล่อยไปครู่หนึ่งด้วยเนื้อหาชุดเดียวกันแล้วถอนออก — การไล่ระดับ P ใหม่
+> ทำให้ของที่เคย block ด้วย `block_on: [P1]` เลิก block ซึ่งเป็นการเปลี่ยนพฤติกรรม ไม่ใช่ patch
 
 ### Fixed — 2 กฎที่ตายเงียบเพราะ pattern ข้ามบรรทัดไม่มีที่ประกาศ
 
@@ -164,6 +167,6 @@ validator ข้อ 8 ให้จับซ้ำไม่ได้ — แก�
   ตารางสรุปท้ายไฟล์เคยไม่มีหมวด `SSOT` (18 ข้อ) — ทั้งหมดถูกตรวจโดย validator แล้ว
 - คำอ้าง "โหลดตลอด ~1k token" ต่ำไป 3–4 เท่า วัดได้ ~3–4k (validator ข้อ 10 เฝ้าอยู่)
 
-[Unreleased]: https://github.com/fonewspyy/nohell-skill/compare/v0.9.1...HEAD
-[0.9.1]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.9.1
+[Unreleased]: https://github.com/fonewspyy/nohell-skill/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.0
 [0.9.0]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.9.0

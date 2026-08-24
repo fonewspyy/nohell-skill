@@ -86,7 +86,7 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 พฤติกรรมจะเปลี่ยนกลาง sprint โดยไม่มีใครรู้ว่าทำไมผลไม่เหมือนเมื่อวาน (ดู [CHANGELOG.md](CHANGELOG.md))
 
 ```sh
-git clone --branch v0.9.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v0.10.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
 # หรือเฉพาะโปรเจกต์นี้
 cp -r nohell-skill/skills/* .claude/skills/
