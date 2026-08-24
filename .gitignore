@@ -12,3 +12,7 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# ของที่ py_compile ทิ้งไว้ตอนรันเทส
+__pycache__/
+*.pyc
