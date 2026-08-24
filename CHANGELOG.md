@@ -6,10 +6,12 @@
 > ถ้า agent ของคุณอ่านจาก `main` พฤติกรรมจะเปลี่ยนกลาง sprint โดยไม่มีใครรู้
 >
 > ```sh
-> git clone --branch v0.10.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+> git clone --branch v0.10.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 > ```
 
 ## [Unreleased]
+
+## [0.10.2] — 2026-08-24
 
 ### Changed — ปิดงานรวบกลไกให้จบ: เลขที่ประกาศเหลือเจ้าของเดียวจริง ๆ
 
@@ -217,7 +219,8 @@ validator ข้อ 8 ให้จับซ้ำไม่ได้ — แก�
   ตารางสรุปท้ายไฟล์เคยไม่มีหมวด `SSOT` (18 ข้อ) — ทั้งหมดถูกตรวจโดย validator แล้ว
 - คำอ้าง "โหลดตลอด ~1k token" ต่ำไป 3–4 เท่า วัดได้ ~3–4k (validator ข้อ 10 เฝ้าอยู่)
 
-[Unreleased]: https://github.com/fonewspyy/nohell-skill/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/fonewspyy/nohell-skill/compare/v0.10.2...HEAD
+[0.10.2]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.2
 [0.10.1]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.1
 [0.10.0]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.10.0
 [0.9.0]: https://github.com/fonewspyy/nohell-skill/releases/tag/v0.9.0
