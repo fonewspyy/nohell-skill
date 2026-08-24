@@ -63,7 +63,19 @@ def build(text):
         b = '| %s | %d |' % (right[k], count[right[k]]) if k < len(right) else '|  |  |'
         rows.append(a + b)
     rows.append('| **รวม** | **%d** | **หมวด** | **%d** |' % (sum(count.values()), len(order)))
-    return '\n'.join(rows), sum(count.values()), len(order)
+    return '\n'.join(rows), sum(count.values()), len(order), count
+
+
+# เลขในตัวแคตตาล็อกเอง (หัวไฟล์ · ท้ายหัวข้อหมวด) เดิมเป็นข้อ 1 กับข้อ 2 ใน validate-catalog.sh
+# ทั้งคู่เป็นเลขที่คำนวณจาก build() ได้อยู่แล้ว จึง generate ทิ้งไปเลย ไม่ต้อง assert
+HEAD = re.compile(r'^(## ([A-Z]+) [^\n]*?\()(\d+)(\))$', re.M)
+
+
+def fix_catalog_numbers(text, total, count):
+    text = re.sub(r'(?<=^# HELL CATALOG — )\d+', str(total), text, count=1)
+    return HEAD.sub(
+        lambda m: '%s%d%s' % (m.group(1), count.get(m.group(2), int(m.group(3))), m.group(4)),
+        text)
 
 
 def splice(text, table):
@@ -142,18 +154,18 @@ def sync_facts(values, check):
 def main():
     check = '--check' in sys.argv
     text = io.open(PATH, encoding='utf-8').read()
-    table, total, ncat = build(text)
-    out = splice(text, table)
+    table, total, ncat, count = build(text)
+    out = fix_catalog_numbers(splice(text, table), total, count)
     rc = 0
 
     if out != text:
         if check:
-            sys.stderr.write('FAIL  ตารางสรุปไม่ตรงกับข้อมูลจริง — '
-                             'รัน python scripts/build-summary.py\n')
+            sys.stderr.write('FAIL  ตัวเลขในแคตตาล็อก (หัวไฟล์ · ท้ายหัวข้อหมวด · ตารางสรุป) '
+                             'ไม่ตรงกับของจริง — รัน python scripts/build-summary.py\n')
             rc = 1
         else:
             io.open(PATH, 'w', encoding='utf-8', newline='\n').write(out)
-            print('เขียนตารางสรุปใหม่')
+            print('เขียนตัวเลขในแคตตาล็อกใหม่')
             text = out
 
     problems, edited = sync_facts(truth(text), check)

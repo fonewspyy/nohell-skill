@@ -18,26 +18,10 @@ p2=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P2 ' "$CATALOG")
 p3=$(grep -cE '^\| [A-Z]+-[0-9]+ \| P3 ' "$CATALOG")
 skillmd=$(dirname "$CATALOG")/SKILL.md
 
-# 1 — ตัวเลขในหัวไฟล์ต้องเท่ากับจำนวน row จริง
-titled=$(sed -n '1s/.*— \([0-9]*\) .*/\1/p' "$CATALOG")
-[ "$titled" = "$total" ] || bad "หัวไฟล์บอก ${titled:-ไม่ระบุ} ข้อ แต่นับ row ได้ $total"
-
-# 2 — ตัวเลขท้ายหัวข้อหมวดต้องเท่ากับจำนวน row ในหมวดนั้น
-hdrmiss=$(awk '
-  /^## [A-Z]+ / {
-    c = $2
-    declared[c] = match($0, /\([0-9]+\)[ \t]*$/) ? substr($0, RSTART + 1, RLENGTH - 2) : "?"
-    sub(/[^0-9?]*$/, "", declared[c])
-    order[++n] = c
-    next
-  }
-  /^\| [A-Z]+-[0-9]+ \|/ { split($2, p, "-"); actual[p[1]]++ }
-  END {
-    for (i = 1; i <= n; i++)
-      if (declared[order[i]] != actual[order[i]] + 0)
-        printf "%s(%s/%d) ", order[i], declared[order[i]], actual[order[i]]
-  }' "$CATALOG")
-[ -z "$hdrmiss" ] || bad "จำนวนท้ายหัวข้อหมวดไม่ตรง (หัวข้อ/จริง): $hdrmiss"
+# 1, 2 — (เลิกใช้ 2026-08-24 — ย้ายไป scripts/build-summary.py)
+#     เลขในหัวไฟล์และเลขท้ายหัวข้อหมวดคำนวณจากแคตตาล็อกได้อยู่แล้ว จึง generate ทิ้งไป
+#     ไม่ต้อง assert — ตอนนี้ตัวเลขที่ประกาศทุกตัว ทั้งในแคตตาล็อกและในเอกสาร
+#     มีเจ้าของเดียวคือ build-summary.py ไม่แยกสองที่อีก
 
 # 3 — ห้าม ID ซ้ำ
 dupes=$(printf '%s\n' "$ids" | sort | uniq -d | tr '\n' ' ')

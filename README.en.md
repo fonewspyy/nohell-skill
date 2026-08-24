@@ -100,14 +100,14 @@ All 447 entries were re-rated against one written criterion (see [CONTRIBUTING.m
 
 This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. Two tools split the work.
 
-`validate-catalog.sh` checks the catalog **shape**: header count · per-category counts · duplicate IDs ·
-numbering gaps · missing priorities · malformed rows · **IDs referenced by a skill or doc that do not exist
+`validate-catalog.sh` checks the catalog **shape**: duplicate IDs · numbering gaps · missing priorities · malformed rows · **IDs referenced by a skill or doc that do not exist
 in the catalog** · **patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that
 no longer match the file** · `ใช้กับ` values outside the allowed set · severities in `hell-rules.yaml` that
 disagree with the catalog · **patterns that match across lines without declaring `multiline: true`**
 
-`build-summary.py` owns **every number the docs declare** — the summary table and the counts written into
-prose. Its `FACTS` table is the single place that says which number must equal what, and without `--check`
+`build-summary.py` owns **every declared number** — the catalog title count, the per-category heading counts,
+the summary table, and the counts written into prose (entries · categories · P1/P2/P3 · machine-checkable
+rules). Its `FACTS` table is the single place that says which number must equal what, and without `--check`
 it **rewrites them correctly** rather than just complaining. A number a human has to maintain is a number
 that will drift.
 
