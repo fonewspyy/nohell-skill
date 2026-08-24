@@ -105,7 +105,7 @@ fi
 #      อ้างจาก $0 ไม่ใช่ cwd เพราะถ้า glob ไม่เจอไฟล์ ตัวตรวจจะเงียบแล้วผ่าน = บั๊กที่กำลังกันอยู่
 _root=$(dirname "$0")/..
 nchk=$(grep -cE "^# [0-9]+ —" "$0")
-_decl=$(grep -hoE "ตรวจ [0-9]+ อย่าง|checks [0-9]+ things" "$_root"/*.md 2>/dev/null)
+_decl=$(grep -hoE --exclude=CHANGELOG.md "ตรวจ [0-9]+ อย่าง|checks [0-9]+ things" "$_root"/*.md 2>/dev/null)
 if [ "$(printf "%s" "$_decl" | grep -c .)" -lt 2 ]; then
   bad "หาคำประกาศจำนวน check ใน README ไม่เจอครบสองภาษา — ตัวตรวจนี้กำลังเงียบ"
 else
@@ -119,7 +119,7 @@ fi
 _rulesf=$(dirname "$CATALOG")/hell-rules.yaml
 if [ -f "$_rulesf" ]; then
   nrules=$(grep -cE "^  - id: " "$_rulesf")
-  _declr=$(grep -rhoE "ตรวจอัตโนมัติได้ [0-9]+ จาก|[0-9]+ of the entries are machine-checkable" skills docs "$_root"/*.md 2>/dev/null)
+  _declr=$(grep -rhoE --exclude=CHANGELOG.md "ตรวจอัตโนมัติได้ [0-9]+ จาก|[0-9]+ of the entries are machine-checkable" skills docs "$_root"/*.md 2>/dev/null)
   if [ "$(printf "%s" "$_declr" | grep -c .)" -lt 2 ]; then
     bad "หาคำประกาศจำนวนกฎอัตโนมัติไม่เจอครบสองที่ — ตัวตรวจนี้กำลังเงียบ"
   else
@@ -131,7 +131,7 @@ fi
 # (ยังอยู่ในข้อ 8) คำอ้างจำนวน P1 ในเอกสารต้องตรงกับแคตตาล็อก
 #      เลขนี้อยู่ในย่อหน้าที่ใช้เถียงว่าทำไม gate.mode ต้องเป็น ratchet ผิดแล้วข้อสรุปเสียน้ำหนัก
 #      ดึงเลขตัวหน้าด้วยการ grep ซ้อนสองชั้น ชั้นในจับทั้งวลี ชั้นนอกเอาเลขที่ต้นวลี
-_declp1=$(grep -rhoE "[0-9]+ จาก [0-9]+ ข้อเป็น P1|[0-9]+ of [0-9]+ entries are P1" skills docs "$_root"/*.md 2>/dev/null)
+_declp1=$(grep -rhoE --exclude=CHANGELOG.md "[0-9]+ จาก [0-9]+ ข้อเป็น P1|[0-9]+ of [0-9]+ entries are P1" skills docs "$_root"/*.md 2>/dev/null)
 if [ "$(printf "%s" "$_declp1" | grep -c .)" -lt 2 ]; then
   bad "หาคำประกาศจำนวน P1 ในเอกสารไม่เจอครบสองภาษา — ตัวตรวจนี้กำลังเงียบ"
 else
