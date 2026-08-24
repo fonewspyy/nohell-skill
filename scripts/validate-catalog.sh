@@ -97,6 +97,19 @@ if [ -f "$skillmd" ]; then
   [ -z "$wrongn" ] || bad "$skillmd เขียนจำนวนข้อผิด (จริง $total): $wrongn"
 fi
 
+# (ยังอยู่ในข้อ 8) จำนวน check ของ validator เองต้องตรงกับที่ README ประกาศ
+#      REG-07: ทะเบียนเขียนมือที่ไม่มีใครตรวจ — เลขนี้ค้างที่ 10 อยู่สามคอมมิตก่อนจะมีบรรทัดนี้
+#      อ้างจาก $0 ไม่ใช่ cwd เพราะถ้า glob ไม่เจอไฟล์ ตัวตรวจจะเงียบแล้วผ่าน = บั๊กที่กำลังกันอยู่
+_root=$(dirname "$0")/..
+nchk=$(grep -cE "^# [0-9]+ —" "$0")
+_decl=$(grep -hoE "ตรวจ [0-9]+ อย่าง|checks [0-9]+ things" "$_root"/*.md 2>/dev/null)
+if [ "$(printf "%s" "$_decl" | grep -c .)" -lt 2 ]; then
+  bad "หาคำประกาศจำนวน check ใน README ไม่เจอครบสองภาษา — ตัวตรวจนี้กำลังเงียบ"
+else
+  declchk=$(printf "%s" "$_decl" | grep -oE "[0-9]+" | sort -u | grep -vx "$nchk" | tr "\n" " ")
+  [ -z "$declchk" ] || bad "มีไฟล์เขียนจำนวน check ของ validator ผิด (จริง $nchk): $declchk"
+fi
+
 # 9 — pattern ที่ใช้ lookahead/lookbehind ต้องประกาศ engine: pcre2
 #     ไม่งั้นตัวรันบน Rust regex/grep -E จะ parse error แล้ว gate เงียบ = ผ่านทุกอย่าง
 rules="$(dirname "$CATALOG")/hell-rules.yaml"

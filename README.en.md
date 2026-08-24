@@ -93,15 +93,17 @@ These belong in the **target repo**, not here:
 
 All 447 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
 
-68 of the entries are machine-checkable and carry a detection command in `skills/nohell/hell-rules.yaml`;
+67 of the entries are machine-checkable and carry a detection command in `skills/nohell/hell-rules.yaml`;
 `skills/nohell/detect-sqlserver.sql` scans a live SQL Server and maps what it finds back to catalog IDs.
 
 ## Consistency check
 
-This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. The validator checks ten things:
+This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. The validator checks 13 things:
 header count · per-category counts · duplicate IDs · numbering gaps · missing priorities · malformed rows ·
 **IDs referenced by a skill or doc that don't exist in the catalog** · **counts declared in other files that have drifted** ·
-**patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that no longer match the file**
+**patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that no longer match the file** ·
+`ใช้กับ` values outside the allowed set · severities in `hell-rules.yaml` that disagree with the catalog ·
+**patterns that match across lines without declaring `multiline: true`**
 
 ```sh
 sh scripts/validate-catalog.sh
@@ -118,6 +120,12 @@ Field-tested against a real enterprise repo (389 SQL Server files + .NET + TypeS
 Rust regex (plain `rg`) and `grep -E` **reject them outright**. If your runner swallows that error, the gate goes
 silent and passes everything — worse than having no gate. Run them with `rg -P`; they declare `engine: pcre2`
 and the validator enforces that they keep doing so.
+
+**1b. Two more rules require multiline.** `SQL-26` and `ERR-09` match across lines (they contain a `\n`
+that has to match), so they need `rg -U`. Same silent failure if you omit it — measured: `SQL-26` reports
+**0** under plain `rg` but **11 hits across 7 files** with `-U`. Both declare `multiline: true` and
+validator check 13 enforces it. Note `[^\n]` alone does **not** need `-U` — it excludes newlines
+rather than matching them.
 
 **2. `gate.mode` defaults to `ratchet`, not `absolute`.** 215 of 447 entries are P1. Turning on absolute mode
 against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits

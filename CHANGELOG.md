@@ -17,8 +17,12 @@
 บน `rg` ปกติทั้งสองข้อ **compile ไม่ผ่าน** (`the literal "\n" is not allowed in a regex`)
 ซึ่งเป็น failure mode เดียวกับที่หัวไฟล์ `hell-rules.yaml` เตือนไว้เอง — ตัวรันที่กลืน error จะรายงาน 0
 
-วัดบน repo enterprise เดิม (SQL Server 393 ไฟล์): `SQL-26` รายงาน **0** บน `rg` ปกติ แต่ได้
-**11 hit ใน 7 ไฟล์** เมื่อรันด้วย `-U` — ของที่หลุดเป็น SP ที่ใช้งานจริง ไม่ใช่สคริปต์ทิ้ง
+วัดบน repo enterprise เดิม (SQL Server 393 ไฟล์ = 281 ไฟล์ที่เป็น SP + 112 สคริปต์ one-shot)
+`SQL-26` รายงาน **0** บน `rg` ปกติ แต่ได้ **11 hit ใน 7 ไฟล์** เมื่อรันด้วย `-U`
+แยกเป็น **5 hit ใน 3 SP ที่ใช้งานจริง** (`EWM_RF_STICKER_BROKE_COMMAND`,
+`DT_3NEX_SAVE_LOAD_BILL_COMMAND` ซึ่งเป็นทางเซฟบิลค่าเที่ยว, `LB_EWM_CUSTOMER_LOAD_PSC`)
+และ 6 hit ใน 4 สคริปต์ใต้ `SP/_deploy/` การแยกด้วย prefix ของชื่อไฟล์นับ `DEPLOY_*` ผิดฝั่ง
+ต้องแยกด้วย path (MEAS-03: ผลการวัดต้องระบุขอบเขตข้อมูลที่ใช้)
 
 - เพิ่มฟิลด์ `multiline: true` เป็นการประกาศของกฎประเภทนี้ และติดให้ `SQL-26` กับ `ERR-09`
 - validator **ข้อ 13** บังคับว่า pattern ที่มี \n ที่ต้อง match ต้องประกาศฟิลด์นี้
