@@ -24,3 +24,11 @@
 | B10 | ยังไม่มีตัวรัน `hell-rules.yaml` ใน repo | เป็นสเปกเปล่า ทุกคนต้องเขียนเอง (อยู่ใน Phase 3) |
 | B11 | ยังไม่มีชุด eval ของตัว skill | วัด regression ของ prompt artifact ไม่ได้ (อยู่ใน Phase 2) |
 | B12 | validator check 8 จับข้อความอ้างอิงประวัติใน `CHANGELOG.md` ว่าเป็นคำอ้างถึงสถานะปัจจุบัน | เจอตอนเขียน CHANGELOG ของ Phase 0 เอง — เลี่ยงด้วยการเขียนเลขเป็นตัวหนังสือ ไม่ได้แตะ validator ตามเงื่อนไขหยุด | ทบทวนตอนมี PR template (Phase 1) |
+
+## เจอใน Phase 2 (2026-08-24)
+
+| # | เรื่อง | หลักฐาน |
+|---|---|---|
+| B13 | **`NOHELL-REPO-HANDOFF.md` ไม่มีอยู่ในรีโปและไม่เคยมี** ทั้งที่ภารกิจบอกว่า "ตัวเลขทั้งหมดในไฟล์นี้อ้างจากที่นั่น" ⇒ บั๊กที่แมปแล้ว 19+21 ข้อ และ 35 จุด reconciliation ไม่มีบันทึกอยู่ที่ไหน บล็อก Phase 2 (สร้าง golden set ไม่ได้) และบล็อก Phase 3 ข้อ 2 (เติมช่อง `tested: repoA\|repoB\|no` ไม่ได้เพราะไม่รู้ว่ากฎไหน fire บน repo ไหน — ซ้ำกับ B8) | `ls NOHELL-REPO-HANDOFF.md` → No such file · `git log --all --diff-filter=A -- '*HANDOFF*'` → ว่าง · `grep -rn "19 ข้อ\|21 ข้อ\|repo A\|repo B"` เจอแต่การอ้างถึง ไม่มีตัวรายการ |
+| B14 | ไม่มี API key ในสภาพแวดล้อมที่ทำงานอยู่ ⇒ รัน eval 3 รอบและ commit `eval/baseline.json` ตามเกณฑ์ผ่านของ Phase 2 ไม่ได้ | `printenv` ทั้ง `ANTHROPIC_API_KEY` `ANTHROPIC_AUTH_TOKEN` `CLAUDE_API_KEY` `OPENAI_API_KEY` → ไม่มีทั้งสี่ตัว |
+| B12 ✅ | **ปิดแล้วใน v0.10.1** — เดิมเลี่ยงด้วยการเขียนเลขเป็นตัวหนังสือ ตอนนี้แก้ที่ต้นเหตุ: ตัวตรวจเลขทั้งหมดกัน `CHANGELOG.md` ออกจาก scope เพราะเป็นบันทึกประวัติ ต้องอ้างเลขที่ตกยุคได้ | ยืนยันว่า `grep --exclude` มีผลกับไฟล์ที่ระบุใน command line ไม่ใช่แค่ตอน recurse |
