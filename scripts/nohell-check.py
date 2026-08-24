@@ -168,6 +168,25 @@ def files_for(rule, candidates, ignores=()):
     return keep
 
 
+MARKS = {'.sql': '--', '.ts': '//', '.tsx': '//', '.js': '//', '.cs': '//',
+         '.py': '#', '.sh': '#', '.yaml': '#', '.yml': '#'}
+
+
+def in_comment(path, text, start):
+    """match นี้อยู่หลังเครื่องหมายคอมเมนต์บนบรรทัดเดียวกันหรือไม่
+
+    สุ่มตรวจ 8 ตัวอย่างบน repo A พบว่าคอมเมนต์คือแหล่ง false positive ที่ใหญ่ที่สุด
+    (SQL-05 หกในแปด · SQL-31 สี่ในแปด เป็นโค้ดเก่าที่ถูก comment ทิ้ง)
+    เปิดต่อกฎด้วย `skip_comments: true` ไม่เปิดทั้งชุด เพราะการทิ้ง hit เงียบ ๆ
+    ขัดกับหลักของไฟล์กฎเองที่ว่า false positive ถูกกว่า false negative
+    """
+    mark = MARKS.get(os.path.splitext(path)[1].lower())
+    if not mark:
+        return False
+    at = text.find(mark)
+    return 0 <= at < start
+
+
 def rg_flags(rule):
     flags = []
     if rule.get('engine') == 'pcre2':
@@ -178,7 +197,10 @@ def rg_flags(rule):
 
 
 def scan(rule, paths):
-    """คืน [(path, line, text)] — exit 2 ทันทีถ้า pattern compile ไม่ผ่าน"""
+    """คืน [(path, line, text, col)] — exit 2 ทันทีถ้า pattern compile ไม่ผ่าน
+
+    `col` คือ offset ที่ match เริ่มบนบรรทัดนั้น ใช้ตัดสิน skip_comments
+    """
     hits, flags = [], rg_flags(rule)
     # แบ่งเป็นก้อน — command line ของ Windows จำกัด 32k ไฟล์เยอะ ๆ จะยิงไม่ออก
     for k in range(0, len(paths), 200):
@@ -200,8 +222,10 @@ def scan(rule, paths):
             if ev.get('type') != 'match':
                 continue
             d = ev['data']
+            sub = (d.get('submatches') or [{}])[0]
             hits.append((d['path'].get('text', ''), d['line_number'],
-                         d['lines'].get('text', '').rstrip('\n')))
+                         d['lines'].get('text', '').rstrip('\n'),
+                         sub.get('start', 0)))
     return hits
 
 
@@ -247,14 +271,17 @@ def main():
         if not paths:
             continue
         keep = []
-        for path, line, text in scan(rule, paths):
+        skipc = rule.get('skip_comments') is True
+        for path, line, text, col in scan(rule, paths):
             allow = rule.get('allow_comment')
             if allow and allow in text:
+                continue
+            if skipc and in_comment(path, text, col):
                 continue
             if added is not None and not rule.get('multiline'):
                 if line not in added.get(path.replace('\\', '/'), ()):
                     continue
-            keep.append((path, line, text))
+            keep.append((path, line, text, col))
         counts[rule['id']] = len(keep)
         if keep:
             findings.append((rule, keep))
@@ -273,7 +300,7 @@ def main():
         elif sev in warn_on:
             warned += len(keep)
         print('%-6s %-9s %s  (%d จุด)' % (mark, rule['id'], rule.get('title', ''), len(keep)))
-        for path, line, text in keep[:5]:
+        for path, line, text, _col in keep[:5]:
             print('       %s:%s  %s' % (path, line, text.strip()[:90]))
         if len(keep) > 5:
             print('       ... อีก %d จุด' % (len(keep) - 5))

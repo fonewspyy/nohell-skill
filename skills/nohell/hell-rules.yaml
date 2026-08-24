@@ -64,6 +64,7 @@ rules:
     tested: repoA
     title: SELECT * ใน SP/View
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)SELECT\\s+\\*\\s+FROM" }
+    skip_comments: true   # วัดแล้ว 6/8 ตัวอย่างบน repo A เป็นโค้ดเก่าที่ comment ทิ้ง
 
   - id: SQL-06
     severity: P2
@@ -152,6 +153,7 @@ rules:
     tested: repoA
     title: OPENJSON ที่ไม่มี WITH
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)OPENJSON\\s*\\((?:[^()]|\\([^()]*\\))*\\)(?!\\s*(?:AS\\s+\\w+\\s*)?WITH\\s*\\()" }
+    multiline: true   # lookahead (?!...WITH\s*\() ต้องมองข้ามบรรทัด ไม่งั้นฟ้องโค้ดที่ถูก
     note: ไม่มี WITH = ทุกค่าเป็น nvarchar(4000) แล้วเกิด implicit conversion ตอน join (SQL-11)
     allow_comment: "nohell-allow: SQL-30"
     engine: pcre2   # ใช้ lookaround — rg ต้องใช้ -P, grep -E รันไม่ได้
@@ -161,6 +163,7 @@ rules:
     tested: repoA
     title: JSON payload ที่ไม่มีสัญญาประกาศไว้
     detect: { kind: regex, glob: "**/*.sql", pattern: "(?i)@\\w*[Jj]son\\w*\\s+nvarchar\\s*\\(\\s*max\\s*\\)" }
+    skip_comments: true   # วัดแล้ว 4/8 ตัวอย่างบน repo A อยู่ในคอมเมนต์
     note: >
       over-match โดยตั้งใจ — ทุก param JSON จะถูกจับ ให้ใส่ allow comment เฉพาะตัวที่มีบล็อกสัญญา
       (รายชื่อคีย์ ชนิด บังคับ/ไม่บังคับ และการปฏิเสธคีย์ที่ไม่รู้จัก) เขียนกำกับไว้จริง

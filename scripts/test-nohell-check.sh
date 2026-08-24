@@ -28,6 +28,11 @@ check() {
   name=$1; want=$2; must=$3; mustnot=$4
   out=$( cd "$T" && $PY scripts/nohell-check.py --base HEAD 2>&1 ); rc=$?
   ok=1
+  # traceback ทำให้ exit เป็น 1 ได้เหมือนกับ "เจอกฎที่ block" ⇒ เคสที่คาด 1 จะผ่านทั้งที่เครื่องมือพัง
+  # เจอมาแล้วจริง: keep.append() ใส่ค่าไม่ครบ แต่เทส 6 เคสยังขึ้น ok
+  if printf '%s' "$out" | grep -q 'Traceback'; then
+    ok=0; why="เครื่องมือ crash (Traceback) ไม่ใช่ผลตรวจ"
+  fi
   [ "$rc" = "$want" ] || { ok=0; why="exit=$rc คาด $want"; }
   if [ "$must" != "-" ] && ! printf '%s' "$out" | grep -q "$must"; then
     ok=0; why="ไม่เจอ $must ในรายงาน"
@@ -102,6 +107,18 @@ PY
 printf 'SELECT 3;\n' >> "$T/base.sql"
 ( cd "$T" && git add -A )
 check 'pattern พัง -> exit 2 (ไม่กลืน)' 2 'รันไม่ผ่าน' '-'
+
+# 7b — skip_comments: SELECT * ที่ถูก comment ทิ้ง ต้องไม่ฟ้อง (SQL-05 ประกาศ skip_comments)
+setup
+printf -- '--SELECT * FROM OldTable;\n' >> "$T/base.sql"
+( cd "$T" && git add -A )
+check 'skip_comments ข้ามโค้ดที่ comment ทิ้ง' 0 '-' 'SQL-05'
+
+# 7c — แต่ของจริงบนบรรทัดเดียวกับคอมเมนต์ท้ายบรรทัด ต้องยังฟ้อง (ตรวจสองทาง)
+setup
+printf 'SELECT * FROM Orders; -- ของจริง ไม่ใช่คอมเมนต์\n' >> "$T/base.sql"
+( cd "$T" && git add -A )
+check 'skip_comments ไม่กลืนของจริงที่มีคอมเมนต์ท้ายบรรทัด' 1 'SQL-05' '-'
 
 # 8 — .nohellignore ต้องยกเว้นไฟล์ที่ระบุ
 setup
