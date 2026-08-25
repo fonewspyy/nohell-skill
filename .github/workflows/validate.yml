@@ -21,6 +21,10 @@ jobs:
       - name: ติดตั้ง pyyaml
         run: python3 -m pip install --quiet pyyaml
 
+      # frontmatter ที่หลุดมาตรฐานพังตอน *คนอื่น* ติดตั้ง ไม่ใช่ตอนเราแก้ จึงไม่มีทางรู้เองถ้าไม่มีด่าน
+      - name: ตรวจว่า SKILL.md ยังติดตั้งได้ทุกช่องทาง
+        run: python3 scripts/validate-skills.py
+
       - name: เทสของ nohell-check (เคส diff ที่รู้คำตอบ)
         run: sh scripts/test-nohell-check.sh
         env:

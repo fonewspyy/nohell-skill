@@ -15,7 +15,7 @@
 | 2 · Eval harness | ✅ baseline 3 รอบ · recall 0.8333 sd 0.0 · false_alarm 11.67 sd 3.21 · must_ask 0.50 sd 0.0 | `eval/baseline.json` · `docs/impact/2026-08-24-phase-2.md` |
 | 3 · Runner | ✅ ครบทั้งสามข้อ · `tested:` วัดจาก repo A จริง 20/40 · สุ่มตรวจ precision แล้วแก้ 3 กฎ | `25e7ecd` `746c38d` `615319c` |
 | 4 · เนื้อหาที่ขาด | ✅ ครบทั้งสี่ข้อ · `data-migration` · `MOBILE` 13 (447→460) · `ML` 13 (460→473) · `PDPA` 10 (473→483 · 28→31 หมวด) · ทุกข้อผ่าน D1 (3 ID ใกล้สุด + เหตุผล อยู่ใน commit message) · เคสเดิม 12 ข้อ อยู่ที่ 0.8333 sd 0.0 ทั้งสามรอบวัด · เคสใหม่ทั้ง 3 หมวดได้ 1.0 sd 0.0 ยิงผิด 0 · false alarm 13.67 sd 3.21 เท่า baseline เดิมทุกตัว | `skills/data-migration/SKILL.md` · `d8309c0` · `4edca3e` |
-| 5 · Release v1.0 | ⬜ ยังไม่เริ่ม | — |
+| 5 · Release v1.0 | ✅ ติดตั้งได้สามทาง ปักหมุด tag ได้ทุกทาง · frontmatter ยึดหกฟิลด์ของมาตรฐาน Agent Skills + ด่าน `validate-skills.py` เฝ้าไว้ · `/nohell-dig` ย้ายเป็น skill เต็มตัว ไม่ต้อง `cp` แยกอีก · CHANGELOG สรุปจาก v0.9.0 | วัดเอง: `npx skills add "<git-url>#v0.11.0"` ติดตั้งจริงสำเร็จ เขียน `skills-lock.json` ที่จด `ref` + hash · ⚠️ `gh skill install` ยังไม่ได้ทดสอบ เครื่องนี้ไม่มี `gh` |
 
 ⚠️ `NOHELL-REPO-HANDOFF.md` ที่บรรทัดที่ 4 อ้างถึง **ไม่มีอยู่จริงและไม่เคยมีในประวัติ git**
 golden set ของเฟส 2 จึงสร้างจากบันทึกบั๊ก production ของ repo A โดยตรงแทน (B13)

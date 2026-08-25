@@ -5,6 +5,10 @@ description: >
   ใช้เมื่อจะเขียน/รีวิว/รีแฟกเตอร์โค้ดหรือ stored procedure ในระบบงานจริง
   เพื่อกันไม่ให้เกิด spaghetti, duplicated logic, God SP, silent data corruption.
   คู่กับ ponytail: ponytail คุมว่า "อย่าเขียนเกิน", nohell คุมว่า "อย่าเขียนแบบที่จะกลายเป็นนรก".
+license: MIT
+compatibility: >
+  ชั้นกฎอัตโนมัติอยู่ที่ scripts/nohell-check.py ในรีโป ไม่ได้อยู่ใน skills/ จึงไม่ถูกติดตั้งไปพร้อมกัน
+  ต้องมี Python 3 + pyyaml + ripgrep และเรียกไฟล์นั้นจากรีโปที่ clone ไว้ ตัวแคตตาล็อกกับกฎในไฟล์นี้ใช้ได้โดยไม่ต้องมีของพวกนั้น
 ---
 
 # nohell — อย่าสร้างนรกใส่คนที่มาทีหลัง

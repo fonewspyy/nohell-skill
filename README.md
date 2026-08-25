@@ -13,7 +13,7 @@ skills/
 ├── principal-engineer/   ← เข้าที่นี่ก่อนเสมอ: Impact Map, Ask Gate, router
 ├── kickoff/              ← เริ่มโปรเจกต์ใหม่: agent เป็นฝ่ายพาเดินทีละเฟส
 ├── nohell/               ← แคตตาล็อก anti-pattern 483 ข้อ + กฎที่ตรวจอัตโนมัติได้ + สคริปต์สแกน DB
-│   └── commands/nohell-dig.md   ← ขุดประวัติ repo หา "นรกซ้ำซาก" ที่เจ็บจริง
+├── nohell-dig/           ← `/nohell-dig` ขุดประวัติ repo หา "นรกซ้ำซาก" ที่เจ็บจริง
 ├── business-rules/       ← SSOT ของกฎ, effective date, read/write symmetry, workflow, เงิน
 ├── archaeology/          ← ระดับหลักฐาน, บัญชีผู้เรียก, ค้นสำเนากฎด้วยรูปร่าง
 ├── data-migration/       ← ย้ายข้อมูลหกขั้นที่หยุดได้ทุกขั้น: expand-contract, dual-write,
@@ -87,12 +87,29 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 **ติดตั้งด้วย tag เสมอ ห้าม track `main`** — กฎในแคตตาล็อกเปลี่ยนได้ระหว่างทาง ถ้า agent อ่านจาก `main`
 พฤติกรรมจะเปลี่ยนกลาง sprint โดยไม่มีใครรู้ว่าทำไมผลไม่เหมือนเมื่อวาน (ดู [CHANGELOG.md](CHANGELOG.md))
 
+เลือกทางใดทางหนึ่ง ทั้งสามทางได้ครบทุก skill รวม `/nohell-dig`
+
 ```sh
-git clone --branch v0.11.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+# 1) npx skills — ต้องเป็น git URL เต็มพร้อม #tag เพราะรูปย่อ owner/repo จะไปเอา main
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.0" --skill '*'
+
+# 2) GitHub CLI v2.90.0 ขึ้นไป (ปักหมุด tag ได้ในตัว ทีละ skill)
+gh skill install fonewspyy/nohell-skill nohell@v1.0.0
+
+# 3) clone เองแล้วคัดลอก
+git clone --branch v1.0.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
-# หรือเฉพาะโปรเจกต์นี้
-cp -r nohell-skill/skills/* .claude/skills/
+cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพาะโปรเจกต์นี้
 ```
+
+ทาง 1 เขียน `skills-lock.json` ที่จดทั้ง `ref` และ hash ของเนื้อหาไว้ จึงรู้ทีหลังได้ว่าติดตั้งอะไรไป
+`frontmatter` ของทุก skill ยึดหกฟิลด์ของมาตรฐาน [Agent Skills](https://agentskills.io)
+(`name` `description` `license` `compatibility` `metadata` `allowed-tools`) จึงอัปโหลดขึ้น claude.ai
+และแพ็กด้วย Skills API ได้โดยไม่ต้องแก้ — `scripts/validate-skills.py` เฝ้าข้อนี้ไว้
+
+> วัดเองแล้วบนเครื่อง: ทาง 1 ทั้ง `--list` และติดตั้งจริง (ขึ้น `Source: … @ v0.11.0` และได้ 6 skills
+> ตรงกับสภาพ ณ tag นั้น) · ทาง 2 **ยังไม่ได้ทดสอบ** เพราะเครื่องที่ใช้ไม่มี `gh` — รูปคำสั่งอ้างจาก
+> [เอกสาร GitHub](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
 
 ตัวรันกฎอยู่ที่ `scripts/nohell-check.py` **ไม่ได้อยู่ใน `skills/`** จึงไม่ถูกคัดลอกไปด้วย
 ให้เก็บโฟลเดอร์ที่ clone ไว้แล้วเรียกจากที่นั่น หรือคัดลอกเฉพาะไฟล์นั้นไปไว้ที่ไหนก็ได้ —
@@ -105,11 +122,10 @@ python /path/to/nohell-skill/scripts/nohell-check.py        # diff-only
 
 แล้วให้ `AGENTS.md`/`CLAUDE.md` ของโปรเจกต์ชี้มาที่ `skills/principal-engineer/SKILL.md` เป็นด่านแรก
 
-คำสั่ง `/nohell-dig` ต้องวางแยก เพราะ Claude Code อ่าน slash command จาก `commands/` ไม่ใช่จาก `skills/`:
-
-```sh
-cp nohell-skill/skills/nohell/commands/nohell-dig.md ~/.claude/commands/
-```
+`/nohell-dig` มาพร้อมกันแล้ว ไม่ต้องคัดลอกแยกเหมือนก่อน — Claude Code รวม custom command
+เข้ากับ skill แล้ว ไฟล์ที่ `skills/nohell-dig/SKILL.md` จึงสร้างคำสั่ง `/nohell-dig` ให้เอง
+ถ้าไม่อยากให้ Claude หยิบไปใช้เอง ให้ตั้ง `skillOverrides` เป็น `"user-invocable-only"` ในไฟล์ตั้งค่า
+(ไม่ได้ใส่ `disable-model-invocation` ไว้ในไฟล์ เพราะเป็นฟิลด์นอกมาตรฐาน จะทำให้ช่องทางอื่นปฏิเสธทั้งไฟล์)
 
 ไฟล์ที่ต้องคัดลอกไปไว้ที่ **repo เป้าหมาย** ไม่ใช่ที่นี่:
 
@@ -128,7 +144,7 @@ cp nohell-skill/skills/nohell/commands/nohell-dig.md ~/.claude/commands/
 
 ## ตรวจความสอดคล้องของแคตตาล็อก
 
-repo นี้ห้าม `SSOT-01` กับคนอื่น ก็ต้องไม่ทำกับตัวเอง — งานแบ่งเป็นสองตัวที่ไม่ทับกัน
+repo นี้ห้าม `SSOT-01` กับคนอื่น ก็ต้องไม่ทำกับตัวเอง — งานแบ่งเป็นสามตัวที่ไม่ทับกัน
 
 `validate-catalog.sh` ตรวจ **รูปร่าง** ของแคตตาล็อก: ID ซ้ำ · เลขขาดช่วง · ระดับ P ที่หายไป · แถวที่ไม่ครบช่อง · **ID ที่ skill/docs อ้างถึงแต่ไม่มีจริงในแคตตาล็อก** ·
 **pattern ที่ใช้ lookaround แต่ไม่ประกาศ `engine: pcre2`** · **คำอ้างขนาด token ที่เดินจากขนาดไฟล์จริง** ·
@@ -142,12 +158,18 @@ repo นี้ห้าม `SSOT-01` กับคนอื่น ก็ต้อ
 ในไฟล์นั้นคือที่เดียวที่บอกว่าเลขไหนต้องตรงกับอะไร และถ้ารันโดยไม่ใส่ `--check` มันจะ **แก้ให้ถูก**
 ไม่ใช่แค่ฟ้อง — เลขที่คนต้องแก้มือคือเลขที่จะเดิน
 
+`validate-skills.py` ตรวจ **การแพ็กเกจ**: frontmatter ของทุก `SKILL.md` ต้องอยู่ในหกฟิลด์ของมาตรฐาน
+Agent Skills · `name` ต้องตรงกับชื่อโฟลเดอร์ (ชื่อคำสั่งมาจากโฟลเดอร์ ไม่ได้มาจากฟิลด์) ·
+ความยาวของ `description`/`compatibility` ต้องไม่เกินเพดาน — ฟิลด์ที่หลุดมาตรฐานพังตอน *คนอื่น*
+ติดตั้ง ไม่ใช่ตอนเราแก้ จึงไม่มีทางรู้เองถ้าไม่มีด่าน
+
 ```sh
 sh scripts/validate-catalog.sh
+python scripts/validate-skills.py
 python scripts/build-summary.py --check   # ตารางสรุปท้ายไฟล์ตรงกับของจริงไหม
 ```
 
-CI รันทั้งสองตัวนี้ทุก push · ตารางสรุปท้าย `HELL-CATALOG.md` generate จากข้อมูลจริง ห้ามแก้มือ
+CI รันทั้งสามตัวนี้ทุก push · ตารางสรุปท้าย `HELL-CATALOG.md` generate จากข้อมูลจริง ห้ามแก้มือ
 
 ## รันกฎอัตโนมัติ — `nohell-check`
 

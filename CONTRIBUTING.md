@@ -9,13 +9,14 @@ repo นี้เป็นเอกสารที่ agent อ่านเป�
 
 ```sh
 sh scripts/validate-catalog.sh          # รูปร่างของแคตตาล็อก
+python scripts/validate-skills.py       # SKILL.md ยังติดตั้งได้ทุกช่องทางไหม
 python scripts/build-summary.py --check # ตัวเลขที่ประกาศตรงกับของจริงไหม
 sh scripts/test-nohell-check.sh         # เทสของตัวรันกฎ
 sh scripts/test-build-summary.sh        # เทสของตัวเขียนตัวเลข
 python scripts/nohell-check.py --base HEAD   # กินยาตัวเอง: รันกฎกับบรรทัดที่เพิ่ม
 ```
 
-ทั้งห้าตัวต้องขึ้น `OK` ก่อนเสมอ CI รันชุดเดียวกันนี้
+ทั้งหกตัวต้องขึ้น `OK` ก่อนเสมอ CI รันชุดเดียวกันนี้
 
 ## เกณฑ์ตัดสินสองข้อที่ต้องผ่านก่อนทุกครั้ง
 

@@ -12,7 +12,7 @@ skills/
 ├── principal-engineer/   ← always enter here: Impact Map, Ask Gate, router
 ├── kickoff/              ← starting something new: the agent drives, phase by phase
 ├── nohell/               ← 483-entry anti-pattern catalog + machine-checkable rules + a DB scanner
-│   └── commands/nohell-dig.md   ← mine repo history for the hells that actually hurt
+├── nohell-dig/           ← `/nohell-dig`: mine repo history for the hells that actually hurt
 ├── business-rules/       ← rule ownership, effective dates, read/write symmetry, workflow, money
 ├── archaeology/          ← evidence levels, caller inventory, finding rule copies by shape
 └── conventions/          ← naming, business vocabulary, the standard SP skeleton
@@ -58,20 +58,39 @@ close the task using the same Impact Map as a checklist
 **Always install from a tag; never track `main`.** Rules change between releases — if your agent reads
 `main`, its behaviour shifts mid-sprint with no record of why. See [CHANGELOG.md](CHANGELOG.md).
 
+Pick one. All three deliver every skill, including `/nohell-dig`.
+
 ```sh
-git clone --branch v0.11.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+# 1) npx skills — needs the full git URL with #tag; the owner/repo shorthand tracks main
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.0" --skill '*'
+
+# 2) GitHub CLI v2.90.0+ (pins to a tag natively, one skill per command)
+gh skill install fonewspyy/nohell-skill nohell@v1.0.0
+
+# 3) clone and copy
+git clone --branch v1.0.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
-# or scoped to one project
-cp -r nohell-skill/skills/* .claude/skills/
+cp -r nohell-skill/skills/* .claude/skills/            # or scoped to one project
 ```
+
+Option 1 writes a `skills-lock.json` recording both the `ref` and a content hash, so you can tell
+later what you actually installed. Every skill's frontmatter stays within the six fields of the
+[Agent Skills](https://agentskills.io) spec (`name`, `description`, `license`, `compatibility`,
+`metadata`, `allowed-tools`), so the same files upload to claude.ai and package through the Skills
+API unchanged — `scripts/validate-skills.py` guards that.
+
+> Measured here: option 1 was run for real — both `--list` and an actual install printed
+> `Source: … @ v0.11.0` and delivered the 6 skills that tag contains. Option 2 was **not tested**,
+> because the machine used has no `gh`; the command shape comes from the
+> [GitHub docs](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills).
 
 Then point your project's `AGENTS.md` / `CLAUDE.md` at `skills/principal-engineer/SKILL.md` as the first gate.
 
-The `/nohell-dig` command installs separately — Claude Code reads slash commands from `commands/`, not from `skills/`:
-
-```sh
-cp nohell-skill/skills/nohell/commands/nohell-dig.md ~/.claude/commands/
-```
+`/nohell-dig` now ships with the rest — no separate copy step. Claude Code merged custom commands
+into skills, so `skills/nohell-dig/SKILL.md` creates the `/nohell-dig` command by itself. To keep it
+manual-only, set `skillOverrides` to `"user-invocable-only"` in your settings; the file deliberately
+does not carry `disable-model-invocation`, which is outside the spec and would make other install
+paths reject it.
 
 The rule runner lives at `scripts/nohell-check.py`, **not** under `skills/`, so the copy above
 does not deliver it. Keep the clone and call it from there, or copy just that file anywhere —
@@ -107,7 +126,7 @@ All 483 entries were re-rated against one written criterion (see [CONTRIBUTING.m
 
 ## Consistency check
 
-This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. Two tools split the work.
+This repo forbids `SSOT-01` in other people's code, so it can't commit it in its own. Three tools split the work.
 
 `validate-catalog.sh` checks the catalog **shape**: duplicate IDs · numbering gaps · missing priorities · malformed rows · **IDs referenced by a skill or doc that do not exist
 in the catalog** · **patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that
@@ -121,12 +140,18 @@ rules · the per-stack counts in all three copies of the `ใช้กับ` li
 it **rewrites them correctly** rather than just complaining. A number a human has to maintain is a number
 that will drift.
 
+`validate-skills.py` owns **packaging**: every `SKILL.md` frontmatter must stay within the six fields
+of the Agent Skills spec, `name` must match the directory name (the command comes from the directory,
+not the field), and `description`/`compatibility` must stay under their caps. A field outside the spec
+breaks when *someone else* installs, not when you edit — so there's no way to notice without a gate.
+
 ```sh
 sh scripts/validate-catalog.sh
+python scripts/validate-skills.py
 python scripts/build-summary.py --check   # does the summary table still match reality?
 ```
 
-CI runs both on every push. The summary table at the end of `HELL-CATALOG.md` is generated, not hand-maintained — it had silently lost an entire 18-entry category before that was enforced.
+CI runs all three on every push. The summary table at the end of `HELL-CATALOG.md` is generated, not hand-maintained — it had silently lost an entire 18-entry category before that was enforced.
 
 ## Running the automated layer — `nohell-check`
 
