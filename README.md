@@ -91,13 +91,13 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 
 ```sh
 # 1) npx skills — ต้องเป็น git URL เต็มพร้อม #tag เพราะรูปย่อ owner/repo จะไปเอา main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.0" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.1" --skill '*'
 
-# 2) GitHub CLI v2.90.0 ขึ้นไป (ปักหมุด tag ได้ในตัว ทีละ skill)
-gh skill install fonewspyy/nohell-skill nohell@v1.0.0
+# 2) GitHub CLI v2.90.0 ขึ้นไป
+gh skill install fonewspyy/nohell-skill --all --pin v1.0.1
 
 # 3) clone เองแล้วคัดลอก
-git clone --branch v1.0.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.0.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
 cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพาะโปรเจกต์นี้
 ```
@@ -107,9 +107,17 @@ cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพ�
 (`name` `description` `license` `compatibility` `metadata` `allowed-tools`) จึงอัปโหลดขึ้น claude.ai
 และแพ็กด้วย Skills API ได้โดยไม่ต้องแก้ — `scripts/validate-skills.py` เฝ้าข้อนี้ไว้
 
-> วัดเองแล้วบนเครื่อง: ทาง 1 ทั้ง `--list` และติดตั้งจริง (ขึ้น `Source: … @ v0.11.0` และได้ 6 skills
-> ตรงกับสภาพ ณ tag นั้น) · ทาง 2 **ยังไม่ได้ทดสอบ** เพราะเครื่องที่ใช้ไม่มี `gh` — รูปคำสั่งอ้างจาก
-> [เอกสาร GitHub](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
+ทาง 2 ฉีดที่มาลงในช่อง `metadata` ของสำเนาที่ติดตั้ง (`github-repo` `github-ref` `github-pinned`
+`github-tree-sha`) ซึ่งเป็นช่อง free-form ของมาตรฐานเอง จึงไม่หลุดสเปก และเป็นเหตุผลที่รีโปนี้
+**ไม่** เขียน `version` ลง `metadata` ด้วยมือ — เครื่องมือเป็นคนเขียนช่องนั้นตอนติดตั้ง
+
+> วัดเองแล้วบนเครื่องนี้ ทั้งสองทาง กับ tag `v1.0.0` ที่เผยแพร่จริง
+> ทาง 1 ขึ้น `Source: … @ v1.0.0` ลงครบ 8 skills · ทาง 2 ขึ้น `Using ref v1.0.0 (ae8642fe)`
+> ลงครบ 8 skills เช่นกัน exit 0 ทั้งคู่ และไม่ต้องล็อกอิน `gh` สำหรับรีโปสาธารณะ
+> (ทดสอบด้วย `gh` 2.98.0 — คำสั่ง `gh skill` ยังอยู่ในสถานะ preview ตามที่ `--help` ของมันบอกเอง)
+>
+> คำสั่งข้างบนชี้ `v1.0.1` ส่วนที่วัดคือ `v1.0.0` — สองรุ่นนี้ต่างกันแค่เอกสาร ไม่มีอะไรในกลไกติดตั้ง
+> เปลี่ยน จึงไม่แก้เลขในกล่องนี้ให้ตรงกับคำสั่ง เพราะนั่นคือการเคลมว่าวัดสิ่งที่ยังไม่ได้วัด
 
 ตัวรันกฎอยู่ที่ `scripts/nohell-check.py` **ไม่ได้อยู่ใน `skills/`** จึงไม่ถูกคัดลอกไปด้วย
 ให้เก็บโฟลเดอร์ที่ clone ไว้แล้วเรียกจากที่นั่น หรือคัดลอกเฉพาะไฟล์นั้นไปไว้ที่ไหนก็ได้ —

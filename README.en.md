@@ -62,13 +62,13 @@ Pick one. All three deliver every skill, including `/nohell-dig`.
 
 ```sh
 # 1) npx skills — needs the full git URL with #tag; the owner/repo shorthand tracks main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.0" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.1" --skill '*'
 
-# 2) GitHub CLI v2.90.0+ (pins to a tag natively, one skill per command)
-gh skill install fonewspyy/nohell-skill nohell@v1.0.0
+# 2) GitHub CLI v2.90.0+
+gh skill install fonewspyy/nohell-skill --all --pin v1.0.1
 
 # 3) clone and copy
-git clone --branch v1.0.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.0.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 cp -r nohell-skill/skills/* .claude/skills/            # or scoped to one project
 ```
@@ -79,10 +79,19 @@ later what you actually installed. Every skill's frontmatter stays within the si
 `metadata`, `allowed-tools`), so the same files upload to claude.ai and package through the Skills
 API unchanged — `scripts/validate-skills.py` guards that.
 
-> Measured here: option 1 was run for real — both `--list` and an actual install printed
-> `Source: … @ v0.11.0` and delivered the 6 skills that tag contains. Option 2 was **not tested**,
-> because the machine used has no `gh`; the command shape comes from the
-> [GitHub docs](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills).
+Option 2 injects provenance into the installed copy's `metadata` map (`github-repo`, `github-ref`,
+`github-pinned`, `github-tree-sha`). That map is the spec's own free-form field, so the result stays
+compliant — and it is why this repo does **not** hand-write a `version` into `metadata`: the tool
+fills that slot at install time.
+
+> Measured here: both options were run for real against the published `v1.0.0` tag. Option 1 printed
+> `Source: … @ v1.0.0` and delivered all 8 skills; option 2 printed `Using ref v1.0.0 (ae8642fe)` and
+> delivered all 8 as well. Both exited 0, and `gh` needed no login for a public repo.
+> (Tested with `gh` 2.98.0 — `gh skill` still reports itself as preview in its own `--help`.)
+>
+> The commands above name `v1.0.1`; what was measured is `v1.0.0`. The two differ only in docs —
+> nothing in the install path changed — so the number in this box is left as measured rather than
+> matched to the commands, which would claim a measurement that never happened.
 
 Then point your project's `AGENTS.md` / `CLAUDE.md` at `skills/principal-engineer/SKILL.md` as the first gate.
 
