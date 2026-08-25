@@ -14,7 +14,7 @@
 | 1 · Governance severity | ✅ P1 245 → 136 | `11fd482` · `docs/impact/2026-08-23-phase-1.md` |
 | 2 · Eval harness | ✅ baseline 3 รอบ · recall 0.8333 sd 0.0 · false_alarm 11.67 sd 3.21 · must_ask 0.50 sd 0.0 | `eval/baseline.json` · `docs/impact/2026-08-24-phase-2.md` |
 | 3 · Runner | ✅ ครบทั้งสามข้อ · `tested:` วัดจาก repo A จริง 20/40 · สุ่มตรวจ precision แล้วแก้ 3 กฎ | `25e7ecd` `746c38d` `615319c` |
-| 4 · เนื้อหาที่ขาด | 🟡 ข้อ 1 `data-migration` ✅ · ข้อ 2 `MOBILE` 13 ข้อ ✅ (447→460 · 28→29 หมวด) · ข้อ 3 `ML` 13 ข้อ ✅ (460→473 · 29→30 หมวด · เคสเดิม 12 ข้อ อยู่ที่ 0.8333 sd 0.0 · เคส ML ใหม่ 1.0 sd 0.0 · false alarm 13.67 เท่า baseline เดิมทุกตัว) · ข้อ 4 PDPA ยังไม่เริ่ม | `skills/data-migration/SKILL.md` · `d8309c0` |
+| 4 · เนื้อหาที่ขาด | ✅ ครบทั้งสี่ข้อ · `data-migration` · `MOBILE` 13 (447→460) · `ML` 13 (460→473) · `PDPA` 10 (473→483 · 28→31 หมวด) · ทุกข้อผ่าน D1 (3 ID ใกล้สุด + เหตุผล อยู่ใน commit message) · เคสเดิม 12 ข้อ อยู่ที่ 0.8333 sd 0.0 ทั้งสามรอบวัด · เคสใหม่ทั้ง 3 หมวดได้ 1.0 sd 0.0 ยิงผิด 0 · false alarm 13.67 sd 3.21 เท่า baseline เดิมทุกตัว | `skills/data-migration/SKILL.md` · `d8309c0` · `4edca3e` |
 | 5 · Release v1.0 | ⬜ ยังไม่เริ่ม | — |
 
 ⚠️ `NOHELL-REPO-HANDOFF.md` ที่บรรทัดที่ 4 อ้างถึง **ไม่มีอยู่จริงและไม่เคยมีในประวัติ git**

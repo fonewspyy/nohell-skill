@@ -23,12 +23,20 @@ PATH = 'skills/nohell/HELL-CATALOG.md'
 RULES = 'skills/nohell/hell-rules.yaml'
 MARK = '<!-- generate ด้วย scripts/build-summary.py ห้ามแก้มือ -->'
 
-# CHANGELOG เป็นบันทึกประวัติ หน้าที่ของมันคืออ้างเลขที่ตกยุคได้ จึงไม่ใช่คำประกาศสถานะ
-# ไฟล์ที่ *ไม่ใช่* ทะเบียนสถานะปัจจุบัน จึงมีเลขที่ไม่ควรวิ่งตามของจริง
+# เอกสารในรีโปนี้มีสองชนิดที่หน้าที่ต่างกัน และตัวนี้แตะได้ชนิดเดียว
+#   ทะเบียน  ประกาศ *สถานะปัจจุบัน* — ต้อง generate ทับ ไม่งั้นมันเดิน
+#   บันทึก   อ้าง *สถานะในอดีต* หรือเขียนกฎเป็นตัวเลข — เขียนทับเมื่อไหร่คือทำลายเนื้อหา
+# ค่าเริ่มต้นเดิมถือว่าทุกไฟล์ .md เป็นทะเบียน แล้วยกเว้นทีละชื่อ ซึ่งพังมาแล้วสองครั้ง
 #   CHANGELOG            บันทึกประวัติ ต้องอ้างเลขที่ตกยุคได้
-#   NOHELL-NEXT-MISSION  เอกสารแผน มีข้อตัดสินใจอย่าง D5 ที่เขียนว่า "28 หมวดพอแล้ว"
-#                        ซึ่งเป็นกฎ ไม่ใช่สถานะ — generator เคยแก้เป็น 29 แล้วเปลี่ยนความหมายกฎ
-SKIP_DOCS = {'CHANGELOG.md', 'NOHELL-NEXT-MISSION.md'}
+#   NOHELL-NEXT-MISSION  เอกสารแผน ข้อตัดสินใจ D5 เขียนว่า "28 หมวดพอแล้ว" ซึ่งเป็น *กฎ*
+#                        ไม่ใช่สถานะ — generator เคยแก้เป็น 29 แล้วเปลี่ยนความหมายของกฎไปเลย
+#   BACKLOG              บันทึกหลักฐาน B26 อ้างข้อความผิดของเดิมไว้ตรง ๆ ว่า "447 entries
+#                        across 28 categories" แล้ว generator เขียนทับเป็นเลขปัจจุบัน
+#                        บันทึกจึงกลายเป็นบอกว่าข้อความที่เคยผิดคือข้อความที่ถูก
+#   docs/impact/         Impact Map ต่องาน = ภาพ ณ วันที่ทำ ยังไม่มีเลขที่ตรงแพตเทิร์นตอนนี้
+#                        แต่เป็นชนิดเดียวกัน กันทั้งโฟลเดอร์ดีกว่ารอให้พังก่อนแล้วค่อยเติมชื่อ
+SKIP_DOCS = {'CHANGELOG.md', 'NOHELL-NEXT-MISSION.md', 'BACKLOG.md'}
+SKIP_DIRS = ('docs/impact', 'docs/archaeology', 'docs/adr')
 
 # ข้อเท็จจริงเชิงตัวเลขที่เอกสารประกาศ — ที่เดียว เพิ่มเรื่องใหม่ = เพิ่มหนึ่งแถว
 #   scope  ไฟล์ที่คำประกาศนี้อยู่ได้ (None = เอกสารทุกไฟล์)
@@ -136,7 +144,9 @@ def doc_files():
     for d in ('skills', 'docs'):
         for root, _, files in os.walk(d):
             out += [os.path.join(root, f) for f in sorted(files) if f.endswith('.md')]
-    return [p for p in out if os.path.basename(p) not in SKIP_DOCS]
+    return [p for p in out
+            if os.path.basename(p) not in SKIP_DOCS
+            and not p.replace('\\', '/').startswith(SKIP_DIRS)]
 
 
 def usage_counts(text):

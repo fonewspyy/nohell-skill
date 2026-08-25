@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "python",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm ของหมวด PDPA — อายุการเก็บผูกกับวัตถุประสงค์ บัญชีปลายทางครบ และบันทึกไม่มีข้อมูลระบุตัวตน",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "# retention.py — อายุการเก็บอ่านจากบันทึกกิจกรรมการประมวลผลที่เดียว\n#   ropa.yaml: customer_contact { purpose, lawful_basis, keep_days, stores[] }\n#   stores[] คือบัญชีปลายทางทุกที่ที่ข้อมูลชุดนี้ไปอยู่ ต้องแก้พร้อม schema\n\ndef run_retention(spec, today):\n    cutoff = today - timedelta(days=spec[\"keep_days\"])\n    erased = {}\n    for store in spec[\"stores\"]:\n        erased[store.name] = store.erase_older_than(cutoff)\n    erasure_log.write(purpose=spec[\"purpose\"], basis=spec[\"lawful_basis\"],\n                      cutoff=cutoff, erased_per_store=erased)\n    return erased",
+  "id": "c13-pdpa-scoped-retention"
+}

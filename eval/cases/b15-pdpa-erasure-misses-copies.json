@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "python",
+  "must_ask": false,
+  "expected_ids": [
+    "PDPA-04"
+  ],
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "why": "ลบจากตารางหลักแล้วบอกเจ้าของข้อมูลว่าลบแล้ว ทั้งที่ข้อมูลชุดเดียวกันยังอยู่ในสำเนาอีกสามที่ที่ระบบเองรู้จัก",
+  "snippet": "# privacy.py — จัดการคำขอลบข้อมูลจากเจ้าของข้อมูล\n#\n# ที่ที่ข้อมูลลูกค้าชุดนี้ไปอยู่ (จากเอกสารระบบ):\n#   customers        ตารางหลัก\n#   backup รายคืน    เก็บบน object storage 90 วัน\n#   search_index     sync จาก customers ทุกชั่วโมง\n#   report_cache     สร้างใหม่ทุกเช้า เก็บชื่อกับเบอร์ไว้ในนั้นด้วย\n\ndef handle_erasure_request(customer_id):\n    db.execute(\"DELETE FROM customers WHERE id = %s\", (customer_id,))\n    notify_subject(customer_id, \"ลบข้อมูลของคุณออกจากระบบเรียบร้อยแล้ว\")\n    return {\"status\": \"erased\"}",
+  "id": "b15-pdpa-erasure-misses-copies"
+}
