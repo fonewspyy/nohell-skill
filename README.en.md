@@ -11,7 +11,7 @@ The problem isn't that agents can't write code. The problem is that agents **sta
 skills/
 ├── principal-engineer/   ← always enter here: Impact Map, Ask Gate, router
 ├── kickoff/              ← starting something new: the agent drives, phase by phase
-├── nohell/               ← 447-entry anti-pattern catalog + machine-checkable rules + a DB scanner
+├── nohell/               ← 473-entry anti-pattern catalog + machine-checkable rules + a DB scanner
 │   └── commands/nohell-dig.md   ← mine repo history for the hells that actually hurt
 ├── business-rules/       ← rule ownership, effective dates, read/write symmetry, workflow, money
 ├── archaeology/          ← evidence levels, caller inventory, finding rule copies by shape
@@ -91,16 +91,16 @@ These belong in the **target repo**, not here:
 
 ## The catalog
 
-447 entries across 28 categories. Every entry is one row:
+473 entries across 30 categories. Every entry is one row:
 `ID | priority | the hell | what you'll see in the wild | the enforceable rule that replaces it`.
 
-`ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE` `TYPE` `AGG` `MEAS` `REG` `TOOL`
+`ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE` `TYPE` `AGG` `MEAS` `REG` `TOOL` `MOBILE` `ML`
 
-**P1** 143 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
-**P2** 159 — loud breakage (crash, error, hang) that recovers without touching historical data
-**P3** 158 — the cost of reading and maintaining
+**P1** 149 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
+**P2** 165 — loud breakage (crash, error, hang) that recovers without touching historical data
+**P3** 159 — the cost of reading and maintaining
 
-All 447 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
+All 473 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
 
 67 of the entries are machine-checkable and carry a detection command in `skills/nohell/hell-rules.yaml`;
 `skills/nohell/detect-sqlserver.sql` scans a live SQL Server and maps what it finds back to catalog IDs.
@@ -172,16 +172,16 @@ that has to match), so they need `rg -U`. Same silent failure if you omit it —
 validator check 13 enforces it. Note `[^\n]` alone does **not** need `-U` — it excludes newlines
 rather than matching them.
 
-**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 143 of 460 entries are P1. Turning on absolute mode
+**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 149 of 473 entries are P1. Turning on absolute mode
 against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits
 across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
 **don't add more**, not **don't have any**.
 
-**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (78%) are
+**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (76%) are
 stack-independent, the rest are tagged `RDBMS` (49), `เว็บ` / web (17), `SQL Server` (13),
-`mobile` (13), `มี SP` / stored-procedure shops (7), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
+`mobile` (13), `ML` (13), `มี SP` / stored-procedure shops (7), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
 `SQL` entries did not apply at all and nothing in the file said so. Filter before you read — a Python +
-PostgreSQL shop with no mobile app reads 407 of 460 and skips the other 53.
+PostgreSQL shop with no mobile app and no models reads 407 of 473 and skips the other 66.
 
 **3. The automated layer is triage, not a gate.** Measured on a real codebase (MySQL + TS, 1,413 files):
 P1 rules pointed at 473 of 1,413 files (33%), which contained 16 of the 18 files with real bugs —
@@ -211,15 +211,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Because that would be **`SSOT-01` committed against ourselves**: creating C (a new skill) without deleting A (the existing catalog category), until the SQL rules live in two places and drift apart.
 
-The catalog is already split by domain across 28 categories. What was missing was *knowing which category this task needs* — and that's the router in `principal-engineer`, not another folder.
+The catalog is already split by domain across 30 categories. What was missing was *knowing which category this task needs* — and that's the router in `principal-engineer`, not another folder.
 
 A new skill is only justified when it carries a **process** the catalog can't express. `business-rules`, `archaeology`, `kickoff`, and `conventions` clear that bar. "frontend" doesn't — it's a list of things not to do, which is exactly what the catalog is for.
 
 ## Not yet covered
 
-No categories yet for **MOBILE** (offline/sync/barcode scanners/duplicate submits over flaky warehouse wifi), **AI-ML** (datasets, leakage, preprocessing parity, thresholds, drift), **INFRA** (containers, reverse proxies, TLS, backup/DR), or **NET** (connection pools, keep-alive, proxy timeouts, backpressure — currently scattered across `ERR`/`PERF`).
+`MOBILE` (offline/sync/barcode scanners/duplicate submits over flaky warehouse wifi) and `ML` (datasets, leakage, preprocessing parity, thresholds, drift) are now in the catalog. Still missing: **INFRA** (containers, reverse proxies, TLS, backup/DR) and **NET** (connection pools, keep-alive, proxy timeouts, backpressure — currently scattered across `ERR`/`PERF`).
 
-These belong as new categories in the existing catalog, not as new skills. Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Both belong as new categories in the existing catalog, not as new skills. Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

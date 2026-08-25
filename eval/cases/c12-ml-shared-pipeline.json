@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "python",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm ของหมวด ML",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "# features.py — โค้ดชุดเดียวถูกเรียกทั้งตอนเทรนและตอนใช้งาน\ndef build_pipeline():\n    return Pipeline([(\"scale\", StandardScaler()), (\"clf\", LogisticRegression())])\n\n# train.py\npipe = build_pipeline().fit(X_train, y_train)\njoblib.dump({\"pipeline\": pipe, \"feature_version\": FEATURE_VERSION,\n             \"threshold\": pick_threshold(pipe, X_val, y_val, cost_fp=20, cost_fn=300)},\n            \"model.pkl\")\n\n# serve.py\nart = joblib.load(\"model.pkl\")\nscore = art[\"pipeline\"].predict_proba(row)[0][1]\nlog.info(\"scored\", model_version=art[\"feature_version\"], score=score)\nreturn score >= art[\"threshold\"]",
+  "id": "c12-ml-shared-pipeline"
+}

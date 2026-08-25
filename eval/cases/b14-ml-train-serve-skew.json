@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "python",
+  "must_ask": false,
+  "expected_ids": [
+    "ML-03"
+  ],
+  "task": "โมเดลนี้คะแนนตอนทดสอบดี แต่ขึ้นใช้จริงแล้วผลเพี้ยน รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "ขั้นเตรียมข้อมูลตอนเทรนกับตอนใช้งานเป็นคนละโค้ด สเกลจึงคนละตัว ผลผิดโดยไม่มี error",
+  "snippet": "# train.py\nscaler = StandardScaler().fit(X_train)\nmodel.fit(scaler.transform(X_train), y_train)\njoblib.dump(model, \"model.pkl\")   # เก็บแต่โมเดล ไม่เก็บ scaler\n\n# serve.py\nmodel = joblib.load(\"model.pkl\")\nx = np.array([[age, income, tenure]])\nreturn model.predict(x)           # ป้อนค่าดิบเข้าไปตรง ๆ",
+  "id": "b14-ml-train-serve-skew"
+}
