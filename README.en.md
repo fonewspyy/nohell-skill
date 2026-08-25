@@ -62,13 +62,13 @@ Pick one. All three deliver every skill, including `/nohell-dig`.
 
 ```sh
 # 1) npx skills — needs the full git URL with #tag; the owner/repo shorthand tracks main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.2" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.3" --skill '*'
 
 # 2) GitHub CLI v2.90.0+
-gh skill install fonewspyy/nohell-skill --all --pin v1.0.2
+gh skill install fonewspyy/nohell-skill --all --pin v1.0.3
 
 # 3) clone and copy
-git clone --branch v1.0.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.0.3 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 cp -r nohell-skill/skills/* .claude/skills/            # or scoped to one project
 ```

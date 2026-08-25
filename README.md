@@ -91,13 +91,13 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 
 ```sh
 # 1) npx skills — ต้องเป็น git URL เต็มพร้อม #tag เพราะรูปย่อ owner/repo จะไปเอา main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.2" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.3" --skill '*'
 
 # 2) GitHub CLI v2.90.0 ขึ้นไป
-gh skill install fonewspyy/nohell-skill --all --pin v1.0.2
+gh skill install fonewspyy/nohell-skill --all --pin v1.0.3
 
 # 3) clone เองแล้วคัดลอก
-git clone --branch v1.0.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.0.3 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
 cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพาะโปรเจกต์นี้
 ```

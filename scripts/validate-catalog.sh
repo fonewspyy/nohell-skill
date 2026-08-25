@@ -125,6 +125,11 @@ badstack=$(awk -v ok="|ทุกที่|RDBMS|SQL Server|มี SP|TS/JS|.NET|
 [ -z "$badstack" ] || bad "ช่อง 'ใช้กับ' มีค่าที่ไม่อยู่ในชุดที่อนุญาต: $badstack"
 
 # 12 — severity ใน hell-rules.yaml ต้องเดินตามแคตตาล็อก ห้ามมีสองแหล่งที่ไม่ตรงกัน
+#      และ (ข้อ 12b) id ของกฎที่อ้างข้อในแคตตาล็อก ต้องมีข้อนั้นอยู่จริง
+#      กฎที่พิมพ์ id ผิดหรืออ้างข้อที่ถูกลบไปแล้วจะ *เงียบสนิท* — validator เดิมขึ้น OK
+#      วัดแล้ว 2026-08-25: ใส่ `- id: ZZZ-99` ลงไฟล์กฎ แล้ว validator ยังขึ้น OK (B28)
+#      ⚠️ `PR-CHECKLIST` เป็นกฎจริงที่ไม่ได้อ้างข้อในแคตตาล็อก จึงต้องยกเว้น id ที่ไม่เข้ารูป [A-Z]+-NN
+#      ทำในลูปเดิม ไม่เพิ่ม pass ใหม่ เพราะ awk ตัวนี้ถือทั้งสองฝั่งอยู่แล้ว
 if [ -f "$rules" ]; then
   sevmiss=$(awk '
     FNR == NR {
@@ -135,10 +140,18 @@ if [ -f "$rules" ]; then
       }
       next
     }
-    /^  - id: / { cur = $3; next }
+    /^  - id: / {
+      cur = $3
+      if (cur ~ /^[A-Z]+-[0-9]+$/ && cat[cur] == "") orphan = orphan cur " "
+      next
+    }
     /^    severity: / { if (cur != "" && cat[cur] != "" && cat[cur] != $2) printf "%s(กฎ %s/แคตตาล็อก %s) ", cur, $2, cat[cur]; cur = "" }
+    END { if (orphan != "") printf "\nORPHAN %s", orphan }
   ' "$CATALOG" "$rules")
-  [ -z "$sevmiss" ] || bad "severity ใน hell-rules ไม่ตรงกับแคตตาล็อก: $sevmiss"
+  orphans=$(printf '%s' "$sevmiss" | sed -n 's/^ORPHAN //p')
+  sevonly=$(printf '%s' "$sevmiss" | grep -v '^ORPHAN ' | tr -d '\n')
+  [ -z "$sevonly" ] || bad "severity ใน hell-rules ไม่ตรงกับแคตตาล็อก: $sevonly"
+  [ -z "$orphans" ] || bad "กฎอ้าง ID ที่ไม่มีในแคตตาล็อก (พิมพ์ผิด หรือข้อถูกลบไปแล้ว): $orphans"
 fi
 
 # 13 — pattern ที่จับข้ามบรรทัด (มี \n เป็นสิ่งที่ต้อง match) ต้องประกาศ multiline: true
