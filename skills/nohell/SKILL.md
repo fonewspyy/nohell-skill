@@ -1,7 +1,7 @@
 ---
 name: nohell
 description: >
-  แคตตาล็อก anti-pattern ระดับ enterprise (447 ข้อ) + กฎบังคับ.
+  แคตตาล็อก anti-pattern ระดับ enterprise (460 ข้อ) + กฎบังคับ.
   ใช้เมื่อจะเขียน/รีวิว/รีแฟกเตอร์โค้ดหรือ stored procedure ในระบบงานจริง
   เพื่อกันไม่ให้เกิด spaghetti, duplicated logic, God SP, silent data corruption.
   คู่กับ ponytail: ponytail คุมว่า "อย่าเขียนเกิน", nohell คุมว่า "อย่าเขียนแบบที่จะกลายเป็นนรก".
@@ -93,7 +93,7 @@ C6  ปิดประตู: มีกฎตรวจไม่ให้มี�
 ```
 nohell/
 ├── SKILL.md              ← ไฟล์นี้ (โหลดตลอด, ~3–4k tokens)
-├── HELL-CATALOG.md       ← 447 ข้อ 28 หมวด (โหลดตามหมวดเวลา audit)
+├── HELL-CATALOG.md       ← 460 ข้อ 29 หมวด (โหลดตามหมวดเวลา audit)
 ├── hell-rules.yaml       ← ชุดที่ตรวจอัตโนมัติได้ + คำสั่งตรวจ
 ├── detect-sqlserver.sql  ← สคริปต์สแกน SQL Server (God SP, dup logic, schema smell)
 └── CONSOLIDATIONS.example.yaml ← เทมเพลตทะเบียนวง C (คัดลอกไปไว้ที่ราก repo เป้าหมาย)
@@ -109,6 +109,7 @@ nohell/
 ตรรกะอยู่ที่ไหน       ในแอป / ใน stored procedure
 หน้าบ้านเป็นเว็บไหม   ใช่ / ไม่ใช่
 ภาษาอะไร            TS-JS / .NET / อื่น
+มีแอปมือถือไหม       มี / ไม่มี
 ```
 
 | ใช้กับ | จำนวน | อ่านเมื่อ |
@@ -120,8 +121,9 @@ nohell/
 | `เว็บ` | 17 | หน้าบ้านเป็นเว็บ |
 | `TS/JS` | 2 | เขียน TypeScript หรือ JavaScript |
 | `.NET` | 1 | เขียน C# หรือ .NET |
+| `mobile` | 13 | มีแอปมือถือที่ต้องทำงานตอนไม่มีเน็ต |
 
-ร้าน Go + PostgreSQL ที่ไม่มี SP อ่าน 407 จาก 447 ข้อ · ร้าน .NET + SQL Server ที่ทำงานผ่าน SP อ่านครบเกือบทั้งหมด
+ร้าน Go + PostgreSQL ที่ไม่มี SP อ่าน 407 จาก 460 ข้อ · ร้าน .NET + SQL Server ที่ทำงานผ่าน SP อ่านครบเกือบทั้งหมด
 
 ## รหัสหมวด
 
@@ -131,6 +133,7 @@ nohell/
 `TEST` การทดสอบ · `PERF` performance · `INT` integration/messaging · `JOB` batch/scheduler ·
 `TIME` วันเวลา/เงิน/ภาษา · `FILE` ไฟล์/รายงาน · `SSOT` การรวมและการลบของเดิม · `LEG` legacy/refactor · `TEAM` คน/กระบวนการ ·
 `AI` โค้ดที่ agent สร้าง · `FE` frontend · `TYPE` ชนิดข้อมูล/การแปลงโดยปริยาย · `AGG` การรวมยอด · `MEAS` การวัดที่เชื่อไม่ได้ ·
-`REG` ทะเบียนที่ต้องอัปเดตพร้อมกัน · `TOOL` ค่าเริ่มต้นของเครื่องมือ
+`REG` ทะเบียนที่ต้องอัปเดตพร้อมกัน · `TOOL` ค่าเริ่มต้นของเครื่องมือ ·
+`MOBILE` แอปมือถือที่ทำงานตอนไม่มีเน็ต
 
 ระดับ: **P1** = ทำให้ข้อมูลผิด/ระบบล่ม/ข้อมูลรั่ว · **P2** = ทำให้แก้ไม่ไหวในระยะยาว · **P3** = ทำให้ชีวิตแย่ลง

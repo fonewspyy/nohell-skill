@@ -1,17 +1,17 @@
 {
-  "cases": 24,
+  "cases": 26,
   "runs": 3,
   "summary": {
     "recall": {
-      "mean": 0.8333,
-      "min": 0.8333,
-      "max": 0.8333,
-      "stdev": 0.0
+      "mean": 0.8205,
+      "min": 0.7692,
+      "max": 0.8462,
+      "stdev": 0.0445
     },
     "false_alarm_ids": {
-      "mean": 11.6667,
-      "min": 8,
-      "max": 14,
+      "mean": 13.6667,
+      "min": 10,
+      "max": 16,
       "stdev": 3.2146
     },
     "must_ask_hit": {
@@ -106,6 +106,12 @@
       "false_alarm": 0,
       "ask_ok": null
     },
+    "b13-mobile-idempotency-key": {
+      "reply": "TXN-06 ERR-12",
+      "recall": 0.0,
+      "false_alarm": 2,
+      "ask_ok": null
+    },
     "c01-parameterized": {
       "reply": "NONE",
       "recall": null,
@@ -164,6 +170,12 @@
       "reply": "DATA-18",
       "recall": null,
       "false_alarm": 1,
+      "ask_ok": null
+    },
+    "c11-mobile-durable-queue": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
       "ask_ok": null
     }
   }

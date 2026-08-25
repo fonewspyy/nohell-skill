@@ -96,9 +96,9 @@ These belong in the **target repo**, not here:
 
 `ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE` `TYPE` `AGG` `MEAS` `REG` `TOOL`
 
-**P1** 136 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
-**P2** 154 — loud breakage (crash, error, hang) that recovers without touching historical data
-**P3** 157 — the cost of reading and maintaining
+**P1** 143 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
+**P2** 159 — loud breakage (crash, error, hang) that recovers without touching historical data
+**P3** 158 — the cost of reading and maintaining
 
 All 447 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
 
@@ -172,16 +172,16 @@ that has to match), so they need `rg -U`. Same silent failure if you omit it —
 validator check 13 enforces it. Note `[^\n]` alone does **not** need `-U` — it excludes newlines
 rather than matching them.
 
-**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 136 of 447 entries are P1. Turning on absolute mode
+**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 143 of 460 entries are P1. Turning on absolute mode
 against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits
 across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
 **don't add more**, not **don't have any**.
 
-**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (80%) are
-stack-independent, the rest are tagged `RDBMS` (49), `SQL Server` (13), `มี SP` / stored-procedure shops (7),
-`เว็บ` / web (17), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
+**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (78%) are
+stack-independent, the rest are tagged `RDBMS` (49), `เว็บ` / web (17), `SQL Server` (13),
+`mobile` (13), `มี SP` / stored-procedure shops (7), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
 `SQL` entries did not apply at all and nothing in the file said so. Filter before you read — a Python +
-PostgreSQL shop reads 407 of 447 and skips the other 40.
+PostgreSQL shop with no mobile app reads 407 of 460 and skips the other 53.
 
 **3. The automated layer is triage, not a gate.** Measured on a real codebase (MySQL + TS, 1,413 files):
 P1 rules pointed at 473 of 1,413 files (33%), which contained 16 of the 18 files with real bugs —

@@ -1,0 +1,10 @@
+{
+  "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
+  "lang": "dart",
+  "must_ask": false,
+  "expected_ids": [],
+  "why": "เคสควบคุม false alarm ของหมวด mobile",
+  "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
+  "snippet": "// กุญแจกันซ้ำเกิดตอนผู้ใช้กด และเขียนลงคิวบนดิสก์ก่อนตอบผู้ใช้\nFuture<void> onSubmitPressed(ScanInput input) async {\n  final job = ScanJob(\n    requestId: const Uuid().v4(),\n    boxNo: input.boxNo,\n    qty: input.qty,\n  );\n  await outbox.insert(job);        // SQLite บนเครื่อง\n  showQueued();                    // ยังไม่บอกว่าสำเร็จ\n  unawaited(syncWorker.wake());\n}\n\n// worker ลบออกจากคิวต่อเมื่อเซิร์ฟเวอร์ยืนยัน และใช้ requestId เดิมทุกครั้ง\nFuture<void> drain() async {\n  for (final job in await outbox.pending()) {\n    final res = await api.post(\"/scan\", body: job.toJson());\n    if (res.accepted) await outbox.remove(job.requestId);\n    else if (res.permanentReject) await outbox.moveToDeadLetter(job, res.reason);\n  }\n}",
+  "id": "c11-mobile-durable-queue"
+}

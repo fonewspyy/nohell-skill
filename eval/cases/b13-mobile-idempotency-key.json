@@ -1,0 +1,12 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อระบบ/ตาราง/คนออกแล้ว",
+  "lang": "dart",
+  "must_ask": false,
+  "expected_ids": [
+    "MOBILE-02"
+  ],
+  "task": "แอปมือถือใช้ตอนสัญญาณไม่นิ่ง รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
+  "why": "กุญแจกันซ้ำสร้างใหม่ทุกครั้งที่ลอง และไม่ได้เก็บคู่กับงานในคิว พอแอปถูกปิดแล้วเปิดใหม่ ก็ยิ่งไม่มีทางใช้ค่าเดิม — TXN-06 ครอบเรื่อง \"ต้องมีกุญแจ\" ส่วน MOBILE-02 ครอบเรื่อง \"กุญแจต้องเกิดตอนผู้ใช้กดและรอดข้ามการปิดแอป\" ซึ่งเป็นสิ่งที่ TXN-06 เดิมไม่ได้พูด",
+  "snippet": "// งานถูกอ่านจากคิวบนดิสก์ แอปอาจถูกปิดแล้วเปิดใหม่ระหว่างลองส่ง\nFuture<void> submit(ScanJob job) async {\n  for (var attempt = 0; attempt < 3; attempt++) {\n    try {\n      await api.post(\"/scan\", body: {\n        \"requestId\": const Uuid().v4(),   // สร้างใหม่ทุกครั้งที่ลอง และไม่ได้เก็บลงคิว\n        \"boxNo\": job.boxNo,\n        \"qty\": job.qty,\n      });\n      return;\n    } on SocketException {\n      await Future.delayed(Duration(seconds: 2 * (attempt + 1)));\n    }\n  }\n}",
+  "id": "b13-mobile-idempotency-key"
+}

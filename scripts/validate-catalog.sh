@@ -107,7 +107,7 @@ if [ -f "$skillmd" ]; then
 fi
 
 # 11 — ค่าในช่อง "ใช้กับ" ต้องอยู่ในชุดที่อนุญาต ไม่งั้น router กรองตาม stack ไม่ได้
-badstack=$(awk -v ok="|ทุกที่|RDBMS|SQL Server|มี SP|TS/JS|.NET|เว็บ|" '
+badstack=$(awk -v ok="|ทุกที่|RDBMS|SQL Server|มี SP|TS/JS|.NET|เว็บ|mobile|" '
   /^\| [A-Z]+-[0-9]+ \|/ {
     out = ""; rest = $0
     bs = sprintf("%c", 92)
