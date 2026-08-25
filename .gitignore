@@ -16,3 +16,6 @@ desktop.ini
 # ของที่ py_compile ทิ้งไว้ตอนรันเทส
 __pycache__/
 *.pyc
+
+# ผลรอบระหว่างทางของ eval — ไม่ใช่ตัวส่งมอบ
+eval/.rounds.json

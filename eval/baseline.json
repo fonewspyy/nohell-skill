@@ -1,0 +1,170 @@
+{
+  "cases": 24,
+  "runs": 3,
+  "summary": {
+    "recall": {
+      "mean": 0.8333,
+      "min": 0.8333,
+      "max": 0.8333,
+      "stdev": 0.0
+    },
+    "false_alarm_ids": {
+      "mean": 11.6667,
+      "min": 8,
+      "max": 14,
+      "stdev": 3.2146
+    },
+    "must_ask_hit": {
+      "mean": 0.5,
+      "min": 0.5,
+      "max": 0.5,
+      "stdev": 0.0
+    }
+  },
+  "per_case": {
+    "a01-must-ask-money-rounding": {
+      "reply": "TYPE-04 TIME-02 TIME-03 TIME-15 CODE-04",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": 0
+    },
+    "a02-must-ask-retention": {
+      "reply": "ASK",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": 1
+    },
+    "b01-nolock": {
+      "reply": "SQL-15 SQL-19",
+      "recall": 1.0,
+      "false_alarm": 1,
+      "ask_ok": null
+    },
+    "b02-or-chain": {
+      "reply": "ASK",
+      "recall": 0.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "b03-missing-index": {
+      "reply": "PERF-05",
+      "recall": 1.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "b04-harness-mismatch": {
+      "reply": "MEAS-01",
+      "recall": 1.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "b05-stats-per-version": {
+      "reply": "MEAS-02",
+      "recall": 1.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "b06-dual-master": {
+      "reply": "DATA-12 ARCH-12 LEG-04 LEG-05 SSOT-14 FILE-01",
+      "recall": 1.0,
+      "false_alarm": 5,
+      "ask_ok": null
+    },
+    "b07-catch-return-null": {
+      "reply": "ERR-02",
+      "recall": 1.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "b08-empty-as-error": {
+      "reply": "API-03",
+      "recall": 0.0,
+      "false_alarm": 1,
+      "ask_ok": null
+    },
+    "b09-read-modify-write": {
+      "reply": "TXN-03",
+      "recall": 1.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "b10-sentinel-magic": {
+      "reply": "CODE-04 SQL-19 DATA-11",
+      "recall": 1.0,
+      "false_alarm": 2,
+      "ask_ok": null
+    },
+    "b11-registry-split-deploy": {
+      "reply": "REG-06 API-01",
+      "recall": 1.0,
+      "false_alarm": 1,
+      "ask_ok": null
+    },
+    "b12-migration-not-idempotent": {
+      "reply": "SHIP-05",
+      "recall": 1.0,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c01-parameterized": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c02-explicit-columns": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c03-idempotent-upsert": {
+      "reply": "TXN-09",
+      "recall": null,
+      "false_alarm": 1,
+      "ask_ok": null
+    },
+    "c04-rethrow-with-context": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c05-typed-result": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c06-named-constant": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c07-bounded-retry": {
+      "reply": "ERR-08",
+      "recall": null,
+      "false_alarm": 1,
+      "ask_ok": null
+    },
+    "c08-migration-guarded": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c09-validated-input": {
+      "reply": "NONE",
+      "recall": null,
+      "false_alarm": 0,
+      "ask_ok": null
+    },
+    "c10-decimal-money": {
+      "reply": "DATA-18",
+      "recall": null,
+      "false_alarm": 1,
+      "ask_ok": null
+    }
+  }
+}

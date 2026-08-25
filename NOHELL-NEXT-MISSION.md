@@ -12,7 +12,7 @@
 |---|---|---|
 | 0 · แก้ของที่วัดแล้วว่าพัง | ✅ | `dc62f22` · tag `v0.9.0` |
 | 1 · Governance severity | ✅ P1 245 → 136 | `11fd482` · `docs/impact/2026-08-23-phase-1.md` |
-| 2 · Eval harness | 🟡 harness + 24 เคสเสร็จ **ยังไม่มี `eval/baseline.json`** | `a393d7b` `0110a49` · `docs/impact/2026-08-24-phase-2.md` |
+| 2 · Eval harness | ✅ baseline 3 รอบ · recall 0.8333 sd 0.0 · false_alarm 11.67 sd 3.21 · must_ask 0.50 sd 0.0 | `eval/baseline.json` · `docs/impact/2026-08-24-phase-2.md` |
 | 3 · Runner | ✅ ครบทั้งสามข้อ · `tested:` วัดจาก repo A จริง 20/40 · สุ่มตรวจ precision แล้วแก้ 3 กฎ | `25e7ecd` `746c38d` `615319c` |
 | 4 · เนื้อหาที่ขาด | 🟡 ข้อ 1 `skills/data-migration/` เสร็จ (เป็น skill กระบวนการ ไม่ได้เพิ่มข้อในแคตตาล็อก จึงไม่ติดด่านเฟส 2) · ข้อ 2-4 (MOBILE · AI-ML · PDPA) เพิ่มข้อจริง ยังรอ baseline | `skills/data-migration/SKILL.md` |
 | 5 · Release v1.0 | ⬜ ยังไม่เริ่ม | — |

@@ -22,6 +22,29 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 CASES = os.path.join(HERE, 'cases')
 BASELINE = os.path.join(HERE, 'baseline.json')
+ROUNDS = os.path.join(HERE, '.rounds.json')     # รอบที่สำเร็จแล้ว สะสมข้ามการรันหลายครั้ง
+
+
+def load_bank():
+    """คำตอบที่ยิงสำเร็จแล้ว เก็บ **รายเคส** ไม่ใช่รายรอบ — {case_id: [reply, ...]}
+
+    หน่วยต้องเป็นเคส เพราะโควตาปล่อยมาทีละส่วน วัดมาแล้วสองครั้ง
+      25/08 00:39  รอบ 1-2 สำเร็จ รอบ 3 ชน limit -> ทิ้งทั้งหมด เสีย 48 session
+      25/08 01:00  ยิงได้ 16/24 เคส แล้วโควตาหมด -> ทิ้งทั้งรอบ เสีย 16 เคสที่ตอบแล้ว
+    เก็บรายเคสทำให้ทุกครั้งที่รันมีความคืบหน้า และยังได้ 3 คำตอบอิสระต่อเคส
+    ซึ่งเป็นสิ่งที่ variance ของ D4 ต้องการจริง ๆ
+    """
+    if not os.path.exists(ROUNDS):
+        return {}
+    with io.open(ROUNDS, encoding='utf-8') as fh:
+        return json.load(fh)
+
+
+def save_bank(bank):
+    with io.open(ROUNDS, 'w', encoding='utf-8', newline='\n') as fh:
+        fh.write(json.dumps(bank, ensure_ascii=False, indent=2) + '\n')
+
+
 ID_RE = re.compile(r'\b([A-Z]{2,6}-\d{2})\b')
 
 PROMPT = '''อ่าน skills/nohell/HELL-CATALOG.md ในโฟลเดอร์นี้ก่อน แล้วตอบโจทย์ข้างล่าง
@@ -97,40 +120,6 @@ def judge(case, reply):
     return None, len(found), None
 
 
-def one_run(cases, verbose, jobs):
-    # เคสเป็นอิสระต่อกัน ยิงขนานได้ — วัดจริง 101 วินาทีต่อเคส ถ้าเรียงทีละตัว
-    # 24 เคส 3 รอบ = 2 ชั่วโมง ซึ่งช้าจนไม่มีใครรัน แล้ว eval ที่ไม่มีใครรันก็ไม่มีค่า
-    from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=jobs) as ex:
-        replies = list(ex.map(ask, cases))
-
-    rec, fa, ask_hit, errs = [], 0, [], 0
-    detail, why = {}, []
-    for c, (reply, err) in zip(cases, replies):
-        if err:
-            errs += 1
-            if err not in why:
-                why.append(err)
-        r, f, a = judge(c, reply)
-        if r is not None:
-            rec.append(r)
-        if a is not None:
-            ask_hit.append(a)
-        fa += f
-        detail[c['id']] = {'reply': reply[:200], 'recall': r, 'false_alarm': f, 'ask_ok': a}
-        if verbose:
-            tag = 'ok ' if (r == 1 or a == 1 or (r is None and a is None and f == 0)) else '   '
-            print('  %s %-28s %s' % (tag, c['id'], reply[:60].replace('\n', ' ')))
-    return {
-        'recall': round(sum(rec) / len(rec), 4) if rec else 0.0,
-        'false_alarm_ids': fa,
-        'must_ask_hit': round(sum(ask_hit) / len(ask_hit), 4) if ask_hit else 0.0,
-        'errors': errs,
-        'error_reasons': why,
-        'detail': detail,
-    }
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--runs', type=int, default=3)
@@ -146,39 +135,85 @@ def main():
     print('เคส %d (บั๊ก %d · สะอาด %d · ต้องหยุดถาม %d) · %d รอบ · ขนาน %d'
           % (len(cases), n_bug, n_clean, n_ask, a.runs, a.jobs))
 
-    runs = []
+    from concurrent.futures import ThreadPoolExecutor
+    bank = load_bank()
+    have = min([len(bank.get(c['id'], [])) for c in cases] or [0])
+    print('คำตอบที่สะสมไว้แล้ว: อย่างน้อย %d ต่อเคส (ต้องการ %d)' % (have, a.runs))
+
+    while True:
+        need = [c for c in cases if len(bank.get(c['id'], [])) < a.runs]
+        if not need:
+            break
+        print('\nยิง %d เคสที่ยังไม่ครบ' % len(need))
+        with ThreadPoolExecutor(max_workers=a.jobs) as ex:
+            replies = list(ex.map(ask, need))
+        got, why = 0, []
+        for c, (reply, err) in zip(need, replies):
+            if err:
+                if err not in why:
+                    why.append(err)
+                continue
+            bank.setdefault(c['id'], []).append(reply)
+            got += 1
+            if not a.quiet:
+                print('  ok  %-28s %s' % (c['id'], reply[:60].replace('\n', ' ')))
+        save_bank(bank)
+        print('  ยิงสำเร็จ %d/%d — เก็บลง %s แล้ว' % (got, len(need), os.path.basename(ROUNDS)))
+        if got == 0:
+            # ยิงไม่ออกเลยแม้แต่เคสเดียว รันต่อก็เผาเปล่า
+            for w in why:
+                sys.stderr.write('  %s\n' % w)
+            break
+
+    have = min([len(bank.get(c['id'], [])) for c in cases] or [0])
+    if have < a.runs:
+        short = [c['id'] for c in cases if len(bank.get(c['id'], [])) < a.runs]
+        sys.stderr.write('\nยังไม่ครบ — ต้องการ %d คำตอบต่อเคส ตอนนี้อย่างน้อย %d\n'
+                         '  เหลืออีก %d เคส เช่น %s\n'
+                         '  รันซ้ำเมื่อโควตากลับมา เคสที่ตอบแล้วจะไม่ถูกยิงซ้ำ\n'
+                         % (a.runs, have, len(short), ' '.join(short[:5])))
+        if _SANDBOX:
+            shutil.rmtree(_SANDBOX[0], ignore_errors=True)
+        return 2
+
+    # ประกอบเป็นรอบ: รอบที่ i ใช้คำตอบที่ i ของทุกเคส
+    rounds = []
     for i in range(a.runs):
-        print('\nรอบ %d/%d' % (i + 1, a.runs))
-        runs.append(one_run(cases, not a.quiet, a.jobs))
-        r = runs[-1]
-        print('  recall %.1f%% · false alarm %d ID · must-ask %.0f%% · error %d'
-              % (r['recall'] * 100, r['false_alarm_ids'], r['must_ask_hit'] * 100, r['errors']))
-        if r['errors']:
-            # หยุดทันที ไม่รันรอบต่อไป และไม่เอาเลขนี้ไปเฉลี่ย
-            sys.stderr.write('\nFAIL  รอบนี้มี %d เคสที่ยิงไม่สำเร็จ — ตัวเลขข้างบนไม่ใช่ผลวัด\n'
-                             % r['errors'])
-            for w in r['error_reasons']:
-                sys.stderr.write('      %s\n' % w)
-            sys.stderr.write('      ไม่เขียน baseline เพราะ baseline ที่มาจากรอบที่ยิงไม่ออก\n'
-                             '      คือตัวเลขที่หน้าตาเหมือนผลวัดแต่ไม่ได้วัดอะไรเลย\n')
-            if _SANDBOX:
-                shutil.rmtree(_SANDBOX[0], ignore_errors=True)
-            return 2
+        rec, fa, ask_hit, detail = [], 0, [], {}
+        for c in cases:
+            reply = bank[c['id']][i]
+            r, f, ak = judge(c, reply)
+            if r is not None:
+                rec.append(r)
+            if ak is not None:
+                ask_hit.append(ak)
+            fa += f
+            detail[c['id']] = {'reply': reply[:200], 'recall': r,
+                               'false_alarm': f, 'ask_ok': ak}
+        rounds.append({
+            'recall': round(sum(rec) / len(rec), 4) if rec else 0.0,
+            'false_alarm_ids': fa,
+            'must_ask_hit': round(sum(ask_hit) / len(ask_hit), 4) if ask_hit else 0.0,
+            'detail': detail,
+        })
+        print('  รอบ %d: recall %.1f%% · false alarm %d ID · must-ask %.0f%%'
+              % (i + 1, rounds[-1]['recall'] * 100, rounds[-1]['false_alarm_ids'],
+                 rounds[-1]['must_ask_hit'] * 100))
 
     summary = {}
     for k in ('recall', 'false_alarm_ids', 'must_ask_hit'):
-        vals = [r[k] for r in runs]
+        vals = [r[k] for r in rounds]
         summary[k] = {'mean': round(statistics.mean(vals), 4),
                       'min': min(vals), 'max': max(vals),
                       'stdev': round(statistics.stdev(vals), 4) if len(vals) > 1 else 0.0}
-    print('\nสรุป %d รอบ' % a.runs)
+    print('\nสรุปจาก %d รอบ' % a.runs)
     for k, v in summary.items():
         print('  %-18s mean %-8s min %-6s max %-6s sd %s'
               % (k, v['mean'], v['min'], v['max'], v['stdev']))
 
     if a.baseline:
         out = {'cases': len(cases), 'runs': a.runs, 'summary': summary,
-               'per_case': runs[-1]['detail']}
+               'per_case': rounds[-1]['detail']}
         with io.open(BASELINE, 'w', encoding='utf-8', newline='\n') as fh:
             fh.write(json.dumps(out, ensure_ascii=False, indent=2) + '\n')
         print('\nเขียน %s แล้ว — นี่คือเลขที่การแก้ skill หลังจากนี้ต้องไม่ทำให้แย่ลง' % BASELINE)
