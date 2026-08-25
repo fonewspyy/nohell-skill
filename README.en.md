@@ -62,13 +62,13 @@ Pick one. All three deliver every skill, including `/nohell-dig`.
 
 ```sh
 # 1) npx skills — needs the full git URL with #tag; the owner/repo shorthand tracks main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.1" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.2" --skill '*'
 
 # 2) GitHub CLI v2.90.0+
-gh skill install fonewspyy/nohell-skill --all --pin v1.0.1
+gh skill install fonewspyy/nohell-skill --all --pin v1.0.2
 
 # 3) clone and copy
-git clone --branch v1.0.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.0.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 cp -r nohell-skill/skills/* .claude/skills/            # or scoped to one project
 ```
@@ -89,9 +89,14 @@ fills that slot at install time.
 > delivered all 8 as well. Both exited 0, and `gh` needed no login for a public repo.
 > (Tested with `gh` 2.98.0 — `gh skill` still reports itself as preview in its own `--help`.)
 >
-> The commands above name `v1.0.1`; what was measured is `v1.0.0`. The two differ only in docs —
-> nothing in the install path changed — so the number in this box is left as measured rather than
-> matched to the commands, which would claim a measurement that never happened.
+> The commands above name the latest release; what was measured is `v1.0.0`. Later releases differ
+> only in docs — nothing in the install path changed — so the number in this box is left as measured
+> rather than matched to the commands, which would claim a measurement that never happened.
+
+⚠️ `gh skill install --all` makes one GitHub API call per skill, and the unauthenticated quota runs
+out fast — repeated testing hit it, and the command stopped at the fifth skill with `HTTP 403: API
+rate limit exceeded` and exit 1 after installing some of them. Run `gh auth login` first, or use
+option 1, which clones once and never touches the API quota.
 
 Then point your project's `AGENTS.md` / `CLAUDE.md` at `skills/principal-engineer/SKILL.md` as the first gate.
 

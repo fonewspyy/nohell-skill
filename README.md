@@ -91,13 +91,13 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 
 ```sh
 # 1) npx skills — ต้องเป็น git URL เต็มพร้อม #tag เพราะรูปย่อ owner/repo จะไปเอา main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.1" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.2" --skill '*'
 
 # 2) GitHub CLI v2.90.0 ขึ้นไป
-gh skill install fonewspyy/nohell-skill --all --pin v1.0.1
+gh skill install fonewspyy/nohell-skill --all --pin v1.0.2
 
 # 3) clone เองแล้วคัดลอก
-git clone --branch v1.0.1 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.0.2 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
 cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพาะโปรเจกต์นี้
 ```
@@ -116,8 +116,13 @@ cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพ�
 > ลงครบ 8 skills เช่นกัน exit 0 ทั้งคู่ และไม่ต้องล็อกอิน `gh` สำหรับรีโปสาธารณะ
 > (ทดสอบด้วย `gh` 2.98.0 — คำสั่ง `gh skill` ยังอยู่ในสถานะ preview ตามที่ `--help` ของมันบอกเอง)
 >
-> คำสั่งข้างบนชี้ `v1.0.1` ส่วนที่วัดคือ `v1.0.0` — สองรุ่นนี้ต่างกันแค่เอกสาร ไม่มีอะไรในกลไกติดตั้ง
-> เปลี่ยน จึงไม่แก้เลขในกล่องนี้ให้ตรงกับคำสั่ง เพราะนั่นคือการเคลมว่าวัดสิ่งที่ยังไม่ได้วัด
+> คำสั่งข้างบนชี้รุ่นล่าสุด ส่วนที่วัดคือ `v1.0.0` — รุ่นหลังจากนั้นต่างกันแค่เอกสาร ไม่มีอะไรใน
+> กลไกติดตั้งเปลี่ยน จึงไม่แก้เลขในกล่องนี้ให้ตรงกับคำสั่ง เพราะนั่นคือการเคลมว่าวัดสิ่งที่ยังไม่ได้วัด
+
+⚠️ `gh skill install --all` เรียก GitHub API หนึ่งครั้งต่อหนึ่ง skill และโควตาของคนที่ยังไม่ล็อกอิน
+หมดเร็วมาก — เจอมาแล้วตอนทดสอบซ้ำ ๆ ว่ามันหยุดกลางคันที่ skill ที่ห้าพร้อม `HTTP 403: API rate
+limit exceeded` แล้ว exit 1 โดยที่บางตัวลงไปแล้ว ถ้าเจอให้ `gh auth login` ก่อน หรือใช้ทาง 1
+ซึ่ง clone ทีเดียวจึงไม่ติดโควตา
 
 ตัวรันกฎอยู่ที่ `scripts/nohell-check.py` **ไม่ได้อยู่ใน `skills/`** จึงไม่ถูกคัดลอกไปด้วย
 ให้เก็บโฟลเดอร์ที่ clone ไว้แล้วเรียกจากที่นั่น หรือคัดลอกเฉพาะไฟล์นั้นไปไว้ที่ไหนก็ได้ —
