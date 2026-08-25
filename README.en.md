@@ -112,11 +112,12 @@ This repo forbids `SSOT-01` in other people's code, so it can't commit it in its
 `validate-catalog.sh` checks the catalog **shape**: duplicate IDs · numbering gaps · missing priorities · malformed rows · **IDs referenced by a skill or doc that do not exist
 in the catalog** · **patterns using lookaround without declaring `engine: pcre2`** · **token-size claims that
 no longer match the file** · `ใช้กับ` values outside the allowed set · severities in `hell-rules.yaml` that
-disagree with the catalog · **patterns that match across lines without declaring `multiline: true`**
+disagree with the catalog · **patterns that match across lines without declaring `multiline: true`** · **`ใช้กับ` values
+that are in use but missing from the lists a reader filters by (the catalog legend and the table in `SKILL.md`)**
 
 `build-summary.py` owns **every declared number** — the catalog title count, the per-category heading counts,
 the summary table, and the counts written into prose (entries · categories · P1/P2/P3 · machine-checkable
-rules). Its `FACTS` table is the single place that says which number must equal what, and without `--check`
+rules · the per-stack counts in all three copies of the `ใช้กับ` list). Its `FACTS` table is the single place that says which number must equal what, and without `--check`
 it **rewrites them correctly** rather than just complaining. A number a human has to maintain is a number
 that will drift.
 
@@ -155,7 +156,10 @@ a gate that goes silent and passes everything is worse than no gate at all.
 `.nohellignore` exists for exactly one case: **a file that defines the rules will match its own
 rules.** Do not use it to dodge work — to exempt a single line, use that rule's `allow_comment`.
 
-Runner tests live in `scripts/test-nohell-check.sh` (10 known-answer diff cases, both directions).
+Tests live in `scripts/test-nohell-check.sh` (known-answer diff cases) and
+`scripts/test-build-summary.sh` (known-answer cases for the tool that rewrites the docs).
+Both check in both directions — a wrong value must be caught, and a correct one must not be touched.
+No case count is quoted here: a number a human maintains is a number that will drift. CI runs both.
 
 ## Known limitations — read before wiring this into CI
 
@@ -179,7 +183,7 @@ across 219 of 389 files). That is a backlog, not a gate, and it gets switched of
 
 **0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (74%) are
 stack-independent, the rest are tagged `RDBMS` (49), `เว็บ` / web (17), `SQL Server` (13),
-`mobile` (13), `ML` (13), `มี SP` / stored-procedure shops (7), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
+`mobile` (13), `ML` (13), `PII` (10), `มี SP` / stored-procedure shops (7), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
 `SQL` entries did not apply at all and nothing in the file said so. Filter before you read — a Python +
 PostgreSQL shop with no mobile app and no models reads 407 of 483 and skips the other 76.
 

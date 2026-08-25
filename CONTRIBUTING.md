@@ -8,10 +8,14 @@ repo นี้เป็นเอกสารที่ agent อ่านเป�
 ## ก่อนเปิด PR
 
 ```sh
-sh scripts/validate-catalog.sh
+sh scripts/validate-catalog.sh          # รูปร่างของแคตตาล็อก
+python scripts/build-summary.py --check # ตัวเลขที่ประกาศตรงกับของจริงไหม
+sh scripts/test-nohell-check.sh         # เทสของตัวรันกฎ
+sh scripts/test-build-summary.sh        # เทสของตัวเขียนตัวเลข
+python scripts/nohell-check.py --base HEAD   # กินยาตัวเอง: รันกฎกับบรรทัดที่เพิ่ม
 ```
 
-ต้องขึ้น `OK` ก่อนเสมอ CI รันตัวเดียวกันนี้
+ทั้งห้าตัวต้องขึ้น `OK` ก่อนเสมอ CI รันชุดเดียวกันนี้
 
 ## เกณฑ์ตัดสินสองข้อที่ต้องผ่านก่อนทุกครั้ง
 

@@ -26,6 +26,12 @@ jobs:
         env:
           PY: python3
 
+      # build-summary เขียนทับเอกสาร 14 ไฟล์ จึงต้องมีเทส ไม่ใช่พึ่งการอ่าน diff ทีละครั้ง
+      - name: เทสของ build-summary (เคสที่รู้คำตอบ)
+        run: sh scripts/test-build-summary.sh
+        env:
+          PY: python3
+
       # กินยาตัวเอง — บน PR ให้รันกฎกับบรรทัดที่ PR นี้เพิ่มเท่านั้น
       # ไม่ใช้ --full เพราะจะเป็นการตัดสินโค้ดเก่า ซึ่งไม่ใช่สิ่งที่ ratchet ทำ
       - name: nohell-check diff-only

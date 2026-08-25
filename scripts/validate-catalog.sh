@@ -166,6 +166,45 @@ if [ -f "$rules" ]; then
   [ -z "$nomulti" ] || bad "pattern จับข้ามบรรทัดแต่ไม่ได้ประกาศ multiline: true — gate จะเงียบบน rg ปกติ: $nomulti"
 fi
 
+# 14 — ทุกค่าใน "ใช้กับ" ต้องปรากฏในรายการที่คนใช้กรอง *ก่อน* อ่านแถว ทั้งสองที่
+#      legend หัวแคตตาล็อก (คนเปิดอ่านแถวเอง) และตาราง `ใช้กับ` ใน SKILL.md (agent กรองก่อนเปิด)
+#      สองที่นี้เป็นสำเนาโดยตั้งใจ เพราะอยู่คนละจังหวะโหลด แต่ต้องครบเท่ากันเสมอ
+#      ข้อ 11 ตรวจว่าค่าที่ *ใช้* อยู่ในชุดที่อนุญาต ข้อนี้ตรวจกลับทาง: ค่าที่อนุญาตแล้วมีคนใช้จริง
+#      ต้องมีคนบอกผู้อ่านด้วย — วัดแล้วพลาดมาจริง `mobile` กับ `ML` ขึ้นไปสองคอมมิตแล้ว
+#      legend ยังจบที่ `.NET` และ `PII` หายจาก README ทั้งสองภาษา
+#      "เลขข้างหลังถูกไหม" เป็นคนละเรื่อง อยู่ที่ build-summary.py ไม่ใช่ที่นี่
+if [ -f "$skillmd" ]; then
+  gap=$(awk '
+    FNR == NR {
+      if ($0 ~ /^## /) head = 1
+      if (!head) legend = legend $0 "\n"
+      if ($0 ~ /^\| [A-Z]+-[0-9]+ \|/) {
+        out = ""; rest = $0
+        bs = sprintf("%c", 92)
+        while ((at = index(rest, bs "|")) > 0) {
+          out = out substr(rest, 1, at - 1)
+          rest = substr(rest, at + 2)
+        }
+        out = out rest
+        if (split(out, f, "|") == 8) {
+          v = f[7]; gsub(/^[ \t]+|[ \t]+$/, "", v); val[v] = 1
+        }
+      }
+      next
+    }
+    { skill = skill $0 "\n" }
+    END {
+      q = sprintf("%c", 96)
+      for (v in val) {
+        if (index(legend, q v q) == 0) a = a v " "
+        if (index(skill,  q v q) == 0) b = b v " "
+      }
+      if (a != "") printf "legend หัวแคตตาล็อกขาด: %s", a
+      if (b != "") printf "ตาราง ใช้กับ ใน SKILL.md ขาด: %s", b
+    }' "$CATALOG" "$skillmd")
+  [ -z "$gap" ] || bad "มีค่า 'ใช้กับ' ที่ใช้จริงแต่ไม่มีในรายการที่ผู้อ่านใช้กรอง — $gap"
+fi
+
 if [ "$fail" -eq 0 ]; then
   say "OK    $total ข้อ · $ncat หมวด · P1 $p1 · P2 $p2 · P3 $p3 · สอดคล้องกันทั้งหมด"
 else

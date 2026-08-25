@@ -91,6 +91,17 @@ FACTS = [
     # ซึ่งจริงตอนเขียน แต่เป็น snapshot ที่แต่งเป็นประโยค พอเพิ่มหมวดมันไม่ผิดแบบดัง มันแค่เล็กลง
     # จนบอกงานที่เหลือต่ำกว่าจริงสามเท่า (ของจริง 16 หมวด) — แทนที่ด้วยเลขที่คำนวณได้
     ('จำนวนหมวดที่ยังไม่มีกฎ', None, [r'(?<=สักข้อมี )(\d+)'], 1),
+    # รายการ `ใช้กับ` พร้อมจำนวน มีสามสำเนาสามรูปแบบ — legend ในแคตตาล็อก · ตารางใน SKILL.md
+    # (ทั้งคู่ agent/คนใช้กรองก่อนอ่าน คนละจังหวะโหลด จึงต้องมีทั้งคู่) · ร้อยแก้วใน README สองภาษา
+    # เซสชันเดียวต้องไล่แก้มือสามรอบตอนเพิ่ม MOBILE/ML/PDPA และรอบที่สาม `PII` หายจาก README
+    # ทั้งสองภาษาโดยไม่มีด่านไหนฟ้อง — คือ REG-07 ในแคตตาล็อกนี้เอง
+    # แถวนี้เป็น fact แบบ dict: regex จับ *คีย์* แล้วเปิดหาค่า เพิ่ม stack ใหม่จึงไม่ต้องมาเพิ่มแถวที่นี่
+    # (การมี *แถว* ครบเป็นเรื่องรูปร่าง อยู่ที่ validate-catalog.sh ข้อ 14 ไม่ใช่ที่นี่)
+    ('จำนวนข้อต่อ stack', None, [
+        r'`(?P<key>[^`]+)` \((?P<num>\d+)\)',
+        r'\| `(?P<key>[^`]+)` \| (?P<num>\d+) \|',
+        r'`(?P<key>[^`]+)` (?P<num>\d+)(?= ·)',
+    ], 35),
 ]
 
 
@@ -195,21 +206,56 @@ def truth(text):
         'จำนวนข้อที่ร้าน RDBMS อ่านได้': rdbms,
         'จำนวนข้อที่ข้ามได้': len(ids) - rdbms,
         'จำนวนหมวดที่ยังไม่มีกฎ': len(set(ids) - ruled),
+        'จำนวนข้อต่อ stack': use,
     }
+
+
+def num_group(m):
+    """กลุ่มที่เก็บตัวเลข — `num` ถ้า pattern ประกาศไว้ ไม่งั้นกลุ่ม 1 ตามรูปเดิม"""
+    return 'num' if 'num' in m.re.groupindex else 1
+
+
+def want_of(values, name, m):
+    """ค่าที่ควรเป็นของ match นี้
+
+    fact ธรรมดามีค่าเดียว ส่วน fact ที่ค่าเป็น dict ให้ regex จับ *คีย์* มาเปิดหาเอา
+    ใช้กับรายการที่หนึ่งบรรทัดมีหลายค่า เช่นรายการ `ใช้กับ` ที่มีสามสำเนาในสามรูปแบบ
+    คืน None ถ้าคีย์ไม่มีอยู่จริง เพื่อให้ผู้เรียกข้ามไปโดยไม่แตะข้อความ
+    """
+    v = values[name]
+    if not isinstance(v, dict):
+        return str(v)
+    k = m.group('key')
+    return str(v[k]) if k in v else None
+
+
+def rewrite(m, value):
+    """คืน match เดิมโดยแทนเฉพาะช่วงที่เป็นตัวเลข
+
+    pattern รูปเดิมมีแต่ lookaround กว้างศูนย์ ตัวเลขจึงเป็นทั้ง match พอดี ผลลัพธ์เท่าเดิม
+    ส่วน pattern ที่จับคีย์มาด้วย ต้องคงคีย์ไว้ ไม่งั้นชื่อ stack จะถูกเขียนทับด้วยตัวเลข
+    """
+    s, e = m.span(num_group(m))
+    return m.group(0)[:s - m.start()] + value + m.group(0)[e - m.start():]
 
 
 def sync_facts(values, check):
     problems, edited = [], []
     for name, scope, pats, least in FACTS:
-        want = str(values[name])
         paths = [p for p in (scope if scope else doc_files()) if os.path.exists(p)]
         found = {}
         for path in paths:
             text = io.open(path, encoding='utf-8').read()
             for pat in pats:
                 for m in re.finditer(pat, text):
+                    want = want_of(values, name, m)
+                    if want is None:
+                        problems.append('%s — %s:%d คีย์ %r ไม่มีอยู่จริง'
+                                        % (name, path, text[:m.start()].count('\n') + 1,
+                                           m.group('key')))
+                        continue
                     found.setdefault(path, []).append(
-                        (text[:m.start()].count('\n') + 1, m.group(1)))
+                        (text[:m.start()].count('\n') + 1, m.group(num_group(m)), want))
         seen = sum(len(v) for v in found.values())
 
         # ด่านนี้ต้องมาก่อนเขียน — ถ้าวลีถูก reword แปลว่าชุด pattern เชื่อไม่ได้แล้ว
@@ -222,12 +268,16 @@ def sync_facts(values, check):
         for path, hits in found.items():
             if check:
                 problems += ['%s — %s:%d เขียน %s ของจริง %s' % (name, path, ln, got, want)
-                             for ln, got in hits if got != want]
+                             for ln, got, want in hits if got != want]
                 continue
-            if any(got != want for _, got in hits):
+            if any(got != want for _, got, want in hits):
                 text = io.open(path, encoding='utf-8').read()
                 for pat in pats:
-                    text = re.sub(pat, want, text)
+                    text = re.sub(
+                        pat,
+                        lambda m: (rewrite(m, want_of(values, name, m))
+                                   if want_of(values, name, m) is not None else m.group(0)),
+                        text)
                 io.open(path, 'w', encoding='utf-8', newline='\n').write(text)
                 edited.append(path)
     return problems, sorted(set(edited))
