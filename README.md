@@ -12,7 +12,7 @@ repo นี้จึงไม่ใช่คลังกฎเพิ่มเต
 skills/
 ├── principal-engineer/   ← เข้าที่นี่ก่อนเสมอ: Impact Map, Ask Gate, router
 ├── kickoff/              ← เริ่มโปรเจกต์ใหม่: agent เป็นฝ่ายพาเดินทีละเฟส
-├── nohell/               ← แคตตาล็อก anti-pattern 483 ข้อ + กฎที่ตรวจอัตโนมัติได้ + สคริปต์สแกน DB
+├── nohell/               ← แคตตาล็อก anti-pattern 488 ข้อ + กฎที่ตรวจอัตโนมัติได้ + สคริปต์สแกน DB
 ├── nohell-dig/           ← `/nohell-dig` ขุดประวัติ repo หา "นรกซ้ำซาก" ที่เจ็บจริง
 ├── business-rules/       ← SSOT ของกฎ, effective date, read/write symmetry, workflow, เงิน
 ├── archaeology/          ← ระดับหลักฐาน, บัญชีผู้เรียก, ค้นสำเนากฎด้วยรูปร่าง
@@ -91,13 +91,13 @@ skill ใหม่จะสร้างก็ต่อเมื่อมัน�
 
 ```sh
 # 1) npx skills — ต้องเป็น git URL เต็มพร้อม #tag เพราะรูปย่อ owner/repo จะไปเอา main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.3" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.1.0" --skill '*'
 
 # 2) GitHub CLI v2.90.0 ขึ้นไป
-gh skill install fonewspyy/nohell-skill --all --pin v1.0.3
+gh skill install fonewspyy/nohell-skill --all --pin v1.1.0
 
 # 3) clone เองแล้วคัดลอก
-git clone --branch v1.0.3 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.1.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # ใช้ได้ทุกโปรเจกต์
 cp -r nohell-skill/skills/* .claude/skills/            # หรือเฉพาะโปรเจกต์นี้
 ```
@@ -149,9 +149,9 @@ python /path/to/nohell-skill/scripts/nohell-check.py        # diff-only
 
 ## ระดับความรุนแรง
 
-**P1** 155 ข้อ (ข้อมูลผิด/หาย/ซ้ำแบบเงียบ · รั่ว · เงินเคลื่อนผิด) · **P2** 169 ข้อ (พังแบบดัง กู้ได้โดยไม่แตะข้อมูลย้อนหลัง) · **P3** 159 ข้อ (ต้นทุนการอ่าน/ดูแล)
+**P1** 158 ข้อ (ข้อมูลผิด/หาย/ซ้ำแบบเงียบ · รั่ว · เงินเคลื่อนผิด) · **P2** 171 ข้อ (พังแบบดัง กู้ได้โดยไม่แตะข้อมูลย้อนหลัง) · **P3** 159 ข้อ (ต้นทุนการอ่าน/ดูแล)
 
-ระดับถูกไล่ใหม่ทั้ง 483 ข้อตามเกณฑ์เดียวที่เขียนไว้ใน [CONTRIBUTING.md](CONTRIBUTING.md) —
+ระดับถูกไล่ใหม่ทั้ง 488 ข้อตามเกณฑ์เดียวที่เขียนไว้ใน [CONTRIBUTING.md](CONTRIBUTING.md) —
 **"ร้ายแรงมาก" ไม่ใช่เหตุผลให้เป็น P1** ระบบล่มทั้งวันยังเป็น P2 ถ้ากู้แล้วข้อมูลถูกต้องเหมือนเดิม
 สิ่งที่ทำให้เป็น P1 คือ *ข้อมูลที่ผิดไปแล้วโดยไม่มีใครรู้* เพราะนั่นคือสิ่งที่ย้อนกลับไม่ได้
 
@@ -228,14 +228,14 @@ Rust regex (`rg` ปกติ) และ `grep -E` จะ **parse error** ถ้
 **11 hit ใน 7 ไฟล์** เมื่อใส่ `-U` ทั้งสองประกาศ `multiline: true` ไว้แล้ว (validator ข้อ 13 บังคับ)
 หมายเหตุ: `[^\n]` อย่างเดียว **ไม่ต้อง** ใช้ `-U` — มันกันบรรทัดใหม่ ไม่ได้ match มัน
 
-**2. `gate.mode` เริ่มต้นเป็น `ratchet` ไม่ใช่ `absolute`** — 155 จาก 483 ข้อเป็น P1
+**2. `gate.mode` เริ่มต้นเป็น `ratchet` ไม่ใช่ `absolute`** — 158 จาก 488 ข้อเป็น P1
 เปิดแบบ absolute วันแรกบน repo เก่าจะได้ P1 หลักพัน (วัดจริง: `NOLOCK` ข้อเดียว 6,355 hit ใน 219/389 ไฟล์)
 นั่นไม่ใช่ gate แต่เป็น backlog แล้วคนจะปิดทิ้ง — `ratchet` บังคับว่า **ห้ามเพิ่ม** ไม่ใช่ **ห้ามมี**
 
-**0. ทุกข้อประกาศ stack ที่มันใช้ได้** — ช่อง `ใช้กับ` ในแคตตาล็อก: `ทุกที่` 358 ข้อ (74%) ที่เหลือผูกกับ
+**0. ทุกข้อประกาศ stack ที่มันใช้ได้** — ช่อง `ใช้กับ` ในแคตตาล็อก: `ทุกที่` 363 ข้อ (74%) ที่เหลือผูกกับ
 `RDBMS` 49 · `เว็บ` 17 · `SQL Server` 13 · `mobile` 13 · `ML` 13 · `PII` 10 · `มี SP` 7 · `TS/JS` 2 · `.NET` 1
 เพิ่มหลังทดสอบกับ repo MySQL แล้วพบว่า 17 จาก 31 ข้อในหมวด `SQL` ใช้ไม่ได้เลยโดยไม่มีอะไรบอกไว้
-กรองก่อนอ่านเสมอ — ร้าน Python + PostgreSQL ที่ไม่มีแอปมือถือและไม่มีโมเดล อ่าน 407 ข้อ ข้ามอีก 76 ไปได้
+กรองก่อนอ่านเสมอ — ร้าน Python + PostgreSQL ที่ไม่มีแอปมือถือและไม่มีโมเดล อ่าน 412 ข้อ ข้ามอีก 76 ไปได้
 
 **3. ชั้นอัตโนมัติคือ triage ไม่ใช่ gate** — วัดบน repo จริง (MySQL + TS, 1,413 ไฟล์):
 กฎ P1 ชี้ไป 473 จาก 1,413 ไฟล์ (33%) ซึ่งมีไฟล์ที่มีบั๊กจริงอยู่ 16 จาก 18 → **lift เหนือการสุ่มแค่ 2.66 เท่า**

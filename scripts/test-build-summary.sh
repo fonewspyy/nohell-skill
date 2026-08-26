@@ -63,13 +63,21 @@ cleanup
 
 # 3 — ยอดรวมในร้อยแก้วผิด ต้องจับได้และแก้ให้ถูก (นี่คือ B26 ที่เคยเงียบมาสองรุ่น)
 setup
-sed -i 's/anti-pattern 483 ข้อ/anti-pattern 999 ข้อ/' "$T/README.md"
-out=$(docheck); rc=$?
-if [ "$rc" = 0 ]; then no "ยอดรวมผิดต้องจับได้" "check ผ่านทั้งที่เลขผิด"
+# 🪤 เคยฮาร์ดโค้ด 483 ไว้ตรงนี้ พอแคตตาล็อกโตเป็น 488 `sed` ไม่แมตช์อะไรเลย
+#    ไม่มีการทำให้เลขผิด --check จึงผ่านอย่างถูกต้อง แต่เทสอ่านว่า "จับไม่ได้" แล้วล้ม
+#    เทสที่มีหน้าที่เฝ้าเลข ห้ามมีเลขฮาร์ดโค้ดในตัวเอง — อ่านค่าจริงจากไฟล์แล้วค่อยทำให้ผิด
+cur=$(grep -oE 'anti-pattern [0-9]+ ข้อ' "$T/README.md" | head -1 | grep -oE '[0-9]+')
+if [ -z "$cur" ]; then
+  no "หาวลี 'anti-pattern NNN ข้อ' ใน README ไม่เจอ" "วลีถูก reword — เทสนี้กำลังเงียบ ต้องแก้เทส"
 else
-  dobuild > /dev/null
-  if unchanged; then ok "ยอดรวมในร้อยแก้วผิด จับได้และแก้กลับเป๊ะ"
-  else no "ยอดรวมแก้แล้วต้องเหมือนเดิม" "$(diff -r "$SNAP" "$T" | head -4)"; fi
+  sed -i "s/anti-pattern $cur ข้อ/anti-pattern 999 ข้อ/" "$T/README.md"
+  out=$(docheck); rc=$?
+  if [ "$rc" = 0 ]; then no "ยอดรวมผิดต้องจับได้" "check ผ่านทั้งที่เลขผิด"
+  else
+    dobuild > /dev/null
+    if unchanged; then ok "ยอดรวมในร้อยแก้วผิด จับได้และแก้กลับเป๊ะ"
+    else no "ยอดรวมแก้แล้วต้องเหมือนเดิม" "$(diff -r "$SNAP" "$T" | head -4)"; fi
+  fi
 fi
 cleanup
 

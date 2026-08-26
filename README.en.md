@@ -11,7 +11,7 @@ The problem isn't that agents can't write code. The problem is that agents **sta
 skills/
 ├── principal-engineer/   ← always enter here: Impact Map, Ask Gate, router
 ├── kickoff/              ← starting something new: the agent drives, phase by phase
-├── nohell/               ← 483-entry anti-pattern catalog + machine-checkable rules + a DB scanner
+├── nohell/               ← 488-entry anti-pattern catalog + machine-checkable rules + a DB scanner
 ├── nohell-dig/           ← `/nohell-dig`: mine repo history for the hells that actually hurt
 ├── business-rules/       ← rule ownership, effective dates, read/write symmetry, workflow, money
 ├── archaeology/          ← evidence levels, caller inventory, finding rule copies by shape
@@ -62,13 +62,13 @@ Pick one. All three deliver every skill, including `/nohell-dig`.
 
 ```sh
 # 1) npx skills — needs the full git URL with #tag; the owner/repo shorthand tracks main
-npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.0.3" --skill '*'
+npx skills add "https://github.com/fonewspyy/nohell-skill.git#v1.1.0" --skill '*'
 
 # 2) GitHub CLI v2.90.0+
-gh skill install fonewspyy/nohell-skill --all --pin v1.0.3
+gh skill install fonewspyy/nohell-skill --all --pin v1.1.0
 
 # 3) clone and copy
-git clone --branch v1.0.3 --depth 1 https://github.com/fonewspyy/nohell-skill.git
+git clone --branch v1.1.0 --depth 1 https://github.com/fonewspyy/nohell-skill.git
 cp -r nohell-skill/skills/* ~/.claude/skills/          # available in every project
 cp -r nohell-skill/skills/* .claude/skills/            # or scoped to one project
 ```
@@ -124,16 +124,16 @@ These belong in the **target repo**, not here:
 
 ## The catalog
 
-483 entries across 31 categories. Every entry is one row:
+488 entries across 31 categories. Every entry is one row:
 `ID | priority | the hell | what you'll see in the wild | the enforceable rule that replaces it`.
 
 `ARCH` `SQL` `DATA` `TXN` `API` `CODE` `CACHE` `ERR` `OBS` `SEC` `CFG` `SHIP` `TEST` `PERF` `INT` `JOB` `TIME` `FILE` `SSOT` `LEG` `TEAM` `AI` `FE` `TYPE` `AGG` `MEAS` `REG` `TOOL` `MOBILE` `ML` `PDPA`
 
-**P1** 155 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
-**P2** 169 — loud breakage (crash, error, hang) that recovers without touching historical data
+**P1** 158 — data silently written wrong, lost, or duplicated · a leak · money moving wrongly
+**P2** 171 — loud breakage (crash, error, hang) that recovers without touching historical data
 **P3** 159 — the cost of reading and maintaining
 
-All 483 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
+All 488 entries were re-rated against one written criterion (see [CONTRIBUTING.md](CONTRIBUTING.md)). **"Very severe" is not what makes something P1** — a full-day outage stays P2 if the data is correct once it recovers. P1 is for data that is already wrong and nobody was told.
 
 67 of the entries are machine-checkable and carry a detection command in `skills/nohell/hell-rules.yaml`;
 `skills/nohell/detect-sqlserver.sql` scans a live SQL Server and maps what it finds back to catalog IDs.
@@ -215,16 +215,16 @@ that has to match), so they need `rg -U`. Same silent failure if you omit it —
 validator check 13 enforces it. Note `[^\n]` alone does **not** need `-U` — it excludes newlines
 rather than matching them.
 
-**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 155 of 483 entries are P1. Turning on absolute mode
+**2. `gate.mode` defaults to `ratchet`, not `absolute`.** 158 of 488 entries are P1. Turning on absolute mode
 against an existing codebase produces thousands of P1 hits on day one (measured: `NOLOCK` alone, 6,355 hits
 across 219 of 389 files). That is a backlog, not a gate, and it gets switched off. `ratchet` enforces
 **don't add more**, not **don't have any**.
 
-**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 358 entries (74%) are
+**0. Every entry declares the stack it applies to.** The `ใช้กับ` column: 363 entries (74%) are
 stack-independent, the rest are tagged `RDBMS` (49), `เว็บ` / web (17), `SQL Server` (13),
 `mobile` (13), `ML` (13), `PII` (10), `มี SP` / stored-procedure shops (7), `TS/JS` (2), `.NET` (1). Added after testing against a MySQL codebase where 17 of the 31
 `SQL` entries did not apply at all and nothing in the file said so. Filter before you read — a Python +
-PostgreSQL shop with no mobile app and no models reads 407 of 483 and skips the other 76.
+PostgreSQL shop with no mobile app and no models reads 412 of 488 and skips the other 76.
 
 **3. The automated layer is triage, not a gate.** Measured on a real codebase (MySQL + TS, 1,413 files):
 P1 rules pointed at 473 of 1,413 files (33%), which contained 16 of the 18 files with real bugs —
