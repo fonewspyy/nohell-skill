@@ -84,11 +84,15 @@ cleanup
 # 4 — ไฟล์บันทึกหลักฐานต้องไม่ถูกแตะ แม้ในนั้นจะมีเลขที่ตกยุคอยู่จริง (B29)
 #     BACKLOG อ้างข้อความผิดของเดิมไว้ตรง ๆ ว่า "447 entries across 28 categories"
 #     ถ้า generator เขียนทับ บันทึกจะกลายเป็นบอกว่าข้อความที่เคยผิดคือข้อความที่ถูก
+#     🪤 เดิมข้อนี้เทียบด้วย `diff <(printf '%s' "$before") ...` ซึ่งเป็น process substitution
+#        = bashism ในไฟล์ที่ประกาศ `#!/bin/sh` และ workflow ก็เรียกด้วย `sh` จริง
+#        บน Ubuntu `sh` คือ dash -> `Syntax error: "(" unexpected` ล้มทั้งสคริปต์ที่ข้อ 4
+#        ในเครื่องพัฒนา (Git Bash) `sh` คือ bash จึงผ่าน — ไม่มีทางเห็นถ้าไม่ตรวจด้วย dash
+#        ใช้ $SNAP ที่ setup ทำไว้แล้วแทน (`cp -a "$T/." "$SNAP/"`) เป็นสำนวนเดียวกับข้ออื่น
 setup
-before=$(cat "$T/BACKLOG.md")
 dobuild > /dev/null
-if [ "$before" = "$(cat "$T/BACKLOG.md")" ]; then ok "ไฟล์บันทึก (BACKLOG) ไม่ถูกแตะ"
-else no "ไฟล์บันทึกต้องไม่ถูกแตะ" "$(diff <(printf '%s' "$before") "$T/BACKLOG.md" | head -4)"; fi
+if cmp -s "$SNAP/BACKLOG.md" "$T/BACKLOG.md"; then ok "ไฟล์บันทึก (BACKLOG) ไม่ถูกแตะ"
+else no "ไฟล์บันทึกต้องไม่ถูกแตะ" "$(diff "$SNAP/BACKLOG.md" "$T/BACKLOG.md" | head -4)"; fi
 cleanup
 
 # 5 — วลีถูก reword จนยิงไม่โดน ต้องฟ้องดัง ๆ และ *ห้ามแตะไฟล์*
