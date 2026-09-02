@@ -1191,6 +1191,66 @@
       "old_expected": [],
       "key_verdict": "correct",
       "changed": false
+    },
+    "a03-must-ask-negative-stock": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false,
+      "note": "เคสสังเคราะห์ — snippet ผ่าน 41 กฎอัตโนมัติทั้งหมด (block 0 warn 0) ชั้น wrong ยังว่างเพราะยังไม่รู้ว่าโมเดลจะอ้างข้อใด ต้องตัดสินจาก unlisted_observed หลังรันรอบแรก"
+    },
+    "a04-must-ask-cancelled-in-report": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false,
+      "note": "เคสสังเคราะห์ — snippet ผ่าน 41 กฎอัตโนมัติทั้งหมด (block 0 warn 0) ชั้น wrong ยังว่างเพราะยังไม่รู้ว่าโมเดลจะอ้างข้อใด ต้องตัดสินจาก unlisted_observed หลังรันรอบแรก"
+    },
+    "a05-must-ask-discount-stacking": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false,
+      "note": "เคสสังเคราะห์ — snippet ผ่าน 41 กฎอัตโนมัติทั้งหมด (block 0 warn 0) ชั้น wrong ยังว่างเพราะยังไม่รู้ว่าโมเดลจะอ้างข้อใด ต้องตัดสินจาก unlisted_observed หลังรันรอบแรก"
+    },
+    "a06-must-ask-month-cutoff-tz": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false,
+      "note": "เคสสังเคราะห์ — snippet ผ่าน 41 กฎอัตโนมัติทั้งหมด (block 0 warn 0) ชั้น wrong ยังว่างเพราะยังไม่รู้ว่าโมเดลจะอ้างข้อใด ต้องตัดสินจาก unlisted_observed หลังรันรอบแรก"
+    },
+    "a07-must-ask-edit-after-approve": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false,
+      "note": "เคสสังเคราะห์ — snippet ผ่าน 41 กฎอัตโนมัติทั้งหมด (block 0 warn 0) ชั้น wrong ยังว่างเพราะยังไม่รู้ว่าโมเดลจะอ้างข้อใด ต้องตัดสินจาก unlisted_observed หลังรันรอบแรก"
+    },
+    "a08-must-ask-payment-allocation": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false,
+      "note": "เคสสังเคราะห์ — snippet ผ่าน 41 กฎอัตโนมัติทั้งหมด (block 0 warn 0) ชั้น wrong ยังว่างเพราะยังไม่รู้ว่าโมเดลจะอ้างข้อใด ต้องตัดสินจาก unlisted_observed หลังรันรอบแรก"
     }
   },
   "totals": {

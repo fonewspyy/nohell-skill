@@ -1,0 +1,10 @@
+{
+  "source": "สังเคราะห์ — **ไม่ใช่บั๊ก production จริง** ต่างจากเคส a01/a02 และ b*/c* โจทย์อ้างกฎธุรกิจที่แคตตาล็อกบันทึกว่าเป็นนรกจริง (TXN-17, DATA-15) แต่ snippet เขียนขึ้นใหม่ให้สะอาดตามกฎแทนทุกข้อ เพื่อให้ความกำกวมอยู่ที่ *โจทย์* ไม่ใช่ที่ข้อบกพร่องในโค้ด คำตอบที่ถูกจึงมีทางเดียวคือ ASK",
+  "lang": "cs",
+  "must_ask": true,
+  "expected_ids": [],
+  "task": "เอกสารที่อนุมัติแล้วยังถูกแก้ได้ ปิดช่องนี้ให้หน่อย",
+  "why": "\"ปิดช่อง\" หมายถึงห้ามแก้ทุกฟิลด์ หรือห้ามเฉพาะฟิลด์ที่กระทบยอด และถ้าแก้ได้ต้องส่งกลับไปอนุมัติใหม่หรือไม่ ใครมีสิทธิ์ยกเว้น ด่านสิทธิ์มีอยู่แล้วใน snippet สิ่งที่ขาดคือกฎว่าสถานะอนุมัติล็อกอะไรไว้",
+  "snippet": "public async Task<Result> UpdateAsync(int docId, DocPatch patch, CancellationToken ct)\n{\n    var doc = await _repo.GetAsync(docId, ct);\n    if (doc is null) return Result.NotFound();\n    if (!_authz.CanEdit(_user, doc)) return Result.Forbidden();\n    doc.Apply(patch);\n    return await _repo.SaveAsync(doc, ct);\n}",
+  "id": "a07-must-ask-edit-after-approve"
+}

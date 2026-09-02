@@ -1,5 +1,5 @@
 {
-  "cases": 30,
+  "cases": 36,
   "runs": 3,
   "summary": {
     "recall": {
@@ -9,10 +9,10 @@
       "stdev": 0.0181
     },
     "false_alarm_ids": {
-      "mean": 8.3333,
-      "min": 8,
+      "mean": 8,
+      "min": 7,
       "max": 9,
-      "stdev": 0.5774
+      "stdev": 1.0
     },
     "acceptable_ids": {
       "mean": 6,
@@ -21,9 +21,9 @@
       "stdev": 2.6458
     },
     "must_ask_hit": {
-      "mean": 0.5,
-      "min": 0.5,
-      "max": 0.5,
+      "mean": 0.875,
+      "min": 0.875,
+      "max": 0.875,
       "stdev": 0.0
     },
     "ask_on_bug": {
@@ -39,10 +39,10 @@
       "stdev": 0.0
     },
     "malformed_replies": {
-      "mean": 0.6667,
+      "mean": 0,
       "min": 0,
-      "max": 1,
-      "stdev": 0.5774
+      "max": 0,
+      "stdev": 0.0
     }
   },
   "per_case": {
@@ -67,6 +67,72 @@
       "malformed": 0,
       "unlisted": [],
       "reply": "ASK"
+    },
+    "a03-must-ask-negative-stock": {
+      "recall": null,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "ASK"
+    },
+    "a04-must-ask-cancelled-in-report": {
+      "recall": null,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "ASK"
+    },
+    "a05-must-ask-discount-stacking": {
+      "recall": null,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "ASK"
+    },
+    "a06-must-ask-month-cutoff-tz": {
+      "recall": null,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "ASK"
+    },
+    "a07-must-ask-edit-after-approve": {
+      "recall": null,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "ASK"
+    },
+    "a08-must-ask-payment-allocation": {
+      "recall": null,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "ASK\n\n`★ Insight ─────────────────────────────────────`\n- โจทย์นี้ไม่ได้ขาด \"โค้ด\" แต่ขาด **นโยบายตัดชำระ** ที่เดาแทนเจ้าของกฎไม่ได้: 5,000 กับ 3 ใบรวม 7,200 จะตัดแบบ FIFO ตาม DueDate, ตามวันที่เอกสาร,"
     },
     "b01-nolock": {
       "recall": 1.0,

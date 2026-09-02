@@ -67,6 +67,26 @@ ID_RE = re.compile(r'\b([A-Z]{2,6}-\d{2})\b')
 # ตัวนับนี้ทำให้มันโผล่ทุกรอบ ยังไม่เปลี่ยนวิธีขูด ID เพราะการเปลี่ยนกระทบตัวเลขย้อนหลัง
 WELLFORMED_RE = re.compile(r'^\s*(?:NONE|ASK|(?:[A-Z]{2,6}-\d{2}[ ,]*)+)\s*$')
 
+
+def parse_answer(reply):
+    """คืน (ids, said_ask, malformed) — อ่านจาก **บรรทัดคำตอบ** ไม่ใช่ทั้งข้อความ
+
+    ID ที่โผล่ในร้อยแก้วเป็น *เหตุผล* ไม่ใช่ *ข้อกล่าวหา* การขูดทั้งข้อความจึงนับผิด
+    วัดมาแล้วสองกรณี และทั้งคู่โมเดลตอบถูกแล้วถูกนับว่าผิด
+      b05  ขึ้นต้นด้วยบล็อก "★ Insight" ในนั้นเขียนว่า "ต่างจาก MEAS-10 (ไม่มีค่าตั้งต้นเลย)"
+           ⇒ MEAS-10 ถูกนับว่ารายงานมา ทั้งที่ประโยคนั้นบอกว่ามันไม่เข้า
+      a08  บรรทัดแรกเป็น `ASK` เป๊ะ ซึ่งเป็นคำตอบที่ถูกต้อง แล้วอธิบายต่อว่า "AI-06 คือข้อที่
+           บังคับให้หยุด" และ "ORDER BY จะกลายเป็น AGG-05 *ทันทีที่ยืนยันว่าใช้ FIFO*"
+           ⇒ ask_ok = 0 เพราะ found ไม่ว่าง ทั้งที่เป็นคำตอบที่ดีที่สุดในชุด
+
+    บรรทัดแรกที่ตรงรูปแบบคือคำตอบ · ถ้าไม่มีบรรทัดไหนตรงเลย ⇒ นับเป็น malformed **และ**
+    ถอยไปขูดทั้งข้อความ เพื่อไม่ให้คำตอบที่ผิดรูปกลายเป็น "ไม่ได้ตอบอะไร" แบบเงียบ ๆ
+    """
+    for line in reply.strip().split('\n'):
+        if WELLFORMED_RE.match(line):
+            return set(ID_RE.findall(line)), bool(re.search(r'\bASK\b', line)), 0
+    return set(ID_RE.findall(reply)), bool(re.search(r'\bASK\b', reply)), 1
+
 PROMPT = '''อ่าน skills/nohell/HELL-CATALOG.md ในโฟลเดอร์นี้ก่อน แล้วตอบโจทย์ข้างล่าง
 
 โจทย์: {task}
@@ -192,15 +212,14 @@ def judge(case, reply, keys):
     ตัวเลขทั้งสองขึ้นทุกรอบ ให้คนอ่านตัดสินเองว่าเป็นภาระหรือมูลค่า
     """
     k = keys[case['id']]
-    said_ask = bool(re.search(r'\bASK\b', reply))
-    found = set(ID_RE.findall(reply))
+    found, said_ask, malformed = parse_answer(reply)
     must = {x['id'] for x in k.get('must_find') or []}
     okay = {x['id'] for x in k.get('acceptable') or []}
     bad = {x['id'] for x in k.get('wrong') or []}
 
     out = {'recall': None, 'false_alarm': len(found & bad),
            'acceptable': len(found & okay), 'ask_ok': None, 'ask_on_bug': 0,
-           'excluded': False, 'malformed': 0 if WELLFORMED_RE.match(reply.strip()) else 1,
+           'excluded': False, 'malformed': malformed,
            'unlisted': sorted(found - must - okay - bad)}
 
     if k.get('excluded'):
@@ -209,7 +228,7 @@ def judge(case, reply, keys):
         # ถ้าปล่อยให้ตกลงกลุ่มสะอาด การรายงานสิ่งที่ *ถูก* จะถูกนับเป็น false alarm
         return {'recall': None, 'false_alarm': 0, 'acceptable': 0, 'ask_ok': None,
                 'ask_on_bug': 0, 'excluded': True, 'unlisted': [],
-                'malformed': 0 if WELLFORMED_RE.match(reply.strip()) else 1}
+                'malformed': malformed}
 
     if case['must_ask']:
         # บั๊กเดิม: `return None, 0, ...` ทำให้เคสนี้ได้ false alarm 0 เสมอ
