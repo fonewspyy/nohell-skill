@@ -37,6 +37,12 @@
       "min": 0,
       "max": 0,
       "stdev": 0.0
+    },
+    "malformed_replies": {
+      "mean": 0.6667,
+      "min": 0,
+      "max": 1,
+      "stdev": 0.5774
     }
   },
   "per_case": {
@@ -47,6 +53,7 @@
       "ask_ok": 0,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "TYPE-04 TIME-02 TIME-03 TIME-15 CODE-04"
     },
@@ -57,6 +64,7 @@
       "ask_ok": 1,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "ASK"
     },
@@ -67,6 +75,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "SQL-15 SQL-19"
     },
@@ -77,6 +86,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "SQL-32"
     },
@@ -87,6 +97,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "PERF-05"
     },
@@ -97,6 +108,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "MEAS-01"
     },
@@ -107,6 +119,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "MEAS-02"
     },
@@ -117,6 +130,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "DATA-12 ARCH-12 LEG-04 LEG-05 SSOT-14 FILE-01"
     },
@@ -127,6 +141,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "ERR-02"
     },
@@ -137,6 +152,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "API-03"
     },
@@ -147,6 +163,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "TXN-03"
     },
@@ -157,6 +174,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "CODE-04 SQL-19 DATA-11"
     },
@@ -167,6 +185,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "REG-06 API-01"
     },
@@ -177,6 +196,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "SHIP-05"
     },
@@ -187,6 +207,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "TXN-06 ERR-12"
     },
@@ -197,6 +218,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "ML-03"
     },
@@ -207,6 +229,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "PDPA-04"
     },
@@ -217,6 +240,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -227,6 +251,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -237,6 +262,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "TXN-09"
     },
@@ -247,6 +273,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -257,6 +284,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -267,6 +295,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -277,6 +306,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "ERR-08"
     },
@@ -287,6 +317,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -297,6 +328,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -307,6 +339,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "DATA-18"
     },
@@ -317,6 +350,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -327,6 +361,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     },
@@ -337,6 +372,7 @@
       "ask_ok": null,
       "ask_on_bug": 0,
       "excluded": false,
+      "malformed": 0,
       "unlisted": [],
       "reply": "NONE"
     }

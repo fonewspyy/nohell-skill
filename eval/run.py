@@ -11,10 +11,20 @@ provider คือ `claude -p` (headless) ที่ล็อกอินอย�
     python eval/run.py --runs 1           # รอบเดียว ตอนแก้เคส
     python eval/run.py --baseline         # เขียน eval/baseline.json
 
-เกณฑ์ที่วัด
-    recall        เคสบั๊ก: เจอ ID ที่ควรเจอกี่ % (ตัวเลขหลักที่ห้ามตกหลังแก้ skill)
-    false_alarm_ids  จำนวน ID ที่รายงานเกินมาทั้งชุด (นับ ID ไม่ใช่นับเคส)
-    must_ask_hit  เคสที่คำตอบถูกคือ "หยุดถาม": ตอบ ASK กี่ %
+เกณฑ์ที่วัด — ให้คะแนนจากเฉลยสามชั้นใน keys/merged.json ไม่ใช่ expected_ids เดิม (ดู load_keys)
+    recall            เคสที่มี must_find: เจอ ID ที่ควรเจอกี่ % (ตัวเลขหลักที่ห้ามตกหลังแก้ skill)
+    false_alarm_ids   ID ชั้น `wrong` ที่ถูกรายงาน **รวมทั้งชุดต่อรอบ ไม่ใช่ต่อเคส**
+    acceptable_ids    ID ชั้น `acceptable` ที่ถูกรายงาน — **นับแต่ไม่หักคะแนน** (ดู judge)
+    must_ask_hit      เคสที่คำตอบถูกคือ "หยุดถาม": ตอบ ASK กี่ %
+    ask_on_bug        ตอบ ASK บนเคสที่มีคำตอบชัด — พลาดคนละแบบ ต้องไม่ปนกับ false alarm
+    unlisted_ids      ID ที่ตอบมาแต่ไม่อยู่ในชั้นใดเลย = **สัญญาณว่าเฉลยตกยุค** ขึ้นจาก 0 ต้องไปตรวจเฉลย
+    malformed_replies คำตอบที่ไม่ใช่บรรทัดเดียวตามกติกา (ดู WELLFORMED_RE)
+
+⚠️ `false_alarm_ids` และ `acceptable_ids` เป็น **ยอดรวมของทั้ง 30 เคสต่อหนึ่งรอบ**
+   เคยถูกอ่านผิดเป็น "ต่อเคส" ซึ่งทำให้ขนาดของปัญหาดูใหญ่กว่าจริง 30 เท่า
+   (13.67 ต่อรอบ = 0.46 ต่อเคส · 8.33 ต่อรอบ = 0.28 ต่อเคส) — หารด้วยจำนวนเคสก่อนเทียบกับที่อื่นเสมอ
+   และค่าเฉลี่ยต่อเคสก็ยังหลอกอีกชั้น: วัดแยกชนิดเคสแล้วพบว่าเคส must_ask ให้ 2.0 ID/เคส
+   ขณะที่เคสสะอาดให้ 0.083 — ครึ่งหนึ่งของ false alarm ทั้งชุดมาจากเคสเดียว (a01)
 """
 import argparse, glob, io, json, os, re, shutil, statistics, subprocess, sys, tempfile
 
@@ -47,6 +57,15 @@ def save_bank(bank):
 
 
 ID_RE = re.compile(r'\b([A-Z]{2,6}-\d{2})\b')
+
+# คำตอบที่ทำตามกติกาคือ *บรรทัดเดียว* มีแต่ ID / NONE / ASK
+# ผิดรูปแล้วยังถูกขูด ID จากร้อยแก้ว = นับข้อที่โมเดลบอกว่า *ไม่* เข้า ว่ารายงานมา
+# วัดแล้ว: b05 รอบ 1 ตอบ 495 ตัวอักษร ขึ้นต้นด้วยบล็อก "★ Insight" ในนั้นมีประโยค
+#   "ต่างจาก MEAS-10 (ไม่มีค่าตั้งต้นเลย) — เคสนี้ *มี* การเก็บ baseline แต่คีย์ไม่เสถียร"
+# ⇒ MEAS-10 ถูกนับเป็น false alarm ทั้งที่ประโยคนั้นบอกว่ามันไม่เข้า
+# ผิดรูป 2 จาก 90 คำตอบ แต่หนึ่งในนั้นผลิต false alarm ปลอม — อัตราต่ำจึงไม่มีใครเห็น
+# ตัวนับนี้ทำให้มันโผล่ทุกรอบ ยังไม่เปลี่ยนวิธีขูด ID เพราะการเปลี่ยนกระทบตัวเลขย้อนหลัง
+WELLFORMED_RE = re.compile(r'^\s*(?:NONE|ASK|(?:[A-Z]{2,6}-\d{2}[ ,]*)+)\s*$')
 
 PROMPT = '''อ่าน skills/nohell/HELL-CATALOG.md ในโฟลเดอร์นี้ก่อน แล้วตอบโจทย์ข้างล่าง
 
@@ -181,14 +200,16 @@ def judge(case, reply, keys):
 
     out = {'recall': None, 'false_alarm': len(found & bad),
            'acceptable': len(found & okay), 'ask_ok': None, 'ask_on_bug': 0,
-           'excluded': False, 'unlisted': sorted(found - must - okay - bad)}
+           'excluded': False, 'malformed': 0 if WELLFORMED_RE.match(reply.strip()) else 1,
+           'unlisted': sorted(found - must - okay - bad)}
 
     if k.get('excluded'):
         # เคสที่ไม่มี ground truth ให้เทียบ — ต้องไม่นับเป็น "สะอาด" โดยปริยาย
         # b02: เฉลยเดิมผิดกลไก และแคตตาล็อกยังไม่มีข้อที่ครอบอาการจริง
         # ถ้าปล่อยให้ตกลงกลุ่มสะอาด การรายงานสิ่งที่ *ถูก* จะถูกนับเป็น false alarm
-        return {'recall': None, 'false_alarm': 0, 'acceptable': 0,
-                'ask_ok': None, 'ask_on_bug': 0, 'excluded': True, 'unlisted': []}
+        return {'recall': None, 'false_alarm': 0, 'acceptable': 0, 'ask_ok': None,
+                'ask_on_bug': 0, 'excluded': True, 'unlisted': [],
+                'malformed': 0 if WELLFORMED_RE.match(reply.strip()) else 1}
 
     if case['must_ask']:
         # บั๊กเดิม: `return None, 0, ...` ทำให้เคสนี้ได้ false alarm 0 เสมอ
@@ -309,7 +330,7 @@ def main():
     # ประกอบเป็นรอบ: รอบที่ i ใช้คำตอบที่ i ของทุกเคส
     rounds = []
     for i in range(a.runs):
-        rec, fa, okay, ask_hit, on_bug, unlisted, detail = [], 0, 0, [], 0, 0, {}
+        rec, fa, okay, ask_hit, on_bug, unlisted, malf, detail = [], 0, 0, [], 0, 0, 0, {}
         for c in cases:
             reply = bank[c['id']][i]
             j = judge(c, reply, keys)
@@ -321,6 +342,7 @@ def main():
             okay += j['acceptable']
             on_bug += j['ask_on_bug']
             unlisted += len(j['unlisted'])
+            malf += j['malformed']
             detail[c['id']] = dict(j, reply=reply[:200])
         rounds.append({
             'recall': round(sum(rec) / len(rec), 4) if rec else 0.0,
@@ -329,16 +351,17 @@ def main():
             'must_ask_hit': round(sum(ask_hit) / len(ask_hit), 4) if ask_hit else 0.0,
             'ask_on_bug': on_bug,
             'unlisted_ids': unlisted,
+            'malformed_replies': malf,
             'detail': detail,
         })
         print('  รอบ %d: recall %.1f%% · false alarm %d · acceptable %d · '
-              'must-ask %.0f%% · ask-on-bug %d · ไม่อยู่ในเฉลย %d'
+              'must-ask %.0f%% · ask-on-bug %d · ไม่อยู่ในเฉลย %d · ตอบผิดรูป %d'
               % (i + 1, rounds[-1]['recall'] * 100, fa, okay,
-                 rounds[-1]['must_ask_hit'] * 100, on_bug, unlisted))
+                 rounds[-1]['must_ask_hit'] * 100, on_bug, unlisted, malf))
 
     summary = {}
     for k in ('recall', 'false_alarm_ids', 'acceptable_ids', 'must_ask_hit',
-              'ask_on_bug', 'unlisted_ids'):
+              'ask_on_bug', 'unlisted_ids', 'malformed_replies'):
         vals = [r[k] for r in rounds]
         summary[k] = {'mean': round(statistics.mean(vals), 4),
                       'min': min(vals), 'max': max(vals),
