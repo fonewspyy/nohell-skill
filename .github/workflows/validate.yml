@@ -21,6 +21,26 @@ jobs:
       - name: ติดตั้ง pyyaml
         run: python3 -m pip install --quiet pyyaml
 
+      # 🪤 CI แดงติดกันทุกรอบตั้งแต่ 2026-08-25 เพราะ runner ไม่มี rg — ไม่ใช่เพราะเทสตก
+      #    ทุกเคสใน test-nohell-check.sh ล้มพร้อมบรรทัดเดียวกัน "ไม่พบ ripgrep (rg)"
+      #    อ่าน CI แล้วเห็น "FAIL 12 เคส" ซึ่งพาไปหาบั๊กในกฎ ทั้งที่กฎไม่เคยถูกรันเลย
+      #    ⇒ ขั้นที่ขาดไปต้องดังตรงนี้ ไม่ใช่ไปโผล่เป็นเทสตกทีหลัง
+      - name: ติดตั้ง ripgrep
+        # update ก่อนเสมอ — apt list ที่ฝังมากับ runner image ค้างได้เป็นวัน
+        # แล้ว install จะล้มด้วย 404 ซึ่งอ่านเหมือน "ไม่มีแพ็กเกจนี้" ไม่ใช่ "รายการค้าง"
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ripgrep
+
+      # nohell-check ตายด้วย exit 2 ถ้า rg ไม่มี +pcre2 (กฎที่ประกาศ engine: pcre2
+      # จะ parse error แล้ว gate จะเงียบ = ผ่านทุกอย่าง) เช็คแยกให้ข้อความชัดว่าเป็น
+      # เรื่องของ build ที่ distro ให้มา ไม่ใช่เรื่องของกฎในรีโปนี้
+      - name: ยืนยันว่า rg ตัวนี้มี PCRE2
+        run: |
+          rg --version
+          rg --version | grep -q '+pcre2' \
+            || { echo "rg ที่ apt ให้มา build มาโดยไม่มี PCRE2 — ต้องเปลี่ยนไปใช้ binary จาก release ของ ripgrep"; exit 1; }
+
       # frontmatter ที่หลุดมาตรฐานพังตอน *คนอื่น* ติดตั้ง ไม่ใช่ตอนเราแก้ จึงไม่มีทางรู้เองถ้าไม่มีด่าน
       - name: ตรวจว่า SKILL.md ยังติดตั้งได้ทุกช่องทาง
         run: python3 scripts/validate-skills.py
