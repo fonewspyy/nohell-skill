@@ -26,7 +26,7 @@ provider คือ `claude -p` (headless) ที่ล็อกอินอย�
    และค่าเฉลี่ยต่อเคสก็ยังหลอกอีกชั้น: วัดแยกชนิดเคสแล้วพบว่าเคส must_ask ให้ 2.0 ID/เคส
    ขณะที่เคสสะอาดให้ 0.083 — ครึ่งหนึ่งของ false alarm ทั้งชุดมาจากเคสเดียว (a01)
 """
-import argparse, glob, io, json, os, re, shutil, statistics, subprocess, sys, tempfile
+import argparse, glob, io, json, os, re, shutil, statistics, subprocess, sys, tempfile, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -36,7 +36,21 @@ ROUNDS = os.path.join(HERE, '.rounds.json')     # รอบที่สำเร
 KEYS = os.path.join(HERE, 'keys', 'merged.json')  # เฉลยสามชั้น — ดู load_keys()
 
 
-def load_bank():
+def bank_path(arm):
+    """แขน full ใช้ `.rounds.json` เดิม แขนอื่นแยกไฟล์ — ห้ามปนกัน
+
+    คำตอบจากสองแขนตอบโจทย์ *คนละแบบ* (อ่านทั้งแคตตาล็อก vs อ่านเฉพาะหมวด)
+    ถ้าเก็บรวมไฟล์เดียว การรันแขนใหม่จะถูกอ่านว่า "ครบแล้ว" แล้วเอาคำตอบของแขนเก่า
+    มาให้คะแนน — ได้ตัวเลขที่ดูเหมือนผลเทียบทั้งที่ไม่เคยเทียบอะไร
+    """
+    return ROUNDS if arm == 'full' else os.path.join(HERE, '.rounds-%s.json' % arm)
+
+
+def timing_path(arm):
+    return os.path.join(HERE, '.timing-%s.json' % arm)
+
+
+def load_bank(arm='full'):
     """คำตอบที่ยิงสำเร็จแล้ว เก็บ **รายเคส** ไม่ใช่รายรอบ — {case_id: [reply, ...]}
 
     หน่วยต้องเป็นเคส เพราะโควตาปล่อยมาทีละส่วน วัดมาแล้วสองครั้ง
@@ -45,14 +59,14 @@ def load_bank():
     เก็บรายเคสทำให้ทุกครั้งที่รันมีความคืบหน้า และยังได้ 3 คำตอบอิสระต่อเคส
     ซึ่งเป็นสิ่งที่ variance ของ D4 ต้องการจริง ๆ
     """
-    if not os.path.exists(ROUNDS):
+    if not os.path.exists(bank_path(arm)):
         return {}
-    with io.open(ROUNDS, encoding='utf-8') as fh:
+    with io.open(bank_path(arm), encoding='utf-8') as fh:
         return json.load(fh)
 
 
-def save_bank(bank):
-    with io.open(ROUNDS, 'w', encoding='utf-8', newline='\n') as fh:
+def save_bank(bank, arm='full'):
+    with io.open(bank_path(arm), 'w', encoding='utf-8', newline='\n') as fh:
         fh.write(json.dumps(bank, ensure_ascii=False, indent=2) + '\n')
 
 
@@ -87,18 +101,44 @@ def parse_answer(reply):
             return set(ID_RE.findall(line)), bool(re.search(r'\bASK\b', line)), 0
     return set(ID_RE.findall(reply)), bool(re.search(r'\bASK\b', reply)), 1
 
-PROMPT = '''อ่าน skills/nohell/HELL-CATALOG.md ในโฟลเดอร์นี้ก่อน แล้วตอบโจทย์ข้างล่าง
+_ANSWER_RULES = '''
+กติกาการตอบ ตอบบรรทัดเดียว ห้ามอธิบาย
+- ถ้าละเมิดข้อในแคตตาล็อก ตอบเป็น ID คั่นด้วยช่องว่าง เช่น: SQL-15 ERR-02
+- ถ้าไม่ละเมิดข้อใดเลย ตอบ: NONE
+- ถ้ายังตัดสินไม่ได้เพราะขาดกฎธุรกิจที่เดาแทนไม่ได้ ตอบ: ASK'''
+
+# สองแขนของการทดลอง C1 — ต่างกัน **แค่วิธีเข้าถึงแคตตาล็อก** ส่วนโจทย์ กติกาการตอบ
+# และเฉลยเหมือนกันเป๊ะ เพื่อให้ผลต่างที่วัดได้มาจากตัวแปรเดียว
+#
+# ที่มาของการทดลอง: docs/research/2026-09-02-accuracy-speed-eval.md §9 ข้อ C1
+# ฝ่าย ก  Anthropic: ใต้ 200K token ไม่ต้องสร้าง retrieval · prefix ใหญ่ยิ่งได้กำไรจาก cache
+# ฝ่าย ข  NoLiMa วัดว่า effective length ของ Sonnet คือ ~4K · distractor ตัดเหลือ ~1K ·
+#         เกิน 20 เอกสารแย่กว่าไม่ใส่ · และเอกสาร Anthropic เองก็มีฝ่ายที่พูดเรื่อง context rot
+# ทั้งสองฝ่ายมีเอกสาร Anthropic หนุน รายงานจึงปฏิเสธที่จะเลือกข้างให้ ⇒ ต้องวัดเอง
+PROMPTS = {
+    'full': '''อ่าน skills/nohell/HELL-CATALOG.md ในโฟลเดอร์นี้ก่อน แล้วตอบโจทย์ข้างล่าง
 
 โจทย์: {task}
 
 ```{lang}
 {snippet}
 ```
+''' + _ANSWER_RULES,
 
-กติกาการตอบ ตอบบรรทัดเดียว ห้ามอธิบาย
-- ถ้าละเมิดข้อในแคตตาล็อก ตอบเป็น ID คั่นด้วยช่องว่าง เช่น: SQL-15 ERR-02
-- ถ้าไม่ละเมิดข้อใดเลย ตอบ: NONE
-- ถ้ายังตัดสินไม่ได้เพราะขาดกฎธุรกิจที่เดาแทนไม่ได้ ตอบ: ASK'''
+    'routed': '''อ่าน skills/nohell/SKILL.md ในโฟลเดอร์นี้ก่อน — ในนั้นมีรหัสหมวดทั้ง 31 หมวด
+เลือกหมวดที่เกี่ยวกับโจทย์ข้างล่าง แล้วอ่าน **เฉพาะหัวข้อของหมวดที่เลือก** ใน
+skills/nohell/HELL-CATALOG.md (ใช้ grep หรือ sed อ่านเฉพาะช่วงบรรทัดของหมวดนั้น)
+
+**ห้ามอ่าน HELL-CATALOG.md ทั้งไฟล์** — จุดประสงค์ของการทดลองนี้คือวัดว่าการอ่านเฉพาะ
+หมวดที่เกี่ยวข้องให้ผลต่างจากการอ่านทั้งก้อนอย่างไร ถ้าอ่านทั้งไฟล์ผลจะใช้เทียบไม่ได้
+
+โจทย์: {task}
+
+```{lang}
+{snippet}
+```
+''' + _ANSWER_RULES,
+}
 
 
 def load_cases():
@@ -140,8 +180,8 @@ def claude_bin():
     return shutil.which('claude') or 'claude'
 
 
-def ask(case):
-    """ยิงหนึ่งเคส — prompt ไปทาง **stdin** ไม่ใช่ argv
+def ask(job):
+    """ยิงหนึ่งเคส · `job` = (case, arm) — prompt ไปทาง **stdin** ไม่ใช่ argv
 
     ⚠️ ห้ามเปลี่ยนกลับไปเป็น `[exe, '-p', prompt]` เด็ดขาด บน Windows ตัวที่ which เจอคือ
     `claude.CMD` ซึ่งเป็น batch wrapper: ขึ้นบรรทัดใหม่ = จบคำสั่ง ⇒ **prompt เหลือแค่บรรทัดแรก**
@@ -157,7 +197,9 @@ def ask(case):
     บน POSIX ไม่มี `.CMD` ขั้นกลาง argv จึงส่งหลายบรรทัดได้ปกติ — คำตอบที่เก็บไว้ก่อนหน้านี้
     (89 เคส) เก็บมาจากทางนั้น จึงยังใช้ได้ ไม่ต้องล้าง
     """
-    prompt = PROMPT.format(task=case['task'], lang=case['lang'], snippet=case['snippet'])
+    case, arm = job
+    prompt = PROMPTS[arm].format(task=case['task'], lang=case['lang'], snippet=case['snippet'])
+    t0 = time.time()
     try:
         r = subprocess.run([claude_bin(), '-p'], input=prompt, cwd=sandbox(),
                            capture_output=True, text=True, encoding='utf-8',
@@ -166,7 +208,7 @@ def ask(case):
         sys.stderr.write('ไม่พบคำสั่ง claude — eval ตัวนี้ใช้ Claude Code headless เป็น provider\n')
         raise SystemExit(2)
     except subprocess.TimeoutExpired:
-        return '', 'timeout หลัง 300 วินาที'
+        return '', 'timeout หลัง 300 วินาที', time.time() - t0
     if r.returncode != 0:
         # ห้ามกลืน — คำตอบว่างจะถูกนับเป็น recall 0 แล้วสรุปออกมาเป็นตัวเลขที่ดูเหมือนผลวัด
         # วัดจริงมาแล้ว: session limit หมด 21/24 เคสล้ม แต่รายงานยังพิมพ์ "recall 8.3%" ออกมา
@@ -175,8 +217,8 @@ def ask(case):
         why = (r.stdout or '').strip().split('\n')[0][:120]
         if not why:
             why = (r.stderr or '').strip().split('\n')[0][:120]
-        return '', why or ('exit %d' % r.returncode)
-    return r.stdout.strip(), None
+        return '', why or ('exit %d' % r.returncode), time.time() - t0
+    return r.stdout.strip(), None, time.time() - t0
 
 
 def load_keys():
@@ -251,6 +293,8 @@ def main():
     ap.add_argument('--baseline', action='store_true')
     ap.add_argument('-q', '--quiet', action='store_true')
     ap.add_argument('--jobs', type=int, default=4, help='ยิงกี่เคสพร้อมกัน (ค่าเริ่มต้น 4)')
+    ap.add_argument('--arm', choices=sorted(PROMPTS), default='full',
+                    help='full = อ่านแคตตาล็อกทั้งก้อน · routed = อ่านเฉพาะหมวดที่เลือก (ทดลอง C1)')
     a = ap.parse_args()
 
     cases = load_cases()
@@ -306,9 +350,14 @@ def main():
                                  % (c['id'], keys[c['id']].get('exclude_reason', 'ไม่ระบุเหตุผล')))
 
     from concurrent.futures import ThreadPoolExecutor
-    bank = load_bank()
+    bank = load_bank(a.arm)
+    timing = {}
+    if os.path.exists(timing_path(a.arm)):
+        with io.open(timing_path(a.arm), encoding='utf-8') as fh:
+            timing = json.load(fh)
     have = min([len(bank.get(c['id'], [])) for c in cases] or [0])
-    print('คำตอบที่สะสมไว้แล้ว: อย่างน้อย %d ต่อเคส (ต้องการ %d)' % (have, a.runs))
+    print('แขน %s · คำตอบที่สะสมไว้แล้ว: อย่างน้อย %d ต่อเคส (ต้องการ %d)'
+          % (a.arm, have, a.runs))
 
     while True:
         need = [c for c in cases if len(bank.get(c['id'], [])) < a.runs]
@@ -316,19 +365,24 @@ def main():
             break
         print('\nยิง %d เคสที่ยังไม่ครบ' % len(need))
         with ThreadPoolExecutor(max_workers=a.jobs) as ex:
-            replies = list(ex.map(ask, need))
+            replies = list(ex.map(ask, [(c, a.arm) for c in need]))
         got, why = 0, []
-        for c, (reply, err) in zip(need, replies):
+        for c, (reply, err, secs) in zip(need, replies):
             if err:
                 if err not in why:
                     why.append(err)
                 continue
             bank.setdefault(c['id'], []).append(reply)
+            timing.setdefault(c['id'], []).append(round(secs, 2))
             got += 1
             if not a.quiet:
-                print('  ok  %-28s %s' % (c['id'], reply[:60].replace('\n', ' ')))
-        save_bank(bank)
-        print('  ยิงสำเร็จ %d/%d — เก็บลง %s แล้ว' % (got, len(need), os.path.basename(ROUNDS)))
+                print('  ok  %-28s %5.1fs  %s'
+                      % (c['id'], secs, reply[:52].replace('\n', ' ')))
+        save_bank(bank, a.arm)
+        io.open(timing_path(a.arm), 'w', encoding='utf-8', newline='\n').write(
+            json.dumps(timing, ensure_ascii=False, indent=2) + '\n')
+        print('  ยิงสำเร็จ %d/%d — เก็บลง %s แล้ว'
+              % (got, len(need), os.path.basename(bank_path(a.arm))))
         if got == 0:
             # ยิงไม่ออกเลยแม้แต่เคสเดียว รันต่อก็เผาเปล่า
             for w in why:

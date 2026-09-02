@@ -1,5 +1,5 @@
 {
-  "cases": 36,
+  "cases": 37,
   "runs": 3,
   "summary": {
     "recall": {
@@ -9,22 +9,22 @@
       "stdev": 0.0181
     },
     "false_alarm_ids": {
-      "mean": 8,
-      "min": 7,
-      "max": 9,
+      "mean": 10,
+      "min": 9,
+      "max": 11,
       "stdev": 1.0
     },
     "acceptable_ids": {
-      "mean": 6,
-      "min": 3,
-      "max": 8,
-      "stdev": 2.6458
+      "mean": 7,
+      "min": 5,
+      "max": 9,
+      "stdev": 2.0
     },
     "must_ask_hit": {
-      "mean": 0.875,
-      "min": 0.875,
-      "max": 0.875,
-      "stdev": 0.0
+      "mean": 0.8148,
+      "min": 0.7778,
+      "max": 0.8889,
+      "stdev": 0.0641
     },
     "ask_on_bug": {
       "mean": 0,
@@ -133,6 +133,17 @@
       "malformed": 0,
       "unlisted": [],
       "reply": "ASK\n\n`★ Insight ─────────────────────────────────────`\n- โจทย์นี้ไม่ได้ขาด \"โค้ด\" แต่ขาด **นโยบายตัดชำระ** ที่เดาแทนเจ้าของกฎไม่ได้: 5,000 กับ 3 ใบรวม 7,200 จะตัดแบบ FIFO ตาม DueDate, ตามวันที่เอกสาร,"
+    },
+    "a09-must-ask-money-rounding-clean": {
+      "recall": null,
+      "false_alarm": 3,
+      "acceptable": 1,
+      "ask_ok": 0,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "malformed": 0,
+      "unlisted": [],
+      "reply": "TIME-02 TIME-03 TIME-15 TYPE-04"
     },
     "b01-nolock": {
       "recall": 1.0,

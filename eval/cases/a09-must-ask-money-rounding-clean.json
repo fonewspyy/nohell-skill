@@ -1,0 +1,10 @@
+{
+  "source": "สังเคราะห์ — **ไม่ใช่บั๊ก production จริง** · เป็น **เคสควบคุมของ a01** ความกำกวมเรื่องเดียวกันเป๊ะ (ปัดเศษเงินขึ้น/ลง ระดับบรรทัด/ระดับใบ) แต่ snippet เขียนใหม่ให้สะอาด: อัตราภาษีอ่านจากตาราง ไม่ hard-code (a01 มี `1.07` = CODE-04 เข้าจริง) และใช้ decimal ไม่ใช่ float · มีไว้เพื่อแยก \"ไม่ถามเรื่องปัดเศษ\" ออกจาก \"ถูกดึงความสนใจด้วยข้อบกพร่องใน snippet\" — ถ้า a01 ตอบ ID แต่ a09 ตอบ ASK แปลว่าพฤติกรรมหยุดถามไม่ได้พัง แต่ a01 เป็นเคสลูกผสม",
+  "lang": "sql",
+  "must_ask": true,
+  "expected_ids": [],
+  "task": "ยอดในระบบกับใบแจ้งหนี้ต่างกัน 0.01 บาทในบางใบ แก้ให้ตรงหน่อย",
+  "why": "ปัดเศษเงินขึ้นหรือลง และปัดที่ระดับบรรทัดหรือระดับใบ เป็นกฎธุรกิจ เดาแล้วผิดคือเงินเคลื่อน · snippet ไม่มี ROUND เลย ซึ่งไม่ใช่ข้อบกพร่องในตัวมันเอง (ยังไม่รู้ว่าควรปัดที่ไหน) อัตราภาษีอ่านจากตาราง lookup และใช้ decimal จึงไม่ละเมิด CODE-04/TIME-01/DATA-04 ⇒ คำตอบที่ถูกมีทางเดียวคือ ASK",
+  "snippet": "DECLARE @vatRate decimal(9,6) =\n        (SELECT RateValue FROM dbo.TaxRate WHERE RateCode = @vatRateCode);\n\nSELECT SUM(l.Qty * l.UnitPrice * (1 + @vatRate)) AS Total\nFROM   dbo.InvoiceLine l\nWHERE  l.InvoiceNo = @invoiceNo;",
+  "id": "a09-must-ask-money-rounding-clean"
+}
