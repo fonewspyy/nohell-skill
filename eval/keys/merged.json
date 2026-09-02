@@ -284,6 +284,11 @@
           "id": "SSOT-13",
           "why": "SSOT-13 ต้องมีเงื่อนไขล่วงหน้าว่า 'logic ถูกรวมเป็นที่เดียวแล้ว' แต่ข้อมูลยังไม่รวม — snippet แสดงตรงข้าม: ยังไม่มีการรวม logic ใดๆ เลย (จอเก่า/จอใหม่/รายงาน อ่านคนละตารางกันเองสับสน ไม่มีจุดคำนวณ/อ่านรวมศูนย์จุดเดียว) เข้าเงื่อนไขเดียวกับที่ SSOT-15 ถูกตัดสิน wrong ไปแล้วในเคสนี้ (ยังไม่มีการประกาศ/รวมอะไรเลย)",
           "adjudicated_by": "d2"
+        },
+        {
+          "id": "SSOT-02",
+          "adjudicated_by": "session-2026-09-02-C1",
+          "why": "SSOT-02 คือ \"สร้าง C โดยไม่พิสูจน์ว่า A ≡ B\" — b06 มี A กับ B แต่ยังไม่มีใครสร้าง C อาการ \"เจอความต่างตอนย้ายไปครึ่งทาง\" จึงพิสูจน์จาก snippet ไม่ได้"
         }
       ],
       "unclassified_observed": [
@@ -655,7 +660,14 @@
       "changed": false
     },
     "c03-idempotent-upsert": {
-      "must_find": [],
+      "must_find": [
+        {
+          "id": "TXN-19",
+          "adjudicated_by": "session-2026-09-02-C1",
+          "evidence": "MERGE dbo.DriverPhone AS t ... WHEN NOT MATCHED THEN INSERT",
+          "why": "MERGE ที่ไม่มี WITH (HOLDLOCK) ตรงนิยาม TXN-19 คำต่อคำ · ข้อนี้ถูกเพิ่มเข้าแคตตาล็อก วันเดียวกันจากช่องว่างที่เคสนี้เปิดออกมาเอง (g4 -> d3 -> TXN-19)"
+        }
+      ],
       "acceptable": [],
       "wrong": [
         {
@@ -677,8 +689,9 @@
       ],
       "must_ask": false,
       "old_expected": [],
-      "key_verdict": "correct",
-      "changed": false
+      "key_verdict": "incomplete",
+      "changed": true,
+      "note": "เคยเป็นเคสสะอาด · แขน routed หา TXN-19 เจอ แขน full ไม่เจอ กลไก: อ่านเฉพาะหมวด TXN ทำให้ข้อใหม่เด่นขึ้นแทนที่จะจมในกอง 490 ข้อ"
     },
     "c04-rethrow-with-context": {
       "must_find": [],
@@ -718,6 +731,11 @@
         {
           "id": "API-09",
           "why": "ไม่เห็นเนื้อหาของ sql จึงไม่มีหลักฐานว่าไม่มี LIMIT/OFFSET หรือ cursor ฝังอยู่ในคิวรีอยู่แล้ว"
+        },
+        {
+          "id": "PERF-03",
+          "adjudicated_by": "session-2026-09-02-C1",
+          "why": "เหตุผลเดียวกับ API-09 ที่ถูกตัดสินเป็น wrong ไปแล้ว: `sql` เป็นตัวแปรที่มองไม่เห็นเนื้อใน จะพิสูจน์ว่า \"ไม่มี limit\" จาก snippet ไม่ได้ · และ PERF-03 พูดถึงหน้าจอรายการ (อาการ \"เปิดหน้าแล้วค้าง\") ไม่ใช่ API handler"
         }
       ],
       "unclassified_observed": [],
@@ -1195,7 +1213,13 @@
     "a03-must-ask-negative-stock": {
       "must_find": [],
       "acceptable": [],
-      "wrong": [],
+      "wrong": [
+        {
+          "id": "TXN-17",
+          "adjudicated_by": "session-2026-09-02-C1",
+          "why": "UPDATE เดียวที่ SET Qty = Qty - @qty เป็น atomic ในตัวเอง ไม่มีขั้นเช็คแยกก่อนเขียน อาการของ TXN-17 คือ \"เช็คว่ายังว่าง แล้วค่อยจอง\" ซึ่งไม่มีใน snippet"
+        }
+      ],
       "must_ask": true,
       "old_expected": [],
       "key_verdict": "correct",
@@ -1225,7 +1249,13 @@
     "a06-must-ask-month-cutoff-tz": {
       "must_find": [],
       "acceptable": [],
-      "wrong": [],
+      "wrong": [
+        {
+          "id": "TIME-05",
+          "adjudicated_by": "session-2026-09-02-C1",
+          "why": "snippet ใช้ @fromUtc/@toUtc ระบุเขตเวลาชัดเจน ตรงข้ามกับอาการของ TIME-05 ที่คือ \"เก็บเวลาแบบ local ที่ไม่รู้เขตเวลา\""
+        }
+      ],
       "must_ask": true,
       "old_expected": [],
       "key_verdict": "correct",
@@ -1245,7 +1275,13 @@
     "a08-must-ask-payment-allocation": {
       "must_find": [],
       "acceptable": [],
-      "wrong": [],
+      "wrong": [
+        {
+          "id": "AGG-05",
+          "adjudicated_by": "session-2026-09-02-C1",
+          "why": "AGG-05 คือ TOP 1 ที่ ORDER BY ตัดสินไม่ขาด — snippet ไม่มี TOP เลย เป็น SELECT ทั้งชุด (คำตอบของแขน full เคยชี้ AGG-05 แบบมีเงื่อนไขว่า \"จะเป็นปัญหาถ้ายืนยันว่าใช้ FIFO\" ซึ่งถูกกว่า)"
+        }
+      ],
       "must_ask": true,
       "old_expected": [],
       "key_verdict": "correct",

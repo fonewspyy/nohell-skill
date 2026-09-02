@@ -36,21 +36,23 @@ ROUNDS = os.path.join(HERE, '.rounds.json')     # รอบที่สำเร
 KEYS = os.path.join(HERE, 'keys', 'merged.json')  # เฉลยสามชั้น — ดู load_keys()
 
 
-def bank_path(arm):
+def bank_path(arm, tag=''):
     """แขน full ใช้ `.rounds.json` เดิม แขนอื่นแยกไฟล์ — ห้ามปนกัน
 
     คำตอบจากสองแขนตอบโจทย์ *คนละแบบ* (อ่านทั้งแคตตาล็อก vs อ่านเฉพาะหมวด)
     ถ้าเก็บรวมไฟล์เดียว การรันแขนใหม่จะถูกอ่านว่า "ครบแล้ว" แล้วเอาคำตอบของแขนเก่า
     มาให้คะแนน — ได้ตัวเลขที่ดูเหมือนผลเทียบทั้งที่ไม่เคยเทียบอะไร
     """
-    return ROUNDS if arm == 'full' else os.path.join(HERE, '.rounds-%s.json' % arm)
+    if arm == 'full' and not tag:
+        return ROUNDS
+    return os.path.join(HERE, '.rounds-%s%s.json' % (arm, '-' + tag if tag else ''))
 
 
-def timing_path(arm):
-    return os.path.join(HERE, '.timing-%s.json' % arm)
+def timing_path(arm, tag=''):
+    return os.path.join(HERE, '.timing-%s%s.json' % (arm, '-' + tag if tag else ''))
 
 
-def load_bank(arm='full'):
+def load_bank(arm='full', tag=''):
     """คำตอบที่ยิงสำเร็จแล้ว เก็บ **รายเคส** ไม่ใช่รายรอบ — {case_id: [reply, ...]}
 
     หน่วยต้องเป็นเคส เพราะโควตาปล่อยมาทีละส่วน วัดมาแล้วสองครั้ง
@@ -59,14 +61,14 @@ def load_bank(arm='full'):
     เก็บรายเคสทำให้ทุกครั้งที่รันมีความคืบหน้า และยังได้ 3 คำตอบอิสระต่อเคส
     ซึ่งเป็นสิ่งที่ variance ของ D4 ต้องการจริง ๆ
     """
-    if not os.path.exists(bank_path(arm)):
+    if not os.path.exists(bank_path(arm, tag)):
         return {}
-    with io.open(bank_path(arm), encoding='utf-8') as fh:
+    with io.open(bank_path(arm, tag), encoding='utf-8') as fh:
         return json.load(fh)
 
 
-def save_bank(bank, arm='full'):
-    with io.open(bank_path(arm), 'w', encoding='utf-8', newline='\n') as fh:
+def save_bank(bank, arm='full', tag=''):
+    with io.open(bank_path(arm, tag), 'w', encoding='utf-8', newline='\n') as fh:
         fh.write(json.dumps(bank, ensure_ascii=False, indent=2) + '\n')
 
 
@@ -96,9 +98,14 @@ def parse_answer(reply):
     บรรทัดแรกที่ตรงรูปแบบคือคำตอบ · ถ้าไม่มีบรรทัดไหนตรงเลย ⇒ นับเป็น malformed **และ**
     ถอยไปขูดทั้งข้อความ เพื่อไม่ให้คำตอบที่ผิดรูปกลายเป็น "ไม่ได้ตอบอะไร" แบบเงียบ ๆ
     """
+    # ปอก markdown ที่ห่อบรรทัดคำตอบออกก่อนเทียบ — วัดแล้ว: c05 ในแขน routed ตอบ
+    # `**API-09 PERF-03**` ซึ่ง *เป็นคำตอบจริง* แค่ถูกห่อด้วย bold แล้วตกเป็นผิดรูป
+    # แล้วถอยไปขูดร้อยแก้วข้างบนซึ่งมี ID ที่โมเดลกำลังอธิบายว่า "ก็เข้าด้วย"
+    # การปอก `*` และ backtick ไม่ได้ขยายว่าอะไรนับเป็นคำตอบ แค่ทนรูปแบบการนำเสนอ
     for line in reply.strip().split('\n'):
-        if WELLFORMED_RE.match(line):
-            return set(ID_RE.findall(line)), bool(re.search(r'\bASK\b', line)), 0
+        bare = line.strip().strip('*`_ ')
+        if WELLFORMED_RE.match(bare):
+            return set(ID_RE.findall(bare)), bool(re.search(r'\bASK\b', bare)), 0
     return set(ID_RE.findall(reply)), bool(re.search(r'\bASK\b', reply)), 1
 
 _ANSWER_RULES = '''
@@ -295,7 +302,38 @@ def main():
     ap.add_argument('--jobs', type=int, default=4, help='ยิงกี่เคสพร้อมกัน (ค่าเริ่มต้น 4)')
     ap.add_argument('--arm', choices=sorted(PROMPTS), default='full',
                     help='full = อ่านแคตตาล็อกทั้งก้อน · routed = อ่านเฉพาะหมวดที่เลือก (ทดลอง C1)')
+    # --only + --tag มีไว้ให้กระจายงานข้ามบัญชีได้ (ดู skill orchestra)
+    # ⚠️ ถ้าหลาย process ยิงพร้อมกันต้องให้ **แต่ละตัวมี --tag ของตัวเอง** ไม่งั้นทั้งหมด
+    #    จะอ่าน-เขียนธนาคารไฟล์เดียวกันแล้วทับกันเงียบ ๆ (คนละปัญหากับ --jobs ที่คุมภายใน
+    #    process เดียว) ไฟล์แยกกันสนิทจึงไม่ต้องประสานงานอะไรเลย แล้วรวมทีหลังด้วย --merge
+    ap.add_argument('--only', default='',
+                    help='ยิงเฉพาะเคสที่ระบุ คั่นด้วยช่องว่างหรือจุลภาค (ค่าว่าง = ทุกเคส)')
+    ap.add_argument('--tag', default='',
+                    help='ต่อท้ายชื่อไฟล์ธนาคาร/เวลา — บังคับใช้เมื่อยิงหลาย process พร้อมกัน')
+    ap.add_argument('--merge', default='',
+                    help='รวมธนาคารจาก tag ที่ระบุ (คั่นด้วยจุลภาค) เข้าไฟล์หลักของแขนนั้น แล้วจบ')
     a = ap.parse_args()
+
+    if a.merge:
+        merged, tmerged = {}, {}
+        for tag in [t.strip() for t in a.merge.split(',') if t.strip()]:
+            bp, tp = bank_path(a.arm, tag), timing_path(a.arm, tag)
+            if not os.path.exists(bp):
+                sys.stderr.write('ไม่พบ %s — tag นี้ยังไม่มีผล\n' % os.path.basename(bp))
+                continue
+            with io.open(bp, encoding='utf-8') as fh:
+                for cid, reps in json.load(fh).items():
+                    merged.setdefault(cid, []).extend(reps)
+            if os.path.exists(tp):
+                with io.open(tp, encoding='utf-8') as fh:
+                    for cid, secs in json.load(fh).items():
+                        tmerged.setdefault(cid, []).extend(secs)
+        io.open(bank_path(a.arm), 'w', encoding='utf-8', newline='\n').write(
+            json.dumps(merged, ensure_ascii=False, indent=2) + '\n')
+        io.open(timing_path(a.arm), 'w', encoding='utf-8', newline='\n').write(
+            json.dumps(tmerged, ensure_ascii=False, indent=2) + '\n')
+        print('รวมแล้ว %d เคส เข้า %s' % (len(merged), os.path.basename(bank_path(a.arm))))
+        return 0
 
     cases = load_cases()
     keys = load_keys()
@@ -350,17 +388,29 @@ def main():
                                  % (c['id'], keys[c['id']].get('exclude_reason', 'ไม่ระบุเหตุผล')))
 
     from concurrent.futures import ThreadPoolExecutor
-    bank = load_bank(a.arm)
+    bank = load_bank(a.arm, a.tag)
     timing = {}
-    if os.path.exists(timing_path(a.arm)):
-        with io.open(timing_path(a.arm), encoding='utf-8') as fh:
+    if os.path.exists(timing_path(a.arm, a.tag)):
+        with io.open(timing_path(a.arm, a.tag), encoding='utf-8') as fh:
             timing = json.load(fh)
-    have = min([len(bank.get(c['id'], [])) for c in cases] or [0])
+    # --only จำกัดว่า *ยิง* เคสไหน แต่การให้คะแนนยังใช้ทุกเคสเสมอ
+    # ถ้าปล่อยให้ --only ตัดเคสออกจากการให้คะแนนด้วย จะได้ recall ของ subset
+    # ที่หน้าตาเหมือน recall ของทั้งชุด — ตัวเลขที่ดูเหมือนผลวัดแต่วัดคนละชุด
+    only = set(re.split(r'[,\s]+', a.only.strip())) - {''}
+    want_cases = [c for c in cases if c['id'] in only] if only else cases
+    if only:
+        miss = only - {c['id'] for c in cases}
+        if miss:
+            sys.stderr.write('--only อ้างเคสที่ไม่มี: %s\n' % ' '.join(sorted(miss)))
+            raise SystemExit(2)
+        print('--only จำกัดการยิงไว้ %d เคส' % len(want_cases))
+
+    have = min([len(bank.get(c['id'], [])) for c in want_cases] or [0])
     print('แขน %s · คำตอบที่สะสมไว้แล้ว: อย่างน้อย %d ต่อเคส (ต้องการ %d)'
           % (a.arm, have, a.runs))
 
     while True:
-        need = [c for c in cases if len(bank.get(c['id'], [])) < a.runs]
+        need = [c for c in want_cases if len(bank.get(c['id'], [])) < a.runs]
         if not need:
             break
         print('\nยิง %d เคสที่ยังไม่ครบ' % len(need))
@@ -378,11 +428,11 @@ def main():
             if not a.quiet:
                 print('  ok  %-28s %5.1fs  %s'
                       % (c['id'], secs, reply[:52].replace('\n', ' ')))
-        save_bank(bank, a.arm)
-        io.open(timing_path(a.arm), 'w', encoding='utf-8', newline='\n').write(
+        save_bank(bank, a.arm, a.tag)
+        io.open(timing_path(a.arm, a.tag), 'w', encoding='utf-8', newline='\n').write(
             json.dumps(timing, ensure_ascii=False, indent=2) + '\n')
         print('  ยิงสำเร็จ %d/%d — เก็บลง %s แล้ว'
-              % (got, len(need), os.path.basename(bank_path(a.arm))))
+              % (got, len(need), os.path.basename(bank_path(a.arm, a.tag))))
         if got == 0:
             # ยิงไม่ออกเลยแม้แต่เคสเดียว รันต่อก็เผาเปล่า
             for w in why:

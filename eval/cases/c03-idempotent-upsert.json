@@ -2,8 +2,10 @@
   "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
   "lang": "sql",
   "must_ask": false,
-  "expected_ids": [],
-  "why": "เคสควบคุม false alarm",
+  "expected_ids": [
+    "TXN-19"
+  ],
+  "why": "เคสควบคุม false alarm · อัปเดต 2026-09-02: ไม่ใช่เคสสะอาดอีกต่อไป — MERGE ไม่มี HOLDLOCK ตรงนิยาม TXN-19 ซึ่งเป็นข้อที่ถูกเพิ่มเข้าแคตตาล็อกจากช่องว่างที่เคสนี้เปิดออกมาเอง",
   "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
   "snippet": "MERGE dbo.DriverPhone AS t\nUSING (SELECT @driverId AS DriverID, @phone AS Phone) AS s\n   ON t.DriverID = s.DriverID\nWHEN MATCHED THEN UPDATE SET Phone = s.Phone\nWHEN NOT MATCHED THEN INSERT (DriverID, Phone) VALUES (s.DriverID, s.Phone);",
   "id": "c03-idempotent-upsert"
