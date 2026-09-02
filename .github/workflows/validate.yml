@@ -8,7 +8,7 @@ jobs:
   catalog:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0        # nohell-check ต้องมีประวัติเพื่อ diff เทียบ base ของ PR
       - name: ตรวจว่าแคตตาล็อกสอดคล้องกับตัวเอง
