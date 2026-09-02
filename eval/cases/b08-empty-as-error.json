@@ -3,6 +3,7 @@
   "lang": "typescript",
   "must_ask": false,
   "expected_ids": [
+    "API-03",
     "ERR-06"
   ],
   "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",

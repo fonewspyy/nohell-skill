@@ -1,7 +1,7 @@
 ---
 name: nohell
 description: >
-  แคตตาล็อก anti-pattern ระดับ enterprise (488 ข้อ) + กฎบังคับ.
+  แคตตาล็อก anti-pattern ระดับ enterprise (490 ข้อ) + กฎบังคับ.
   ใช้เมื่อจะเขียน/รีวิว/รีแฟกเตอร์โค้ดหรือ stored procedure ในระบบงานจริง
   เพื่อกันไม่ให้เกิด spaghetti, duplicated logic, God SP, silent data corruption.
   คู่กับ ponytail: ponytail คุมว่า "อย่าเขียนเกิน", nohell คุมว่า "อย่าเขียนแบบที่จะกลายเป็นนรก".
@@ -97,7 +97,7 @@ C6  ปิดประตู: มีกฎตรวจไม่ให้มี�
 ```
 nohell/
 ├── SKILL.md              ← ไฟล์นี้ (โหลดตลอด, ~3–4k tokens)
-├── HELL-CATALOG.md       ← 488 ข้อ 31 หมวด (โหลดตามหมวดเวลา audit)
+├── HELL-CATALOG.md       ← 490 ข้อ 31 หมวด (โหลดตามหมวดเวลา audit)
 ├── hell-rules.yaml       ← ชุดที่ตรวจอัตโนมัติได้ + คำสั่งตรวจ
 ├── detect-sqlserver.sql  ← สคริปต์สแกน SQL Server (God SP, dup logic, schema smell)
 └── CONSOLIDATIONS.example.yaml ← เทมเพลตทะเบียนวง C (คัดลอกไปไว้ที่ราก repo เป้าหมาย)
@@ -121,8 +121,8 @@ nohell/
 | ใช้กับ | จำนวน | อ่านเมื่อ |
 | --- | --- | --- |
 | `ทุกที่` | 363 | เสมอ ไม่ว่า stack ไหน |
-| `RDBMS` | 49 | มีฐานข้อมูลเชิงสัมพันธ์ |
-| `SQL Server` | 13 | ใช้ T-SQL |
+| `RDBMS` | 50 | มีฐานข้อมูลเชิงสัมพันธ์ |
+| `SQL Server` | 14 | ใช้ T-SQL |
 | `มี SP` | 7 | ตรรกะอยู่ใน stored procedure |
 | `เว็บ` | 17 | หน้าบ้านเป็นเว็บ |
 | `TS/JS` | 2 | เขียน TypeScript หรือ JavaScript |
@@ -131,7 +131,7 @@ nohell/
 | `ML` | 13 | มีโมเดลที่ตัดสินใจแทนคนในระบบจริง |
 | `PII` | 10 | ระบบเก็บข้อมูลส่วนบุคคลของคนจริง |
 
-ร้าน Go + PostgreSQL ที่ไม่มี SP อ่าน 412 จาก 488 ข้อ · ร้าน .NET + SQL Server ที่ทำงานผ่าน SP อ่านครบเกือบทั้งหมด
+ร้าน Go + PostgreSQL ที่ไม่มี SP อ่าน 413 จาก 490 ข้อ · ร้าน .NET + SQL Server ที่ทำงานผ่าน SP อ่านครบเกือบทั้งหมด
 
 ## รหัสหมวด
 

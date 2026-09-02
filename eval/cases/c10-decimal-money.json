@@ -2,7 +2,9 @@
   "source": "เคสสะอาด — เขียนตามกฎแทนของแคตตาล็อก ต้องไม่มี ID ใดถูกรายงาน",
   "lang": "sql",
   "must_ask": false,
-  "expected_ids": [],
+  "expected_ids": [
+    "DATA-18"
+  ],
   "why": "เคสควบคุม false alarm — เดิมเคสนี้ไม่สะอาดจริง eval จับได้ว่าขาด FK (DATA-10) และขาด audit column (DATA-15) ซึ่งถูกทั้งคู่ จึงเติมให้ครบตามกฎแทนของสองข้อนั้น",
   "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด ถ้าไม่มีให้ตอบว่า NONE",
   "snippet": "CREATE TABLE dbo.InvoiceLine (\n    InvoiceNo   varchar(20)   NOT NULL,\n    LineNo      int           NOT NULL,\n    UnitPrice   decimal(18,4) NOT NULL,\n    CreatedAt   datetime2(3)  NOT NULL CONSTRAINT DF_InvoiceLine_CreatedAt DEFAULT SYSUTCDATETIME(),\n    CreatedBy   varchar(50)   NOT NULL,\n    UpdatedAt   datetime2(3)  NULL,\n    UpdatedBy   varchar(50)   NULL,\n    CONSTRAINT PK_InvoiceLine PRIMARY KEY (InvoiceNo, LineNo),\n    CONSTRAINT FK_InvoiceLine_Invoice FOREIGN KEY (InvoiceNo)\n        REFERENCES dbo.Invoice (InvoiceNo)\n);\nCREATE INDEX IX_InvoiceLine_InvoiceNo ON dbo.InvoiceLine (InvoiceNo);",

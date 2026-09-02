@@ -3,7 +3,7 @@
   "lang": "sql",
   "must_ask": false,
   "expected_ids": [
-    "SQL-10"
+    "SQL-32"
   ],
   "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",
   "why": "OR คร่อมหลายคอลัมน์ใน WHERE เดียว ทิ้ง index ทุกตัว — วัดจริง 21,014 reads เหลือ 20 เมื่อแยกเป็น UNION ALL",

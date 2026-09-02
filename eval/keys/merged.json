@@ -1,0 +1,1212 @@
+{
+  "cases": {
+    "a01-must-ask-money-rounding": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "CODE-04",
+          "evidence": "* 1.07",
+          "why": "1.07 เป็นอัตราภาษีที่ hard-code เป็นตัวเลขลอยๆ ไม่มีชื่อคงที่กำกับ ตรงนิยาม CODE-04 (magic number) ตรงตัว แม้จะไม่ใช่ประเด็นหลักของเคส"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "TIME-02",
+          "why": "snippet มีจุดคำนวณเดียวและไม่มี ROUND() ให้เห็นเลย พิสูจน์ 'ปัดเศษไม่เหมือนกันในแต่ละที่' ไม่ได้จากข้อความนี้ — นี่คือเหตุผลที่เคสนี้ต้อง must_ask ไม่ใช่ตอบ ID"
+        },
+        {
+          "id": "DATA-04",
+          "why": "ไม่มีข้อมูล schema/ชนิดคอลัมน์ของ Qty หรือ UnitPrice ใน snippet จึงยืนยันไม่ได้ว่าเก็บเป็น FLOAT"
+        },
+        {
+          "id": "TIME-03",
+          "why": "TIME-03 ต้องมีหลักฐานว่าภาษีถูกคำนวณคนละที่คนละสูตร (หลายจุดคำนวณ) — snippet มีจุดคำนวณเดียว (SELECT SUM(...) จุดเดียว) พิสูจน์ 'คนละที่คนละสูตร' ไม่ได้ เหตุผลเดียวกับที่ TIME-02 ถูกตัดสินเป็น wrong ไปแล้วในเคสเดียวกัน",
+          "adjudicated_by": "d2"
+        },
+        {
+          "id": "TIME-15",
+          "why": "TIME-15 ต้องมีหลักฐานคอลัมน์ IsActive หรือการไม่มี valid_from/valid_to ที่ใช้ตัดสินอัตราย้อนหลัง — snippet ไม่มีคอลัมน์ชนิดนี้เลย มีแค่ literal 1.07 คูณตรงในสูตรเดียว ไม่มีร่องรอยของการเลือก rate ตามวันที่ปัจจุบันกับรายการย้อนหลัง",
+          "adjudicated_by": "d2"
+        },
+        {
+          "id": "TYPE-04",
+          "why": "TYPE-04 ต้องมีหลักฐานว่า 'ปัดเศษก่อนรวม' กับ 'รวมก่อนปัดเศษ' ปนกันในหลายจุด — snippet แสดงสูตรเดียว (SUM ก่อน ไม่มี ROUND เลย) ไม่มีจุดที่สองให้เทียบว่าปนกันจริง แม้ task/why จะบรรยายอาการใกล้เคียง (ต่างกัน 0.01 บาท, ปัดระดับบรรทัด/ใบ) แต่กติกาบังคับว่าต้องยกจาก snippet ตรงๆ ซึ่งยกไม่ได้จากจุดคำนวณเดียวนี้",
+          "adjudicated_by": "d2"
+        }
+      ],
+      "unclassified_observed": [
+        "TIME-03",
+        "TIME-15",
+        "TYPE-04"
+      ],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "a02-must-ask-retention": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "LEG-12",
+          "evidence": "ไม่มีใครรู้ว่าใครใช้",
+          "why": "ตรงอาการของ LEG-12 (ไม่รู้ว่าใครเรียก/ใช้งานอยู่) แม้ LEG-12 จะพูดถึง SP/endpoint/job เป็นตัวอย่างหลัก แต่รูปแบบปัญหาเดียวกัน (ไม่มี inventory ผู้ใช้งานจริง) ปรากฏตรงนี้ด้วยข้อความตรงตัว"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "FILE-11",
+          "why": "FILE-11 พูดถึงไฟล์แนบ (attachment) โดยเฉพาะ ไม่ใช่ตาราง log ในฐานข้อมูล ผิดหมวด"
+        },
+        {
+          "id": "DATA-24",
+          "why": "อาการของ DATA-24 คือ query ช้าลงทุกเดือนจากข้อมูล hot/cold ปนกัน แต่เคสนี้ปัญหาคือ backup ไม่ทัน และไม่มีหลักฐานว่ายังมีใคร query ตารางนี้บ่อยจนช้าลง — คนละอาการ"
+        },
+        {
+          "id": "PDPA-03",
+          "why": "ไม่มีหลักฐานว่า log การยิงบาร์โค้ดเป็นข้อมูลส่วนบุคคล (PII) — หมวด PDPA ระบุ 'ใช้กับ: PII' ชัดเจน ใช้ไม่ได้กับ log ทั่วไปที่ไม่รู้ว่ามีข้อมูลส่วนบุคคลปนอยู่หรือไม่"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": true,
+      "old_expected": [],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b01-nolock": {
+      "must_find": [
+        {
+          "id": "SQL-15",
+          "evidence": "WITH (NOLOCK)",
+          "why": "ใช้ NOLOCK บนทั้งสองตาราง (OrderHeader, OrderLine) เป็นค่า default ตรงนิยาม SQL-15 เป๊ะ และ 'why' ของเคสเองยืนยันว่าอ่านแถวที่ยังไม่ commit"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "SQL-19",
+          "evidence": "WHERE o.Status = 3",
+          "why": "3 เป็น magic status literal ไม่มีตาราง lookup หรือชื่อคงที่กำกับ ตรงนิยาม SQL-19 (Magic status ใน SP) ตรงตัว ใช้กับ RDBMS ได้ ตัวอย่างที่การตรวจเบื้องต้นระบุไว้แล้วว่าเป็นข้อที่ถูกแต่ไม่ถูกนับในเฉลย"
+        },
+        {
+          "id": "CODE-04",
+          "evidence": "o.Status = 3",
+          "why": "มองในมุมกว้างกว่า SQL-19 ก็ยังเป็น magic number ทั่วไปที่ควรมีชื่อคงที่ ใช้หลักฐานตรงตัวเดียวกัน"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "TXN-10",
+          "why": "TXN-10 คือ NOLOCK บนรายงานการเงินโดยเฉพาะ snippet นี้เป็น query OrderHeader/OrderLine ทั่วไป ไม่มีหลักฐานว่าเป็นรายงานการเงิน"
+        },
+        {
+          "id": "SQL-04",
+          "why": "ไม่มีการต่อสตริงสร้าง dynamic SQL ใน snippet เลย เป็น query แบบ parameterized/static ปกติ"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "SQL-15"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b02-or-chain": {
+      "must_find": [
+        {
+          "id": "SQL-32",
+          "evidence": "WHERE  TransportNo = @key\n   OR  LoadNo      = @key\n   OR  RefNo       = @key;",
+          "why": "OR คร่อมสามคอลัมน์ที่มี index แยกกัน แผนกลายเป็น scan — วัดจริง 21,014 reads เหลือ 20 เมื่อแยกเป็น UNION ALL"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "SQL-10",
+          "why": "SQL-10 นิยามเจาะจงว่าเป็น predicate ที่ถูกครอบด้วยฟังก์ชัน/แปลงชนิด เช่น CONVERT(varchar,d) หรือ YEAR(d)=2026 — snippet นี้ไม่มีฟังก์ชันครอบคอลัมน์เลย เป็น equality ตรงๆ สามเงื่อนไข (TransportNo = @key OR LoadNo = @key OR RefNo = @key) ต่อด้วย OR แต่ละเงื่อนไข sargable เดี่ยวๆ ปัญหาจริงตามที่ 'why' ของเคสเองบอกคือ optimizer เลือก scan แทนรวมผลจาก index seek สามตัว (OR/index-union) ซึ่งเป็นกลไกคนละแบบกับ non-sargable predicate โดยสิ้นเชิง ค้นทั้งแคตตาล็อก 488 ข้อแล้วไม่พบ ID ที่ตรงกับแพทเทิร์น 'OR คร่อมหลายคอลัมน์ทิ้ง index' นี้โดยตรง"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "SQL-10"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true,
+      "note": "เฉลยเดิม SQL-10 ผิดกลไก (SQL-10 คือ predicate ที่ถูกฟังก์ชันครอบ) เคสนี้เคยถูกกันออกเพราะแคตตาล็อกไม่มีข้อที่ตรง — เพิ่ม SQL-32 แล้วจึงกลับเข้ามาวัดได้"
+    },
+    "b03-missing-index": {
+      "must_find": [
+        {
+          "id": "PERF-05",
+          "evidence": "-- ไม่มี index บน (TranType, ShipmentID)",
+          "why": "คอมเมนต์ในโค้ดยืนยันตรงตัวว่าไม่มี index บนคอลัมน์ที่กรอง ตรงนิยาม PERF-05 เป๊ะ"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "AGG-05",
+          "evidence": "SELECT TOP 1 TranType, ShipmentID, CreatedAt\nFROM   dbo.TransactionHistory\nWHERE  TranType = @type AND ShipmentID = @id\nORDER  BY CreatedAt DESC;",
+          "why": "TOP 1 กับ ORDER BY คอลัมน์เดียว (CreatedAt) ไม่มีคีย์รองกันเสมอกัน ถ้ามีหลายแถวที่ CreatedAt เท่ากัน (เป็นไปได้ถ้า precision ต่ำหรือ insert พร้อมกันหลายแถว) ผลลัพธ์จะไม่ชี้ขาดและเปลี่ยนไปมาระหว่างรัน ตรงนิยาม AGG-05"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "SQL-10",
+          "why": "ไม่มี CONVERT/YEAR หรือฟังก์ชันใดๆ ครอบคอลัมน์ใน WHERE เป็น equality ตรงๆ สองคอลัมน์"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "PERF-05"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b04-harness-mismatch": {
+      "must_find": [
+        {
+          "id": "MEAS-01",
+          "evidence": "client บรรทัดคำสั่งรันด้วย QUOTED_IDENTIFIER OFF ซึ่งทำให้ index บน computed column ถูกเมิน",
+          "why": "ตรงนิยาม MEAS-01 เป๊ะ: วัดด้วย client ที่ SET options ต่างจากที่แอปจริงใช้ แล้วเห็น full scan ที่ production ไม่เคยเกิด"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "MEAS-09",
+          "evidence": "รายงานไม่ได้บันทึก SET options ที่ใช้ตอนวัดไว้เลย",
+          "why": "ผลการวัดไม่มีข้อมูลกำกับ (SET options ที่ใช้ตอนวัด) ตรงนิยาม MEAS-09 ซึ่งเป็นข้อแยกจาก MEAS-01 (MEAS-01 พูดถึงตัว mismatch เอง ส่วน MEAS-09 พูดถึงการไม่บันทึกข้อมูลกำกับผลลัพธ์)"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "PERF-05",
+          "why": "บทสรุป 'full scan' ในเคสนี้เกิดจาก harness ที่วัดผิด ไม่ใช่หลักฐานว่าตาราง/คิวรีจริงขาด index — การรายงาน PERF-05 ตรงนี้คือการเชื่อผลวัดที่ผิดพลาดไปแล้วซ้ำ"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "MEAS-01"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b05-stats-per-version": {
+      "must_find": [
+        {
+          "id": "MEAS-02",
+          "evidence": "เก็บ baseline ของ stored procedure ด้วยตัวระบุที่ระบบสร้างให้ต่อเวอร์ชันของ object",
+          "why": "ตรงนิยาม MEAS-02 'สถิติผูกกับเวอร์ชันของ object' คำต่อคำ — อาการที่แคตตาล็อกเขียนไว้ ('แก้ SP ทีเดียวสถิติเดิมหายหมด เทียบก่อนหลังไม่ได้อีกเลย') ตรงกับบรรทัดสุดท้ายของ snippet 'เทียบกับก่อนแก้ไม่ได้เลย'"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "MEAS-10",
+          "why": "MEAS-10 คือ 'ไม่มีค่าตั้งต้นก่อนแก้' แต่ snippet บอกชัดว่า *มี* baseline อยู่แล้ว ปัญหาคือ baseline ผูกผิดตัวระบุ ไม่ใช่ไม่มี"
+        },
+        {
+          "id": "MEAS-09",
+          "why": "MEAS-09 ต้องการหลักฐานว่าผลวัดไม่มีข้อมูลกำกับ (ใครวัด เครื่องมือ เวอร์ชัน) — snippet ไม่พูดถึงเรื่องนี้เลย"
+        },
+        {
+          "id": "MEAS-04",
+          "why": "MEAS-04 คือเทียบก่อน-หลังคนละช่วงเวลา snippet ไม่ได้พูดถึงช่วงเวลาที่วัด และสาเหตุที่เทียบไม่ได้คือตัวระบุเปลี่ยน ไม่ใช่ช่วงเวลาต่างกัน"
+        },
+        {
+          "id": "SQL-24",
+          "why": "SQL-24 คือ SP ไม่อยู่ใน version control — snippet พูดถึงสถิติ/baseline ไม่ได้พูดถึงที่เก็บซอร์สของ SP"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "MEAS-02"
+      ],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "b06-dual-master": {
+      "must_find": [
+        {
+          "id": "DATA-12",
+          "evidence": "ระบบต้นทางเขียนใบสั่งงานลงสองตารางพร้อมกันทุกครั้ง: ตารางเก่ากับตารางใหม่",
+          "why": "Master data ซ้ำหลายที่ ชื่อ/ความหมายไม่ตรงกัน ตรงกับอาการ 'ลูกค้าเดียวกันอยู่ 4 ตาราง ชื่อไม่ตรงกัน' และมี 'คอลัมน์ชื่อเดียวกันมีความหมายไม่ตรงกัน' ยืนยันซ้ำ"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "ARCH-12",
+          "evidence": "คอลัมน์ชื่อเดียวกันมีความหมายไม่ตรงกัน",
+          "why": "นี่คืออาการของ ARCH-12 คำต่อคำ ('\"Order\" หมายคนละอย่างในแต่ละโมดูล') และกฎแทนคือ 'ตั้งชื่อให้ต่างกันถ้าความหมายต่างกัน' — snippet ให้หลักฐานตรงตัว ไม่ใช่การเดา"
+        },
+        {
+          "id": "LEG-04",
+          "evidence": "จอเก่าอ่านตารางเก่า จอใหม่อ่านตารางใหม่ รายงานบางตัวอ่านสลับกัน",
+          "why": "อาการของ LEG-04 คือ 'ระบบเก่ากับใหม่อยู่คู่กันถาวร' — snippet แสดงของเก่ากับของใหม่อยู่คู่กันจริง และ 'ไม่มีเอกสารบอกว่าตัวไหนเป็นตัวจริง' คือหลักฐานว่าไม่มีวันปิดของเก่าที่ประกาศไว้ตามกฎแทน"
+        },
+        {
+          "id": "LEG-05",
+          "evidence": "จอเก่าอ่านตารางเก่า จอใหม่อ่านตารางใหม่",
+          "why": "LEG-05 = 'สร้างของใหม่แต่ไม่ย้ายคนใช้ / สองระบบข้อมูลไม่ตรง' — ตารางใหม่มีแล้วแต่จอเก่ายังไม่ถูกย้าย เป็นข้อความใน snippet ตรงๆ"
+        },
+        {
+          "id": "SSOT-14",
+          "evidence": "ไม่มีเอกสารบอกว่าตัวไหนเป็นตัวจริง",
+          "why": "SSOT-14 บังคับว่าต้องมี ADR ทุกครั้งที่ประกาศว่าอะไรคือแหล่งเดียว snippet บอกตรงๆ ว่าไม่มีเอกสารนั้น"
+        },
+        {
+          "id": "FILE-01",
+          "evidence": "รายงานบางตัวอ่านสลับกัน",
+          "why": "FILE-01 = รายงานอ่านคนละแหล่งกับที่ระบบใช้ตัดสินใจ ทำให้ตัวเลขรายงานไม่ตรงกับหน้าจอ — 'อ่านสลับกัน' คือหลักฐานของสภาพนั้นพอดี"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "INT-08",
+          "why": "INT-08 คือ dual write ระหว่าง DB กับ event/ข้อความ ที่ไม่มี outbox — snippet ไม่มี event, คิว หรือระบบส่งข้อความเลย มีแต่สองตารางในฐานเดียวกัน"
+        },
+        {
+          "id": "ARCH-04",
+          "why": "ARCH-04 ต้องมี 'หลายระบบเขียน table เดียวกัน' — snippet มีผู้เขียนรายเดียวคือ 'ระบบต้นทาง' ที่เหลือเป็นผู้อ่าน"
+        },
+        {
+          "id": "SSOT-15",
+          "why": "SSOT-15 ต้องมีการ 'ประกาศ SSOT แล้ว' ก่อน ทางเขียนเก่าถึงจะเป็นความผิด — snippet บอกตรงข้ามว่าไม่มีใครประกาศว่าตัวไหนเป็นตัวจริงเลย"
+        },
+        {
+          "id": "DATA-13",
+          "why": "DATA-13 คือ denormalize แล้วไม่มีตัว sync — snippet บอกว่าเขียนทั้งสองตาราง 'พร้อมกันทุกครั้ง' คือมีการ sync อยู่ ปัญหาคือไม่มีเจ้าของเดียว ไม่ใช่ไม่มีตัว sync"
+        },
+        {
+          "id": "SSOT-13",
+          "why": "SSOT-13 ต้องมีเงื่อนไขล่วงหน้าว่า 'logic ถูกรวมเป็นที่เดียวแล้ว' แต่ข้อมูลยังไม่รวม — snippet แสดงตรงข้าม: ยังไม่มีการรวม logic ใดๆ เลย (จอเก่า/จอใหม่/รายงาน อ่านคนละตารางกันเองสับสน ไม่มีจุดคำนวณ/อ่านรวมศูนย์จุดเดียว) เข้าเงื่อนไขเดียวกับที่ SSOT-15 ถูกตัดสิน wrong ไปแล้วในเคสนี้ (ยังไม่มีการประกาศ/รวมอะไรเลย)",
+          "adjudicated_by": "d2"
+        }
+      ],
+      "unclassified_observed": [
+        "SSOT-13"
+      ],
+      "must_ask": false,
+      "old_expected": [
+        "DATA-12"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b07-catch-return-null": {
+      "must_find": [
+        {
+          "id": "ERR-02",
+          "evidence": "_log.LogWarning(ex, \"resolve door failed\");",
+          "why": "catch แล้ว log แล้ว return null ตรงนิยาม ERR-02 คำต่อคำ ผู้เรียกแยกไม่ออกว่า 'ไม่มีประตู' กับ 'ระบบพัง'"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "ERR-03",
+          "evidence": "return null;",
+          "why": "ERR-03 = คืนค่า default ที่ดูปกติเมื่อพัง null คือค่าที่ผู้เรียกฝั่ง C# ตีความว่า 'ไม่เจอ' ได้ทันที ซ้อนกับ ERR-02 แต่ละเมิดจริงจากบรรทัดเดียวกัน"
+        },
+        {
+          "id": "ERR-12",
+          "evidence": "catch (Exception ex)",
+          "why": "จับ Exception กว้างสุดแล้วลดระดับเป็น warning และเดินต่อ = ล้มเหลวเงียบ กฎแทนของ ERR-12 คือ 'ให้หยุดและแจ้งทันที' ซึ่งโค้ดนี้ทำตรงข้าม"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "ERR-01",
+          "why": "ERR-01 คือ catch ว่างเปล่า — catch ตัวนี้มี log อยู่จริง ข้อที่ตรงกว่าคือ ERR-02 ซึ่งถูกเขียนไว้เพื่อเคสนี้โดยเฉพาะ"
+        },
+        {
+          "id": "CODE-23",
+          "why": "CODE-23 ต้องมี `?.` หรือ `?? 0` ในโค้ด — snippet ไม่มีตัวดำเนินการทั้งสองตัว แม้เจตนาของกฎจะใกล้กัน"
+        },
+        {
+          "id": "ERR-11",
+          "why": "ไม่มีข้อความใน snippet ที่บอกว่ามีหรือไม่มี timeout ของ _repo.GetDoorAsync — พิสูจน์ไม่ได้จาก 9 บรรทัดนี้"
+        },
+        {
+          "id": "ERR-15",
+          "why": "correlation id ไม่ได้ถูกพูดถึงเลยใน snippet"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "ERR-02"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b08-empty-as-error": {
+      "must_find": [
+        {
+          "id": "ERR-06",
+          "evidence": "return NextResponse.json({ error: 'no data' }, { status: 422 })",
+          "why": "ผลว่างคือสถานะปกติของธุรกิจ ถูกส่งออกเป็น error — คือการไม่แยก 'เรื่องที่คาดไว้' ออกจาก 'ความผิดปกติ' ตามนิยาม ERR-06"
+        },
+        {
+          "id": "API-03",
+          "evidence": "return NextResponse.json(rows)",
+          "why": "กฎแทนของ API-03 เขียนไว้ตรงตัวว่า 'shape เดียวเสมอ ไม่มีข้อมูลก็คืน array ว่าง' — snippet คืน object `{error:...}` ในสายหนึ่ง และ array `rows` ในอีกสายหนึ่ง ตรงอาการ 'บางครั้งคืน object บางครั้งคืน array' เป๊ะ เป็นข้อที่ต้องอยู่ในเฉลย"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "API-05",
+          "evidence": "{ error: 'no data' }",
+          "why": "error ไม่มีฟิลด์ `code` คงที่ให้ client แยกแยะ มีแต่ข้อความอิสระ 'no data' ที่ client ต้อง match เอง ตรงอาการ API-05"
+        },
+        {
+          "id": "API-10",
+          "evidence": "const rows = await db.query(sql, params)",
+          "why": "`rows` จาก db ถูก serialize ออกตรงๆ ด้วย NextResponse.json(rows) ไม่มี DTO คั่น ตรงกับกฎแทนของ API-10 ที่ห้าม serialize entity ตรง"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "ERR-03",
+          "why": "ERR-03 คือกลบความล้มเหลวด้วยค่าที่ดูปกติ — snippet ทำตรงกันข้ามคือเปลี่ยนค่าปกติให้กลายเป็นความล้มเหลว"
+        },
+        {
+          "id": "ERR-14",
+          "why": "ERR-14 ต้องมี validation error กับ system error ใช้ code เดียวกัน — snippet มี status เดียวคือ 422 ไม่มีสอง error ให้ชนกัน"
+        },
+        {
+          "id": "API-09",
+          "why": "ตัว `sql` ไม่ได้แสดงใน snippet จึงพิสูจน์ไม่ได้ว่ามีหรือไม่มี pagination"
+        },
+        {
+          "id": "FE-05",
+          "why": "FE-* ใช้กับ 'เว็บ' ในความหมายฝั่งหน้าจอ — snippet เป็น route handler ฝั่ง server ไม่มี component หรือสถานะ loading ให้ตรวจ"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "ERR-06"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b09-read-modify-write": {
+      "must_find": [
+        {
+          "id": "TXN-03",
+          "evidence": "SELECT @remain = RemainQty FROM dbo.Box WHERE BoxNo = @box;",
+          "why": "อ่านค่าเข้าตัวแปร คำนวณ แล้ว UPDATE กลับด้วยค่าที่คำนวณไว้ โดยไม่มี rowversion/optimistic lock/คำสั่งเดียว — ตรงนิยาม TXN-03 คำต่อคำ ยืนยันด้วยบรรทัด `UPDATE dbo.Box SET RemainQty = @remain WHERE BoxNo = @box;`"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "TXN-17",
+          "why": "check-then-act ต้องมี 'การเช็ค' ที่ตัดสินใจก่อนลงมือ — snippet ไม่มีเงื่อนไขหรือ branch ใดเลย เป็น read-modify-write ล้วน ซึ่ง TXN-03 คุมอยู่แล้ว"
+        },
+        {
+          "id": "TXN-09",
+          "why": "TXN-09 ต้องมีหลักฐานว่ามีคนเข้าใจ isolation level ผิด — snippet ไม่ได้ประกาศ isolation level ใดๆ ให้ตรวจ"
+        },
+        {
+          "id": "TXN-15",
+          "why": "'กดปุ่มซ้ำ' มาจากโจทย์ ไม่ใช่จาก snippet และโจทย์พูดถึงสองคนกดพร้อมกัน ไม่ใช่คนเดียวกดซ้ำ — ใน snippet ไม่มี UI หรือปุ่ม"
+        },
+        {
+          "id": "SQL-17",
+          "why": "SQL-17 ใช้กับ SP ที่มี transaction — snippet ไม่มี BEGIN TRAN / CATCH ให้ตรวจ XACT_ABORT"
+        },
+        {
+          "id": "SQL-16",
+          "why": "ไม่มี BEGIN CATCH ใน snippet เลย"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "TXN-03"
+      ],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "b10-sentinel-magic": {
+      "must_find": [
+        {
+          "id": "SQL-19",
+          "evidence": "SELECT '9999999999', 9",
+          "why": "ค่า 9 ถูกเขียนตรงลงคอลัมน์ Status โดยไม่มี lookup หรือชื่อคงที่ ตรงนิยาม SQL-19 (ใช้กับ RDBMS — snippet เป็น T-SQL จึงเข้าเงื่อนไข)"
+        },
+        {
+          "id": "CODE-04",
+          "evidence": "SELECT '9999999999', 9",
+          "why": "`'9999999999'` คือเลขที่เอกสารสมมติที่มีความหมายทางธุรกิจ ถูกฝังเป็นค่าคงที่ไม่มีชื่อ — SQL-19 คุมเฉพาะ *สถานะ* จึงไม่ครอบค่านี้ ต้องใช้ CODE-04 (ใช้กับ ทุกที่) และ `why` ของเฉลยเองก็เขียนว่า 'ไม่มีชื่อและไม่มีที่อยู่' ซึ่งคือกฎแทนของ CODE-04 คำต่อคำ"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "DATA-11",
+          "why": "DATA-11 คือ soft delete ที่ครึ่งระบบไม่กรอง — snippet ไม่มีคอลัมน์/flag การลบเลย แถว sentinel ไม่ใช่แถวที่ถูกลบ แม้อาการ 'ทุกรายงานต้องจำเองว่าต้องกรอง' จะใกล้เคียงก็ตาม ข้อนี้ถือว่ามั่วจริง"
+        },
+        {
+          "id": "DATA-23",
+          "why": "DATA-23 ต้องเห็นการ hard-code ค่า lookup ทั้งฝั่ง DB และฝั่ง code — snippet มีแต่ฝั่ง SQL"
+        },
+        {
+          "id": "CODE-19",
+          "why": "CODE-19 คือคอมเมนต์ที่บอก 'อะไร' และล้าสมัย — คอมเมนต์ในนี้บอก 'ทำไม' และเป็นข้อจำกัดที่มองไม่เห็นจากโค้ด ซึ่งคือสิ่งที่ CODE-19 สั่งให้ทำ ไม่ใช่สิ่งที่ห้าม"
+        },
+        {
+          "id": "SQL-05",
+          "why": "snippet ระบุคอลัมน์ครบ (LoadNo, Status) ไม่มี SELECT *"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "SQL-19"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b11-registry-split-deploy": {
+      "must_find": [
+        {
+          "id": "REG-06",
+          "evidence": "stored procedure ที่คุมว่าปุ่มไหนโผล่บนแอปมือถือ ถูก deploy ขึ้น production วันนี้\nแต่แอปเวอร์ชันที่รู้จักปุ่มใหม่จะขึ้น store อีกสองสัปดาห์",
+          "why": "ทะเบียน (SP ที่คุมว่าปุ่มไหนโผล่) กับโค้ด (แอปที่รู้จักปุ่มใหม่) ขึ้นคนละรอบ deploy แล้วพังเป็นช่วง ตรงนิยาม REG-06 เป๊ะ"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "MOBILE-11",
+          "why": "หมวด MOBILE ใช้ได้เฉพาะแอปที่ต้อง 'ทำงานตอนไม่มีเน็ต' — เคสนี้ไม่มีหลักฐานว่าแอปเป็นแอปออฟไลน์ และอาการที่เล่าคือ UI โชว์ปุ่มที่ยังไม่รองรับ ไม่ใช่ 'เซิร์ฟเวอร์ตีความข้อมูลรูปแบบเก่าแล้วบันทึกค่าที่ผิดเงียบๆ' ตามอาการจริงของ MOBILE-11"
+        },
+        {
+          "id": "API-01",
+          "why": "API-01 ต้องมีหลักฐานว่าไม่มีการทำ versioning ของ API/contract จนแก้ทีลูกค้าเก่าพังทันที — snippet 3 บรรทัดพูดถึงจังหวะ deploy ของ SP ทะเบียนกับแอปมือถือเท่านั้น ไม่มีคำว่า version หรือ contract ปรากฏเลย และปัญหาที่เล่าคือ 'ลูกค้าใหม่ที่ยังไม่ออก' เห็นปุ่มที่ยังไม่รองรับ ไม่ใช่ 'ลูกค้าเก่าพังทันที' ตามอาการของ API-01",
+          "adjudicated_by": "d2"
+        }
+      ],
+      "unclassified_observed": [
+        "API-01"
+      ],
+      "must_ask": false,
+      "old_expected": [
+        "REG-06"
+      ],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "b12-migration-not-idempotent": {
+      "must_find": [
+        {
+          "id": "SHIP-05",
+          "evidence": "ALTER TABLE dbo.Driver ADD Phone2 nvarchar(20);\nINSERT INTO dbo.DriverAudit (DriverID, Note)\nSELECT DriverID, 'backfill' FROM dbo.Driver;",
+          "why": "ALTER ADD คอลัมน์จะ error ทันทีถ้ารันรอบสอง (คอลัมน์มีอยู่แล้ว) และ INSERT backfill ไม่มีเงื่อนไขกันซ้ำเลย รันกี่รอบก็ insert ซ้ำทุกแถวใน DriverAudit — ครบทั้ง 'พัง' และ 'ซ้ำ' ตามนิยาม SHIP-05"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "SHIP-06",
+          "why": "สนิพเพทมีแค่สองคำสั่ง ไม่มีข้อความใดยืนยันหรือปฏิเสธเรื่อง backup/แผนย้อนกลับ — ไม่มีหลักฐานในไฟล์นี้พอจะฟันธงว่าละเมิด ต้องดูนอกไฟล์"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "SHIP-05"
+      ],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "b13-mobile-idempotency-key": {
+      "must_find": [
+        {
+          "id": "MOBILE-02",
+          "evidence": "\"requestId\": const Uuid().v4(),   // สร้างใหม่ทุกครั้งที่ลอง และไม่ได้เก็บลงคิว",
+          "why": "กุญแจกันซ้ำถูกสร้างตอนกำลังจะส่ง (`submit()`) ไม่ได้เกิดตอนผู้ใช้กดและไม่ได้เก็บคู่กับ job ในคิว จึงไม่รอดข้ามการปิดแอป — ตรงนิยาม MOBILE-02 เป๊ะ"
+        },
+        {
+          "id": "TXN-06",
+          "evidence": "for (var attempt = 0; attempt < 3; attempt++) {\n    try {\n      await api.post(\"/scan\", body: {\n        \"requestId\": const Uuid().v4(),",
+          "why": "TXN-06 ระบุไว้ตรงตัวว่า 'รวมถึงกรณีที่มีกุญแจกันซ้ำแล้วแต่กุญแจเปลี่ยนทุกครั้งที่ลองใหม่ ซึ่งไม่ได้กันอะไรเลย' — โค้ดนี้สร้าง UUID ใหม่ทุกรอบของ for-loop retry เดียวกัน (ภายใน submit() call เดียว ยังไม่ต้องพูดถึงการปิดแอปด้วยซ้ำ) จึงเข้าเงื่อนไขนี้ตรงๆ นี่คือประเด็นคนละชั้นกับ MOBILE-02 (ซึ่งพูดเรื่องรอดข้ามการปิดแอปเท่านั้น) โค้ดนี้พลาดทั้งสองชั้นพร้อมกัน เฉลยเดิมมีแค่ MOBILE-02 จึงตกหล่น TXN-06 ที่ตัวแคตตาล็อกเองยกเป็นตัวอย่างของอาการนี้ตรงๆ"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "MOBILE-01",
+          "why": "คอมเมนต์บอกชัดว่า 'งานถูกอ่านจากคิวบนดิสก์' — คิวอยู่บนดิสก์อยู่แล้ว ไม่ใช่ในหน่วยความจำ จึงไม่เข้าอาการของ MOBILE-01"
+        },
+        {
+          "id": "ERR-01",
+          "why": "catch ไม่ได้ว่างเปล่า (มี delay อยู่ข้างใน) นิยาม ERR-01 คือ catch{} ว่างเปล่าเท่านั้น ส่วนที่ผลลัพธ์หลัง retry หมด 3 ครั้งไม่ถูกส่งต่อเป็นข้อผิดพลาด เป็นอาการคนละแบบที่ไม่มี ID ตรงพอในแคตตาล็อกให้ฟันธงจากสนิพเพทนี้อย่างเดียว"
+        },
+        {
+          "id": "ERR-03",
+          "why": "ERR-03 ต้องมีหลักฐานว่าโค้ด 'คืนค่า default ที่ดูปกติ' (เช่น คืน 0/list ว่าง) เมื่อพัง — submit() คืน Future<void> เฉยๆ ไม่มีค่าถูกคืนให้ดูปกติเลย เป็นคนละอาการกับตัวอย่างที่แคตตาล็อกให้ไว้ ผู้ตรวจกลุ่ม g3 เองก็ตั้งข้อสังเกตแล้วว่าอาการ 'ผลลัพธ์หลัง retry หมดไม่ถูกส่งต่อ' นี้ไม่มี ID ใดในแคตตาล็อกที่ตรงพอจะฟันธงจากสนิพเพทนี้อย่างเดียว",
+          "adjudicated_by": "d2"
+        },
+        {
+          "id": "ERR-12",
+          "why": "ERR-12 ต้องมีหลักฐานว่าข้อมูลผิดไปถึงผู้ใช้เงียบๆ (ตัวอย่างในแคตตาล็อก: เจอตอนปิดงบสิ้นเดือน) — snippet 9 บรรทัดนี้เป็นแค่ client retry logic ไม่มีข้อความบอกว่าผลจบลงเป็นข้อมูลผิดที่ไหนสักที่ เหตุผลเดียวกับ ERR-03: อาการนี้ไม่มี ID ตรงพอในแคตตาล็อกให้ฟันธงจากสนิพเพทนี้",
+          "adjudicated_by": "d2"
+        }
+      ],
+      "unclassified_observed": [
+        "ERR-03",
+        "ERR-12"
+      ],
+      "must_ask": false,
+      "old_expected": [
+        "MOBILE-02"
+      ],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "b14-ml-train-serve-skew": {
+      "must_find": [
+        {
+          "id": "ML-03",
+          "evidence": "joblib.dump(model, \"model.pkl\")   # เก็บแต่โมเดล ไม่เก็บ scaler\n\n# serve.py\nmodel = joblib.load(\"model.pkl\")\nx = np.array([[age, income, tenure]])\nreturn model.predict(x)           # ป้อนค่าดิบเข้าไปตรง ๆ",
+          "why": "ขั้นเตรียมข้อมูล (scaler.transform) ตอนเทรนกับตอนใช้งานเป็นคนละโค้ดคนละที่ ตอน serve ป้อนค่าดิบไม่ผ่าน scaler เลย ค่าที่เข้าโมเดลจึงคนละสเกลกับตอนเทรน — ตรงนิยาม ML-03 เป๊ะ"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "ML-06",
+          "why": "ไม่มีข้อความในสนิพเพทเกี่ยวกับเวอร์ชันข้อมูล/พารามิเตอร์/ค่าสุ่มที่จะพิสูจน์ว่า 'สร้างชุดเทรนเดิมซ้ำไม่ได้' — สนิพเพทสั้นเกินกว่าจะฟันธงเรื่องนี้ต่างหากจาก ML-03"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "ML-03"
+      ],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "b15-pdpa-erasure-misses-copies": {
+      "must_find": [
+        {
+          "id": "PDPA-04",
+          "evidence": "def handle_erasure_request(customer_id):\n    db.execute(\"DELETE FROM customers WHERE id = %s\", (customer_id,))\n    notify_subject(customer_id, \"ลบข้อมูลของคุณออกจากระบบเรียบร้อยแล้ว\")",
+          "why": "คอมเมนต์หัวไฟล์ระบุเองว่าข้อมูลชุดนี้อยู่ใน backup, search_index, report_cache ด้วย แต่โค้ดลบแค่ตาราง customers แล้วแจ้งเจ้าของข้อมูลว่า 'ลบเรียบร้อยแล้ว' ทั้งที่สำเนาที่เหลือยังอยู่ — ตรงนิยาม PDPA-04 เป๊ะ"
+        }
+      ],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "CACHE-01",
+          "why": "report_cache มีแผน invalidate อยู่แล้วตามคอมเมนต์ ('สร้างใหม่ทุกเช้า') จึงไม่เข้าอาการ 'แคชไม่มีแผน invalidate' ของ CACHE-01 — ปัญหาคือมันมี PII ค้างอยู่จนกว่าจะถึงรอบ rebuild ถัดไป ซึ่งเป็นเรื่องของ PDPA-04 ไม่ใช่ CACHE-01"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [
+        "PDPA-04"
+      ],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c01-parameterized": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "SQL-04",
+          "why": "query ใช้ parameter (@orderNo, @lineNo) ไม่ได้ต่อสตริงเข้า query เลย ตรงข้ามกับอาการของ SQL-04 พอดี — เคสนี้เป็นเคสสะอาดที่เขียนตามกฎแทนของ SQL-04/SEC-01 แล้ว"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c02-explicit-columns": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "SQL-05",
+          "why": "คอลัมน์ถูกระบุชื่อครบทุกตัว (h.OrderNo, h.CreatedAt, l.LineNo, l.Qty) ไม่มี SELECT * ปรากฏเลย"
+        },
+        {
+          "id": "SQL-15",
+          "why": "ไม่มีคำว่า NOLOCK หรือ locking hint ใดๆ ในสตริง query"
+        },
+        {
+          "id": "SQL-10",
+          "why": "เงื่อนไขวันที่เป็น h.CreatedAt >= @from AND h.CreatedAt < @to คือรูปแบบช่วงครึ่งเปิดที่ SARGable อยู่แล้ว ไม่มีฟังก์ชันครอบคอลัมน์ (ไม่ใช่ CONVERT/YEAR(...))"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c03-idempotent-upsert": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "TXN-17",
+          "why": "กฎแทนของ TXN-17 เองคือ 'ทำการเช็คและเขียนในคำสั่งเดียว' — MERGE ทำสิ่งนี้อยู่แล้ว (เช็ค t.DriverID = s.DriverID แล้ว UPDATE/INSERT ในสเตทเมนต์เดียว) การ flag ข้อนี้จึงขัดกับกฎที่ตัวเองอ้าง"
+        },
+        {
+          "id": "SQL-04",
+          "why": "ไม่มีการต่อสตริงเข้า query เลย ใช้ @driverId/@phone เป็น parameter ตลอด ไม่ใช่ dynamic SQL ต่อสตริง"
+        },
+        {
+          "id": "TXN-09",
+          "why": "TXN-09 ต้องมีหลักฐานว่ามีคนเข้าใจ isolation level ผิด (เช่น คิดว่า READ COMMITTED กัน race ได้) — snippet เป็น MERGE statement 5 บรรทัด ไม่มีการประกาศหรือพูดถึง isolation level ใดๆ เลย ผู้ตรวจกลุ่ม g4 เองก็ระบุชัดว่าช่องโหว่ race condition ของ MERGE (ต้องใช้ WITH (HOLDLOCK)) 'แคตตาล็อกไม่มี ID เฉพาะสำหรับเรื่องนี้' ซึ่งรวมถึง TXN-09 ด้วย",
+          "adjudicated_by": "d2"
+        }
+      ],
+      "unclassified_observed": [
+        "TXN-09"
+      ],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c04-rethrow-with-context": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "ERR-01",
+          "why": "catch ไม่ได้ว่างเปล่า มีการสร้าง DoorResolveException ใหม่พร้อม context (loadNo) และ throw ต่อ"
+        },
+        {
+          "id": "ERR-02",
+          "why": "ไม่ได้ catch แล้ว return null เพื่อกลบว่า 'ไม่มีข้อมูล' — โยน exception ต่อพร้อม inner exception (ex) ครบ ต้นทางแยกออกได้ว่าพัง ไม่ใช่ไม่มี"
+        },
+        {
+          "id": "SQL-16",
+          "why": "ข้อนี้ระบุ 'ใช้กับ: SQL Server' หมายถึง T-SQL CATCH block ส่วนนี้เป็น C# try/catch คนละภาษาคนละบริบท ใช้ไม่ได้"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c05-typed-result": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "API-10",
+          "why": "ไม่เห็นเนื้อหาจริงของตัวแปร sql ในสนิพเพ็ต จึงไม่มีหลักฐานว่า query ดึงคอลัมน์ภายใน/ความลับเกินจำเป็น การสรุปว่า over-fetch จากแค่ชื่อตัวแปร rows เป็นการเดา ไม่ใช่หลักฐานจากข้อความ"
+        },
+        {
+          "id": "CODE-20",
+          "why": "ไม่มี any หรือ as any ปรากฏในสนิพเพ็ตเลย ชนิดของ rows ขึ้นกับ signature ของ db.query ซึ่งไม่ได้แสดงในเคสนี้ ไม่มีหลักฐานว่าเป็น any"
+        },
+        {
+          "id": "API-09",
+          "why": "ไม่เห็นเนื้อหาของ sql จึงไม่มีหลักฐานว่าไม่มี LIMIT/OFFSET หรือ cursor ฝังอยู่ในคิวรีอยู่แล้ว"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c06-named-constant": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "CODE-04",
+          "why": "ใช้ชื่อคงที่ StatusClosed แทนเลข 9 ตรงในเงื่อนไขอยู่แล้ว (if (shipment.Status == StatusClosed)) — นี่คือรูปแบบที่ถูกต้องตามกฎแทนของ CODE-04 เอง ไม่ใช่การละเมิด"
+        },
+        {
+          "id": "CODE-26",
+          "why": "ใช้ named int constant (ไม่ใช่ string/เลขดิบ) ตรงกับรูปแบบที่ SQL-19 เองแนะนำไว้ ('ชื่อคงที่ที่ใช้ร่วมกับฝั่งแอป') การถือว่า const int ยังนับเป็น primitive obsession ขัดกับกฎแทนที่แคตตาล็อกกำหนดไว้เองในอีกข้อหนึ่ง"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c07-bounded-retry": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "ERR-08",
+          "evidence": "await sleep(200 * 2 ** attempt)",
+          "why": "กฎแทนของ ERR-08 ระบุชัดว่าต้องเป็น 'exponential backoff + jitter' คู่กัน สูตรนี้เป็น exponential ล้วนแบบ deterministic (200ms, 400ms) ไม่มีองค์ประกอบสุ่ม (jitter) เลย เป็นการละเมิดจริงตามตัวอักษรของกฎ แต่ไม่ใช่ประเด็นหลักของเคสซึ่งเน้นเรื่อง bounded attempt (attempt<3) และ retryable-check (isRetryable(e)) ซึ่งทั้งสองอย่างทำถูกต้อง — รายงาน ERR-08 มาไม่ควรถือเป็นความผิด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "TXN-06",
+          "why": "ไม่เห็นเนื้อหาของ body หรือนิยามของ postOnce ในสนิพเพ็ต จึงไม่มีหลักฐานบวกว่าคำขอนี้ขาด idempotency key การขาดหลักฐานไม่ใช่หลักฐานของการละเมิด (ต่างจากเคส b01 ที่มีข้อความ WHERE o.Status = 3 ยืนยันตรงๆ)"
+        },
+        {
+          "id": "ERR-09",
+          "why": "มีการจำกัดจำนวนครั้งชัดเจนด้วย attempt < 3 และเงื่อนไข attempt === 2 ก่อน throw ไม่ใช่ retry ไม่จำกัด"
+        },
+        {
+          "id": "ERR-07",
+          "why": "มีการเช็ค isRetryable(e) ก่อน retry ทุกครั้ง ไม่ใช่ retry ทุก error รวม 4xx"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "c08-migration-guarded": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "DATA-07",
+          "why": "อาการของข้อนี้คือชื่อคอลัมน์ที่ไม่บอกความหมาย (Field1..Field20 / Spare1..Spare5) ส่วน Phone2 บอกความหมายได้ว่าเบอร์ที่สอง เป็นข้อที่เฉียดที่สุดแต่ไม่เข้า"
+        },
+        {
+          "id": "DATA-02",
+          "why": "อาการคือ 'ทุกคอลัมน์ nullable' ซึ่งพิสูจน์จาก snippet ไม่ได้เพราะเห็นคอลัมน์เดียว และกฎแทนอนุญาต null ที่ความหมายชัด — เบอร์สำรองที่ไม่มีคือ null ที่มีความหมายชัด อีกทั้ง ADD คอลัมน์ NOT NULL บนตารางที่มีข้อมูลแล้วต้องมี DEFAULT"
+        },
+        {
+          "id": "SHIP-06",
+          "why": "สคริปต์ย้อนกลับและการสำรองอยู่คนละไฟล์ snippet สองบรรทัดพิสูจน์การไม่มีอยู่ไม่ได้ และ ADD COLUMN คือฝั่ง expand ที่ SHIP-07 สั่งให้ทำก่อนอยู่แล้ว"
+        },
+        {
+          "id": "SQL-23",
+          "why": "snippet นี้คือ migration script เอง ไม่ใช่การแก้ผ่าน SSMS — เป็นการทำตามกฎแทนของ SQL-23 ไม่ใช่ละเมิด"
+        },
+        {
+          "id": "SHIP-05",
+          "why": "มี guard IF COL_LENGTH(...) IS NULL อยู่แล้ว รันซ้ำได้ นี่คือรูปแบบที่ SHIP-05 สั่งให้ทำ"
+        },
+        {
+          "id": "TIME-11",
+          "why": "ใช้ nvarchar(20) ไม่ใช่ varchar จึงเป็นการทำตามกฎแทน"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c09-validated-input": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "API-05",
+          "evidence": "{ error: parsed.error.flatten() }",
+          "why": "กฎแทนของ API-05 คือ 'ทุก error มี code คงที่ + message สำหรับคน' · payload ที่คืนออกไปเห็นครบทั้งก้อนใน snippet และไม่มีทั้ง code และ message ที่คนอ่าน มีแต่รูปของ Zod ที่ผูกกับไลบรารี · ไม่ใช่ประเด็นหลักของเคส (ประเด็นคือ API-11 validate ที่ขอบ ซึ่งทำถูกแล้ว) จึงไม่ควรนับเป็นความผิด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "API-11",
+          "why": "snippet ทำตามกฎแทนของ API-11 ตรงตัว — validate ที่ server ด้วย schema (Zod) และปฏิเสธด้วย 400"
+        },
+        {
+          "id": "FE-07",
+          "why": "ช่อง 'ใช้กับ' ระบุ เว็บ และอาการคือ validate เฉพาะฝั่ง client — โค้ดนี้คือฝั่ง server (req.json / NextResponse) จึงเป็นด้านที่ FE-07 เรียกร้อง ไม่ใช่ด้านที่ผิด"
+        },
+        {
+          "id": "ERR-14",
+          "why": "ใช้ status 400 กับ input error ตรงตามกฎแทน"
+        },
+        {
+          "id": "CODE-20",
+          "why": "ไม่มี any / as any / dynamic ใน snippet เลย ไม่มีข้อความรองรับ"
+        },
+        {
+          "id": "ERR-15",
+          "why": "correlation id เป็นเรื่องระดับระบบ 3 บรรทัดของ handler พิสูจน์ไม่ได้ว่าทั้งระบบไม่มี ต่างจาก API-05 ที่รูปของ payload เห็นครบในบรรทัดเดียว"
+        },
+        {
+          "id": "API-06",
+          "why": "parsed.error.flatten() คืนชื่อ field ของสัญญาที่ประกาศเอง ไม่ใช่ stack trace หรือ SQL"
+        },
+        {
+          "id": "SEC-05",
+          "why": "snippet ตัดมาเฉพาะขั้น validate การตรวจสิทธิ์อาจอยู่ก่อนหน้าในไฟล์เดียวกันหรือใน middleware — อ้างการไม่มีอยู่จากส่วนที่ตัดมาไม่ได้"
+        },
+        {
+          "id": "TYPE-08",
+          "why": ".max(20) ทำให้ค่าที่ยาวเกินถูก *ปฏิเสธ* ด้วย 400 ไม่ใช่ถูกตัดเงียบ ซึ่งตรงข้ามกับอาการของ TYPE-08"
+        },
+        {
+          "id": "PERF-16",
+          "why": "เพดานขนาด body ตั้งที่ framework/proxy ไม่ใช่ที่บรรทัดนี้ และ .max(20)/.int().positive() คือการจำกัด input ที่มีอยู่จริงใน snippet"
+        },
+        {
+          "id": "API-15",
+          "why": "schema ประกาศทั้งสอง field เป็น required ตรงตามกฎแทน"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c10-decimal-money": {
+      "must_find": [
+        {
+          "id": "DATA-18",
+          "evidence": "CREATE INDEX IX_InvoiceLine_InvoiceNo ON dbo.InvoiceLine (InvoiceNo);",
+          "why": "index นี้ซ้อนกับ PK เต็มๆ — 'CONSTRAINT PK_InvoiceLine PRIMARY KEY (InvoiceNo, LineNo)' บน SQL Server เป็น clustered โดยปริยาย และ InvoiceNo คือคอลัมน์นำของ clustered key อยู่แล้ว การ seek/range ด้วย InvoiceNo ใช้ PK ได้ทันที · กฎแทนของ DATA-18 คือ 'รวม index ที่ซ้อนกัน' ตรงเคสนี้เป๊ะ · ผู้เขียนเคสเติม index ตัวนี้เพื่อปิด DATA-19 (index ทุก FK) ทั้งที่ DATA-19 ถูกปิดด้วย PK อยู่แล้ว จึงกลายเป็นการแก้เกินที่สร้างข้อใหม่ · baseline รายงาน DATA-18 แล้วถูกนับเป็น false alarm ทั้งที่ถูก"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "SHIP-05",
+          "evidence": "CREATE TABLE dbo.InvoiceLine (",
+          "why": "ไม่มี guard IF OBJECT_ID(...) IS NULL รันซ้ำจะ error 'There is already an object named' ทั้ง CREATE TABLE และ CREATE INDEX · เทียบกับ c08 ในชุดเดียวกันที่ใช้ guard เป็นแบบอย่าง ความไม่สม่ำเสมอนี้เห็นได้จากตัวหนังสือ · ไม่ยกเป็น must_find เพราะ migration runner ที่จำเวอร์ชันที่รันแล้วก็ปิดข้อนี้ได้ ซึ่ง snippet ไม่ได้บอกว่ามีหรือไม่มี"
+        },
+        {
+          "id": "TIME-04",
+          "evidence": "UnitPrice   decimal(18,4) NOT NULL,",
+          "why": "กฎแทนคือ 'เก็บ (จำนวน, สกุล) คู่กันเสมอ' · รายการคอลัมน์ของตารางเห็นครบทั้งก้อนใน snippet และไม่มีคอลัมน์สกุลเงิน จึงพิสูจน์การไม่มีอยู่ได้จริง · แต่มีข้อแก้ต่างที่หนักพอ — FK ชี้ไป dbo.Invoice ซึ่งเก็บสกุลเงินที่ระดับหัวเอกสารเป็นการ normalize ที่ถูกต้อง จึงเป็น acceptable ไม่ใช่ must_find"
+        },
+        {
+          "id": "TIME-11",
+          "evidence": "CreatedBy   varchar(50)   NOT NULL,",
+          "why": "ใช้กับ = SQL Server และ snippet เป็น T-SQL แน่นอน (dbo. / datetime2 / SYSUTCDATETIME) · CreatedBy/UpdatedBy เก็บชื่อหรือ username ของคน ซึ่งในระบบไทยเป็นภาษาไทยได้ varchar จะกลายเป็น ??? · InvoiceNo เป็นเลขเอกสาร ASCII จึงไม่ใช่จุดที่อ้าง · เคส c08 ในชุดเดียวกันใช้ nvarchar แสดงว่า convention ของ repo คือ nvarchar"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "DATA-19",
+          "why": "snippet มี index บน FK อยู่จริง (IX_InvoiceLine_InvoiceNo) และ PK ก็นำด้วย InvoiceNo — รายงานข้อนี้คือขัดกับตัวหนังสือตรงๆ"
+        },
+        {
+          "id": "DATA-10",
+          "why": "มี CONSTRAINT FK_InvoiceLine_Invoice FOREIGN KEY (InvoiceNo) REFERENCES dbo.Invoice (InvoiceNo) อยู่ในตัว"
+        },
+        {
+          "id": "DATA-01",
+          "why": "มี PK_InvoiceLine PRIMARY KEY (InvoiceNo, LineNo)"
+        },
+        {
+          "id": "DATA-15",
+          "why": "มี CreatedAt/CreatedBy/UpdatedAt/UpdatedBy ครบตามกฎแทน"
+        },
+        {
+          "id": "DATA-04",
+          "why": "ใช้ decimal(18,4) ไม่ใช่ FLOAT — เป็นการทำตามกฎแทน"
+        },
+        {
+          "id": "DATA-25",
+          "why": "PK (InvoiceNo, LineNo) คือ unique constraint บน business key อยู่แล้ว"
+        },
+        {
+          "id": "DATA-20",
+          "why": "ไม่มี GUID ใน snippet เลย"
+        },
+        {
+          "id": "DATA-21",
+          "why": "LineNo เป็นเลขบรรทัดในใบ ไม่ใช่ identity ที่เดินต่อทั้งตาราง ไม่มีข้อความบอกว่าเป็น IDENTITY"
+        },
+        {
+          "id": "PERF-05",
+          "why": "snippet ไม่มี query และไม่มี execution plan ให้ดู อีกทั้งคอลัมน์ที่กรองมี index แล้ว"
+        },
+        {
+          "id": "DATA-16",
+          "why": "CreatedAt มี DEFAULT SYSUTCDATETIME() และ CreatedBy เป็น NOT NULL ไม่มี default จึงถูกบังคับให้เขียนจริง — ตรงข้ามกับอาการ 'มีคอลัมน์แต่เป็น null หมด'"
+        },
+        {
+          "id": "TIME-05",
+          "why": "ใช้ SYSUTCDATETIME() คือ UTC ตรงตามกฎแทน"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "incomplete",
+      "changed": true
+    },
+    "c11-mobile-durable-queue": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "ERR-11",
+          "evidence": "final res = await api.post(\"/scan\", body: job.toJson());",
+          "why": "จุดเรียก I/O เห็นครบทั้งบรรทัดและไม่มี timeout · ค่าเริ่มต้นของ http client ใน Dart คือไม่มี timeout เมื่อเครื่องเกาะ Wi-Fi ที่ไม่มีทางออก (สภาพเดียวกับที่ MOBILE-03 บรรยาย) คำขอนี้ค้างและบล็อกลูป drain ทั้งคิว · ไม่ใช่ประเด็นหลักของเคส"
+        },
+        {
+          "id": "TOOL-08",
+          "evidence": "final res = await api.post(\"/scan\", body: job.toJson());",
+          "why": "ข้อเดียวกันในมุมของ 'ค่า timeout เริ่มต้นของไลบรารีไม่เคยถูกตั้ง' — กฎแทนสั่งให้ตั้งอย่างตั้งใจพร้อมเหตุผลกำกับ ซึ่งบรรทัดนี้ไม่มีทั้งสองอย่าง"
+        },
+        {
+          "id": "ARCH-05",
+          "evidence": "for (final job in await outbox.pending()) {",
+          "why": "ยิงข้ามเน็ตในลูปหนึ่งคำขอต่อหนึ่งงาน ตรงกับอาการ 'เรียกข้าม service ในลูป' ตามตัวหนังสือ · มีข้อแก้ต่างที่ดี — การส่งทีละชิ้นคือสิ่งที่ทำให้ MOBILE-03 (ลบเมื่อยืนยันรายตัว) และ MOBILE-07 (dead-letter รายตัว) ทำได้ ถ้าเปลี่ยนเป็น batch ต้องคืนผลรายรายการตาม API-19 · จึงรายงานมาก็ไม่ควรถือเป็นความผิด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "MOBILE-01",
+          "why": "snippet ทำตามกฎแทนตรงตัว — outbox.insert(job) ลง SQLite บนเครื่อง *ก่อน* showQueued() และ showQueued ไม่ได้บอกว่าสำเร็จ"
+        },
+        {
+          "id": "MOBILE-02",
+          "why": "requestId ถูกสร้างใน onSubmitPressed คือวินาทีที่ผู้ใช้กด แล้วเก็บลงคิวพร้อมงาน ใช้ค่าเดิมทุกครั้งที่ส่ง — คือกฎแทนของข้อนี้"
+        },
+        {
+          "id": "MOBILE-03",
+          "why": "ลบออกจากคิวเมื่อ res.accepted เท่านั้น ไม่ได้ใช้สถานะการเชื่อมต่อเป็นหลักฐาน"
+        },
+        {
+          "id": "MOBILE-07",
+          "why": "มี moveToDeadLetter(job, res.reason) สำหรับ permanentReject อยู่แล้ว"
+        },
+        {
+          "id": "TXN-06",
+          "why": "มี idempotency key ที่เกิดตอนผู้ใช้ลงมือและคงค่าเดิมทุก retry ตรงตามกฎแทนที่เน้นตัวหนาไว้"
+        },
+        {
+          "id": "MOBILE-05",
+          "why": "qty ถูกส่งเป็นเหตุการณ์ scan ใหม่ที่มี requestId กันซ้ำ ไม่ใช่การเขียนทับค่าจำนวนของแถวที่มีอยู่ อาการ 'ของหลังสุดชนะ' จึงไม่เกิด"
+        },
+        {
+          "id": "MOBILE-09",
+          "why": "snippet รับ ScanInput ที่ประกอบเสร็จแล้ว ไม่มีการอ่านอักขระจากเครื่องยิงใน snippet ให้ตรวจ"
+        },
+        {
+          "id": "MOBILE-11",
+          "why": "เวอร์ชันแอป/สัญญาปกติอยู่ใน header ซึ่ง snippet ไม่ได้แสดง เห็นแต่ body — อ้างการไม่มีอยู่ไม่ได้"
+        },
+        {
+          "id": "MOBILE-12",
+          "why": "outbox เก็บ boxNo/qty/requestId ไม่มีโทเคนหรือข้อมูลส่วนบุคคลใน snippet"
+        },
+        {
+          "id": "MOBILE-13",
+          "why": "ไม่มีไฟล์เทสใน snippet การไม่มีเทสจึงพิสูจน์จากตัวหนังสือไม่ได้"
+        },
+        {
+          "id": "ERR-08",
+          "why": "จังหวะการลองใหม่อยู่ใน syncWorker ซึ่ง snippet ไม่ได้แสดง drain() เป็นการกวาดหนึ่งรอบ ไม่ใช่ตัว retry loop"
+        },
+        {
+          "id": "ERR-09",
+          "why": "เหตุผลเดียวกับ ERR-08 และ permanentReject ก็ตัดเคส poison ออกไป dead-letter แล้ว"
+        },
+        {
+          "id": "INT-04",
+          "why": "มี dead-letter รับงานที่ปฏิเสธถาวรอยู่แล้ว ส่วนตัวนับครั้งอยู่นอก snippet"
+        },
+        {
+          "id": "AI-07",
+          "why": "คอมเมนต์สองก้อนตรงกับโค้ดจริงทุกประโยค ตรวจได้ทีละข้อ"
+        },
+        {
+          "id": "SQL-15",
+          "why": "ช่อง 'ใช้กับ' ระบุ SQL Server ห้ามใช้กับ snippet ภาษา Dart"
+        },
+        {
+          "id": "MOBILE-04",
+          "why": "ไม่มีการใช้เวลาของเครื่องตัดสินลำดับใน snippet เลย"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c12-ml-shared-pipeline": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "ML-06",
+          "evidence": "{\"pipeline\": pipe, \"feature_version\": FEATURE_VERSION,",
+          "why": "กฎแทนสั่งให้ผูก 'เวอร์ชันของข้อมูล โค้ดเตรียมข้อมูล พารามิเตอร์ และค่าสุ่ม' เข้ากับตัวโมเดล · dict ของ artifact เห็นครบทั้งก้อนใน snippet มีแค่ feature_version ขาดเวอร์ชันข้อมูล พารามิเตอร์ และค่าสุ่ม (LogisticRegression() ไม่มี random_state) จึงสร้างชุดเทรนเดิมขึ้นใหม่ไม่ได้"
+        },
+        {
+          "id": "ML-13",
+          "evidence": "log.info(\"scored\", model_version=art[\"feature_version\"], score=score)",
+          "why": "กฎแทนขอ *สองอย่าง* คือเวอร์ชันโมเดลและเวอร์ชันชุดฟีเจอร์ · บรรทัดนี้เอา feature_version ไปใส่ในชื่อ model_version จึงมีค่าเดียวทำหน้าที่สองอย่าง และชื่อ field โกหกว่าเป็นเวอร์ชันโมเดล · รายการ kwarg เห็นครบ พิสูจน์การขาดได้"
+        },
+        {
+          "id": "CFG-03",
+          "evidence": "joblib.load(\"model.pkl\")",
+          "why": "path ของ artifact ถูก hard-code ซ้ำสองที่ (dump ใน train.py และ load ใน serve.py) กฎแทนคือ 'ทุกที่อยู่ภายนอกมาจาก config' · ผลตรงคือปักหมุดโมเดลคนละเวอร์ชันตอน deploy ไม่ได้ถ้าไม่แก้โค้ด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "ML-03",
+          "why": "เป็นข้อที่เคสนี้ทำถูก — build_pipeline() ตัวเดียวถูกเรียกทั้ง train และ serve ผ่าน artifact เดียวกัน ตรงตามกฎแทน"
+        },
+        {
+          "id": "ML-04",
+          "why": "threshold มาจาก pick_threshold(..., cost_fp=20, cost_fn=300) คือคำนวณจากต้นทุนของการผิดแต่ละแบบและคำนวณใหม่ทุกครั้งที่เทรน ตรงตามกฎแทน ไม่ใช่ค่าคงที่ 0.5"
+        },
+        {
+          "id": "ML-01",
+          "why": "snippet ไม่แสดงนิยามของฟีเจอร์หรือแกนเวลา ไม่มีข้อความให้ตัดสินเรื่อง leakage"
+        },
+        {
+          "id": "ML-02",
+          "why": "X_train/X_val ถูกส่งเข้ามาสำเร็จรูป วิธีแบ่งอยู่นอก snippet"
+        },
+        {
+          "id": "ML-05",
+          "why": "การเฝ้า drift เป็นโมดูลแยก การไม่มีอยู่พิสูจน์จาก 12 บรรทัดนี้ไม่ได้"
+        },
+        {
+          "id": "ML-07",
+          "why": "ไม่มีการรายงานตัวชี้วัดใดใน snippet ให้ตรวจว่าใช้ตัวเลขเดียวหรือไม่"
+        },
+        {
+          "id": "ML-08",
+          "why": "ตัวเทียบที่ไม่ใช่ ML อยู่นอกไฟล์ทั้งสาม ไม่มีข้อความรองรับ"
+        },
+        {
+          "id": "ML-09",
+          "why": "ไม่มีข้อความใดบอกว่าชุดเทรนถูกคัดมาจากผลของโมเดลตัวเดิม"
+        },
+        {
+          "id": "ML-10",
+          "why": "สวิตช์กลับไปใช้กฎเดิมจะอยู่ที่จุดเรียก ไม่ใช่ในฟังก์ชัน scoring ที่ตัดมา — เป็นการอ้างการไม่มีอยู่จากส่วนที่แจกแจงไม่ครบ"
+        },
+        {
+          "id": "ML-11",
+          "why": "X_train ทึบ ไม่มีชื่อฟิลด์ให้ดูว่ามีข้อมูลระบุตัวตนปนหรือไม่"
+        },
+        {
+          "id": "ML-12",
+          "why": "snippet ไม่บอกว่าผลนี้กระทบคนหรือกระทบเครื่อง เงื่อนไขของข้อนี้จึงยังตัดสินไม่ได้"
+        },
+        {
+          "id": "SEC-12",
+          "why": "model.pkl เป็น artifact ที่เราสร้างเอง ไม่ใช่ input ที่ไม่เชื่อถือจากภายนอกตามอาการของข้อนี้"
+        },
+        {
+          "id": "OBS-05",
+          "why": "log เขียนแค่ score กับ version ไม่มีข้อมูลส่วนบุคคลหรือความลับใน snippet"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    },
+    "c13-pdpa-scoped-retention": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "JOB-02",
+          "evidence": "erasure_log.write(purpose=spec[\"purpose\"], basis=spec[\"lawful_basis\"],",
+          "why": "กฎแทนขอ 'เวลาเริ่ม จบ จำนวนที่ทำ และผลลัพธ์' · รายการ kwarg ของ erasure_log.write เห็นครบทั้งก้อน มีจำนวนและผลลัพธ์ (erased_per_store) แต่ไม่มีเวลาเริ่มและเวลาจบ · cutoff เป็นเส้นวันที่ของข้อมูล ไม่ใช่เวลาที่ job รัน"
+        },
+        {
+          "id": "OBS-11",
+          "evidence": "cutoff=cutoff, erased_per_store=erased)",
+          "why": "กฎแทนขอ 'ผู้กระทำ เวลา ค่าก่อน/หลัง' สำหรับข้อมูลสำคัญ · การลบตาม PDPA เป็นการเขียนที่ย้อนไม่ได้ แต่บันทึกที่เห็นครบนี้ไม่มีผู้กระทำและไม่มีเวลา ตอบผู้ตรวจไม่ได้ว่าใครสั่งลบเมื่อไร"
+        },
+        {
+          "id": "TXN-13",
+          "evidence": "for store in spec[\"stores\"]:",
+          "why": "ลบทีละ store แล้วเขียนบันทึกครั้งเดียวหลังลูปจบ · ถ้า store ตัวที่สามโยน exception ตัวที่หนึ่งและสองถูกลบไปแล้วโดยไม่มีบันทึกใดถูกเขียนเลย — คือ 'พังกลางทางแล้วข้อมูลค้างครึ่งทาง' และการลบย้อนกลับไม่ได้ · ข้อแก้ต่างคือ erase_older_than idempotent การรันใหม่จึงเป็น 'ทางเดินหน้าให้จบ' โดยปริยาย จึงเป็น acceptable ไม่ใช่ must_find"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "PDPA-03",
+          "why": "เคสนี้ทำถูก — keep_days มาจาก spec ที่ผูกกับ purpose และ lawful_basis ใน ropa.yaml และมี job ที่ลบจริง ตรงตามกฎแทน"
+        },
+        {
+          "id": "PDPA-04",
+          "why": "เคสนี้ทำถูก — วนลบครบทุก store ใน spec['stores'] ซึ่งคอมเมนต์ระบุว่าคือบัญชีปลายทางทุกที่"
+        },
+        {
+          "id": "PDPA-06",
+          "why": "เคสนี้ทำถูก — ropa.yaml คือบันทึกกิจกรรมการประมวลผลที่อยู่ในที่เดียวกับโค้ด ระบุ purpose/lawful_basis/keep_days/stores"
+        },
+        {
+          "id": "OBS-05",
+          "why": "บันทึกเขียนแค่ purpose/basis/cutoff/จำนวนต่อ store ไม่มีข้อมูลระบุตัวตนตามที่ why ของเคสบอก และตรวจจากตัวหนังสือได้"
+        },
+        {
+          "id": "PDPA-09",
+          "why": "ไม่มีข้อความใน snippet ที่บอกว่าข้อมูลอ่อนไหวอยู่ปนกับข้อมูลทั่วไป"
+        },
+        {
+          "id": "PDPA-05",
+          "why": "เป็นคนละเส้นทาง (คำขอดู/ขอสำเนา) ที่ snippet นี้ไม่ได้แตะ"
+        },
+        {
+          "id": "PDPA-10",
+          "why": "ไม่มีการนำข้อมูลไปใช้วัตถุประสงค์ใหม่ใน snippet — ตรงข้าม โค้ดอ่าน purpose มาใช้กำกับ"
+        },
+        {
+          "id": "JOB-05",
+          "why": "erase_older_than(cutoff) รันซ้ำแล้วผลเท่าเดิม (รอบสองไม่มีอะไรให้ลบ) เป็นการทำตามกฎแทน"
+        },
+        {
+          "id": "JOB-03",
+          "why": "ล็อกกันรันซ้อนอยู่ที่ตัวจัดตาราง ไม่ใช่ในฟังก์ชันที่ตัดมา อ้างการไม่มีอยู่ไม่ได้"
+        },
+        {
+          "id": "JOB-06",
+          "why": "การ alert อยู่นอก snippet เช่นเดียวกับ JOB-03"
+        },
+        {
+          "id": "TIME-05",
+          "why": "today ถูกฉีดเข้ามาเป็นพารามิเตอร์ การตัดสินใจเรื่อง timezone จึงอยู่ที่ผู้เรียก ไม่มีข้อความใน snippet ที่บอกว่าเป็นเวลา local"
+        },
+        {
+          "id": "CFG-11",
+          "why": "เหตุผลเดียวกับ TIME-05 — snippet ไม่ได้เรียก now() ของเครื่อง"
+        },
+        {
+          "id": "JOB-09",
+          "why": "ใช้ timedelta(days=...) จากปฏิทินจริง ไม่มีการ hard-code ว่าเดือนมี 30 วัน"
+        }
+      ],
+      "unclassified_observed": [],
+      "must_ask": false,
+      "old_expected": [],
+      "key_verdict": "correct",
+      "changed": false
+    }
+  },
+  "totals": {
+    "cases": 30,
+    "must_find_total": 18,
+    "acceptable_total": 29,
+    "wrong_total": 135,
+    "unclassified_total": 8,
+    "unclassified_adjudicated_acceptable": 0,
+    "unclassified_adjudicated_wrong": 8,
+    "key_verdict_counts": {
+      "correct": 17,
+      "incomplete": 12,
+      "wrong": 1
+    },
+    "changed_cases": 13,
+    "excluded_cases": []
+  }
+}

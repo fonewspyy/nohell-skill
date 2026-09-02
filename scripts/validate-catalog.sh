@@ -63,8 +63,13 @@ thin=$(awk '
 #     CONSOLIDATIONS.example.yaml ใช้เลขวงผูกปี (SSOT-2026-001) คนละ namespace จึงกันออก
 if [ -d skills ]; then
   prefixes=$(printf '%s\n' "$ids" | sed 's/-[0-9]*$//' | sort -u | tr '\n' '|' | sed 's/|$//')
+  # docs/proposals คือเอกสารที่ *เสนอ* ข้อใหม่ จึงต้องอ้าง ID ที่ยังไม่มีในแคตตาล็อกได้
+  # โดยนิยาม — ด่านนี้มีไว้จับการอ้างถึงข้อที่ถูกลบ/พิมพ์ผิดในเอกสารที่ประกาศ *สถานะ
+  # ปัจจุบัน* ไม่ใช่จับข้อเสนอ (ความต่างชนิดเดียวกับ SKIP_DIRS ใน build-summary.py)
+  # ถ้าไม่กัน ข้อเสนอทุกฉบับจะทำ CI แดง แล้วคนจะเลิกเขียนข้อเสนอเป็นไฟล์
   refs=$(grep -rhowE "($prefixes)-[0-9]+" skills docs \
          --include='*.md' --include='*.yaml' --include='*.sql' \
+         --exclude-dir='proposals' \
          --exclude='CONSOLIDATIONS.example.yaml' --exclude="$(basename "$CATALOG")" \
          2>/dev/null | sort -u)
   dangling=$(printf '%s\n' "$refs" | grep -v '^$' \

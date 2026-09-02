@@ -23,6 +23,7 @@ ROOT = os.path.dirname(HERE)
 CASES = os.path.join(HERE, 'cases')
 BASELINE = os.path.join(HERE, 'baseline.json')
 ROUNDS = os.path.join(HERE, '.rounds.json')     # รอบที่สำเร็จแล้ว สะสมข้ามการรันหลายครั้ง
+KEYS = os.path.join(HERE, 'keys', 'merged.json')  # เฉลยสามชั้น — ดู load_keys()
 
 
 def load_bank():
@@ -86,11 +87,42 @@ def sandbox():
     return _SANDBOX[0]
 
 
+def claude_bin():
+    """หา executable ของ claude แบบที่ทำงานบน Windows ด้วย
+
+    `subprocess.run(['claude', ...])` **ใช้ไม่ได้บน Windows**: `CreateProcess` เติมให้แค่
+    `.exe` ไม่ไล่ `PATHEXT` ⇒ `claude.CMD` ที่ npm ติดตั้งไว้หาไม่เจอ ได้ FileNotFoundError
+    ทั้งที่พิมพ์ `claude` ในเชลล์รันได้ปกติ และ `shutil.which('claude')` ก็คืนพาธได้
+    วัดแล้ว: which -> `...\\npm\\claude.CMD` · `subprocess(['claude'])` -> WinError 2
+
+    อาการนี้อ่านจาก error ไม่ออกเลย มันบอกว่า "ไม่พบคำสั่ง claude" ซึ่งพาไปแก้ PATH
+    ทั้งที่ PATH ถูกอยู่แล้ว — ส่งพาธเต็มที่ which คืนมาให้ subprocess ตรง ๆ จบเรื่อง
+    """
+    return shutil.which('claude') or 'claude'
+
+
 def ask(case):
+    """ยิงหนึ่งเคส — prompt ไปทาง **stdin** ไม่ใช่ argv
+
+    ⚠️ ห้ามเปลี่ยนกลับไปเป็น `[exe, '-p', prompt]` เด็ดขาด บน Windows ตัวที่ which เจอคือ
+    `claude.CMD` ซึ่งเป็น batch wrapper: ขึ้นบรรทัดใหม่ = จบคำสั่ง ⇒ **prompt เหลือแค่บรรทัดแรก**
+    แล้วไม่มีอะไรฟ้อง exit code = 0 มีคำตอบกลับมาเป็นภาษาคน ดูเหมือนสำเร็จทุกอย่าง
+
+    วัดมาแล้วด้วย prompt สองบรรทัด ("ทักทาย" / "ตอบ 2+2 เป็นตัวเลขเดียว")
+        argv  -> ทักทายเฉย ๆ ไม่เคยเห็นบรรทัดสอง
+        stdin -> ทักทาย + ตอบ 4
+    และเคยทำให้เก็บคำตอบขยะลงธนาคารจริง: เคส b02 ได้คำตอบสามรอบที่เขียนว่า
+    "โจทย์ไม่ได้มาด้วย ข้อความจบที่ 'แล้วตอบโจทย์ข้างล่าง'" — ซึ่งถูกนับเป็นผลวัดไปแล้ว
+    ก่อนจะจับได้ นี่คือ MEAS ที่ทำร้ายที่สุด: เครื่องวัดที่พังแล้วยังคืนตัวเลขหน้าตาปกติ
+
+    บน POSIX ไม่มี `.CMD` ขั้นกลาง argv จึงส่งหลายบรรทัดได้ปกติ — คำตอบที่เก็บไว้ก่อนหน้านี้
+    (89 เคส) เก็บมาจากทางนั้น จึงยังใช้ได้ ไม่ต้องล้าง
+    """
     prompt = PROMPT.format(task=case['task'], lang=case['lang'], snippet=case['snippet'])
     try:
-        r = subprocess.run(['claude', '-p', prompt], cwd=sandbox(), capture_output=True,
-                           text=True, encoding='utf-8', errors='replace', timeout=300)
+        r = subprocess.run([claude_bin(), '-p'], input=prompt, cwd=sandbox(),
+                           capture_output=True, text=True, encoding='utf-8',
+                           errors='replace', timeout=300)
     except FileNotFoundError:
         sys.stderr.write('ไม่พบคำสั่ง claude — eval ตัวนี้ใช้ Claude Code headless เป็น provider\n')
         raise SystemExit(2)
@@ -108,16 +140,69 @@ def ask(case):
     return r.stdout.strip(), None
 
 
-def judge(case, reply):
-    """คืน (recall, false_alarm, ask_ok) — ตัดสินจาก ID ที่เจอในคำตอบเท่านั้น"""
+def load_keys():
+    """เฉลยสามชั้นจาก keys/merged.json — must_find / acceptable / wrong
+
+    `expected_ids` ในไฟล์เคสวัดแล้วว่าใช้เป็นไม้บรรทัดไม่ได้: 13 จาก 30 เคสเฉลยไม่ครบ
+    และ b02 ID ที่ให้มา (SQL-10) ไม่ตรงกลไกจริงเลย ผลคือ ID ที่เครื่องมือหาถูก
+    ถูกนับเป็น false alarm — recall จริง 0.9556 ถูกรายงานเป็น 0.8445
+
+    สามชั้นแยกสิ่งที่ต่างกันจริง ๆ ออกจากกัน
+      must_find   ไม่เจอ = เครื่องมือพลาด (เข้าสูตร recall)
+      acceptable  ละเมิดจริงแต่ไม่ใช่ประเด็นหลัก — **นับแต่ไม่หัก** ดู judge()
+      wrong       รายงานมา = มั่ว (เข้าสูตร false alarm)
+
+    หายไปคือ **รันไม่ได้** ไม่ใช่รันแล้วได้ศูนย์ — ตัวเลขที่ออกมาจากเฉลยที่ไม่มี
+    จะดูเหมือนผลวัดทั้งที่ไม่ใช่ ซึ่งเป็นความผิดพลาดที่ไฟล์นี้เจอมาแล้วรอบหนึ่ง
+    """
+    if not os.path.exists(KEYS):
+        sys.stderr.write(
+            'ไม่พบ %s — eval ตัวนี้ให้คะแนนจากเฉลยสามชั้น ไม่ใช่ expected_ids เดิม\n'
+            '  สร้างจากผลตรวจใน eval/keys/g1..g5.json ก่อน\n' % KEYS)
+        raise SystemExit(2)
+    with io.open(KEYS, encoding='utf-8') as fh:
+        return json.load(fh)['cases']
+
+
+def judge(case, reply, keys):
+    """คืน dict ของเกณฑ์ต่อเคสหนึ่ง — ตัดสินจาก ID ที่เจอในคำตอบเท่านั้น
+
+    `acceptable` ถูก **นับแยกไม่หักคะแนน** เพราะวัดแล้วว่ามันเฉลี่ย 0.97 ID/เคส
+    (ภาระอ่านเพิ่มไม่ถึงบรรทัด) แต่ 37.9% ของมันเป็น P1 (ข้อมูลผิด/ล่ม/รั่ว)
+    การหักคะแนนมันคือการสอนให้เครื่องมือเงียบเรื่อง P1 เพื่อให้ตัวเลขสวย
+    ตัวเลขทั้งสองขึ้นทุกรอบ ให้คนอ่านตัดสินเองว่าเป็นภาระหรือมูลค่า
+    """
+    k = keys[case['id']]
     said_ask = bool(re.search(r'\bASK\b', reply))
     found = set(ID_RE.findall(reply))
-    want = set(case['expected_ids'])
+    must = {x['id'] for x in k.get('must_find') or []}
+    okay = {x['id'] for x in k.get('acceptable') or []}
+    bad = {x['id'] for x in k.get('wrong') or []}
+
+    out = {'recall': None, 'false_alarm': len(found & bad),
+           'acceptable': len(found & okay), 'ask_ok': None, 'ask_on_bug': 0,
+           'excluded': False, 'unlisted': sorted(found - must - okay - bad)}
+
+    if k.get('excluded'):
+        # เคสที่ไม่มี ground truth ให้เทียบ — ต้องไม่นับเป็น "สะอาด" โดยปริยาย
+        # b02: เฉลยเดิมผิดกลไก และแคตตาล็อกยังไม่มีข้อที่ครอบอาการจริง
+        # ถ้าปล่อยให้ตกลงกลุ่มสะอาด การรายงานสิ่งที่ *ถูก* จะถูกนับเป็น false alarm
+        return {'recall': None, 'false_alarm': 0, 'acceptable': 0,
+                'ask_ok': None, 'ask_on_bug': 0, 'excluded': True, 'unlisted': []}
+
     if case['must_ask']:
-        return None, 0, 1 if said_ask else 0
-    if want:
-        return len(found & want) / float(len(want)), len(found - want), None
-    return None, len(found), None
+        # บั๊กเดิม: `return None, 0, ...` ทำให้เคสนี้ได้ false alarm 0 เสมอ
+        # a01 ตอบ ID มา 4-5 ตัวทุกรอบแทนที่จะ ASK แล้วได้ 0 — การเดาแทนที่จะถาม
+        # คือความผิดพลาดที่แพงที่สุดในชุดนี้ และเป็นข้อเดียวที่ไม่เคยถูกนับ
+        out['ask_ok'] = 1 if said_ask and not found else 0
+        return out
+
+    if must:
+        out['recall'] = len(found & must) / float(len(must))
+        # ตอบ ASK บนเคสที่มีคำตอบชัด = พลาดคนละแบบ ต้องแยกตัวเลข ไม่ใช่ปล่อยฟรี
+        if said_ask and not found:
+            out['ask_on_bug'] = 1
+    return out
 
 
 def main():
@@ -129,11 +214,56 @@ def main():
     a = ap.parse_args()
 
     cases = load_cases()
-    n_bug = sum(1 for c in cases if c['expected_ids'])
-    n_clean = sum(1 for c in cases if not c['expected_ids'] and not c['must_ask'])
-    n_ask = sum(1 for c in cases if c['must_ask'])
-    print('เคส %d (บั๊ก %d · สะอาด %d · ต้องหยุดถาม %d) · %d รอบ · ขนาน %d'
-          % (len(cases), n_bug, n_clean, n_ask, a.runs, a.jobs))
+    keys = load_keys()
+    missing = [c['id'] for c in cases if c['id'] not in keys]
+    if missing:
+        # เฉลยขาดบางเคส = คะแนนที่ออกมาไม่ได้วัดชุดที่คิดว่าวัด ห้ามรันต่อเงียบ ๆ
+        sys.stderr.write('เฉลยใน %s ขาด %d เคส: %s\n'
+                         % (os.path.basename(KEYS), len(missing), ' '.join(missing[:5])))
+        raise SystemExit(2)
+
+    # เฉลยอยู่สองที่: `expected_ids`/`must_ask` ในไฟล์เคส กับสามชั้นใน keys/merged.json
+    # judge() อ่านจาก merged.json เท่านั้น ⇒ ถ้าสองแหล่งเดินจากกัน คนที่แก้ไฟล์เคส
+    # จะไม่เห็นผลอะไรและไม่มีอะไรบอก (silent no-op — ARCH-08 ในแคตตาล็อกตัวเอง)
+    # ตายดังตรงนี้ ดีกว่ารายงานตัวเลขที่ไม่รู้ว่าวัดชุดไหน
+    drift = []
+    for c in cases:
+        k = keys[c['id']]
+        want = [] if k.get('excluded') else sorted({x['id'] for x in k.get('must_find') or []})
+        if sorted(c['expected_ids']) != want:
+            drift.append('%s: expected_ids=%s แต่เฉลยว่า %s'
+                         % (c['id'], sorted(c['expected_ids']) or '[]', want or '[]'))
+        if bool(c['must_ask']) != bool(k.get('must_ask')):
+            drift.append('%s: must_ask=%s แต่เฉลยว่า %s'
+                         % (c['id'], c['must_ask'], k.get('must_ask')))
+    if drift:
+        sys.stderr.write('ไฟล์เคสกับ %s เดินจากกัน %d จุด — แก้ให้ตรงก่อนวัด\n'
+                         % (os.path.basename(KEYS), len(drift)))
+        for d in drift:
+            sys.stderr.write('  %s\n' % d)
+        raise SystemExit(2)
+
+    # นับจากเฉลยสามชั้น ไม่ใช่ expected_ids เดิม — c10 เคยถูกจัดเป็น "สะอาด"
+    # แต่มี DATA-18 จริง (index ซ้ำกับ PK) การนับจากของเดิมจะรายงานชุดผิดประเภท
+    def _skip(c):
+        return bool(keys[c['id']].get('excluded'))
+
+    def _has_must(c):
+        return bool(keys[c['id']].get('must_find'))
+    n_bug = sum(1 for c in cases if _has_must(c) and not _skip(c))
+    n_clean = sum(1 for c in cases
+                  if not _has_must(c) and not c['must_ask'] and not _skip(c))
+    n_ask = sum(1 for c in cases if c['must_ask'] and not _skip(c))
+    n_skip = sum(1 for c in cases if _skip(c))
+    print('เคส %d (บั๊ก %d · สะอาด %d · ต้องหยุดถาม %d · กันออก %d) · %d รอบ · ขนาน %d'
+          % (len(cases), n_bug, n_clean, n_ask, n_skip, a.runs, a.jobs))
+    if n_skip:
+        # เคสที่กันออกต้องเห็นทุกครั้ง ไม่ใช่ตัวเลขในไฟล์สรุปที่ไม่มีใครเปิด
+        # เคสที่หายจากการวัดอย่างเงียบ ๆ คือชุดทดสอบที่เล็กลงโดยไม่มีใครรู้
+        for c in cases:
+            if _skip(c):
+                sys.stderr.write('  กันออก %s — %s\n'
+                                 % (c['id'], keys[c['id']].get('exclude_reason', 'ไม่ระบุเหตุผล')))
 
     from concurrent.futures import ThreadPoolExecutor
     bank = load_bank()
@@ -179,29 +309,36 @@ def main():
     # ประกอบเป็นรอบ: รอบที่ i ใช้คำตอบที่ i ของทุกเคส
     rounds = []
     for i in range(a.runs):
-        rec, fa, ask_hit, detail = [], 0, [], {}
+        rec, fa, okay, ask_hit, on_bug, unlisted, detail = [], 0, 0, [], 0, 0, {}
         for c in cases:
             reply = bank[c['id']][i]
-            r, f, ak = judge(c, reply)
-            if r is not None:
-                rec.append(r)
-            if ak is not None:
-                ask_hit.append(ak)
-            fa += f
-            detail[c['id']] = {'reply': reply[:200], 'recall': r,
-                               'false_alarm': f, 'ask_ok': ak}
+            j = judge(c, reply, keys)
+            if j['recall'] is not None:
+                rec.append(j['recall'])
+            if j['ask_ok'] is not None:
+                ask_hit.append(j['ask_ok'])
+            fa += j['false_alarm']
+            okay += j['acceptable']
+            on_bug += j['ask_on_bug']
+            unlisted += len(j['unlisted'])
+            detail[c['id']] = dict(j, reply=reply[:200])
         rounds.append({
             'recall': round(sum(rec) / len(rec), 4) if rec else 0.0,
             'false_alarm_ids': fa,
+            'acceptable_ids': okay,
             'must_ask_hit': round(sum(ask_hit) / len(ask_hit), 4) if ask_hit else 0.0,
+            'ask_on_bug': on_bug,
+            'unlisted_ids': unlisted,
             'detail': detail,
         })
-        print('  รอบ %d: recall %.1f%% · false alarm %d ID · must-ask %.0f%%'
-              % (i + 1, rounds[-1]['recall'] * 100, rounds[-1]['false_alarm_ids'],
-                 rounds[-1]['must_ask_hit'] * 100))
+        print('  รอบ %d: recall %.1f%% · false alarm %d · acceptable %d · '
+              'must-ask %.0f%% · ask-on-bug %d · ไม่อยู่ในเฉลย %d'
+              % (i + 1, rounds[-1]['recall'] * 100, fa, okay,
+                 rounds[-1]['must_ask_hit'] * 100, on_bug, unlisted))
 
     summary = {}
-    for k in ('recall', 'false_alarm_ids', 'must_ask_hit'):
+    for k in ('recall', 'false_alarm_ids', 'acceptable_ids', 'must_ask_hit',
+              'ask_on_bug', 'unlisted_ids'):
         vals = [r[k] for r in rounds]
         summary[k] = {'mean': round(statistics.mean(vals), 4),
                       'min': min(vals), 'max': max(vals),

@@ -112,7 +112,7 @@ python scripts/nohell-check.py --base HEAD   # กินยาตัวเอง
 |---|---|
 | หมวด `INFRA` | container, reverse proxy, TLS, backup/DR — คนละเรื่องกับ `TOOL` ที่พูดถึงค่าเริ่มต้นของเครื่องมือ |
 | หมวด `NET` | connection pool, keep-alive, proxy timeout, backpressure — ตอนนี้กระจายอยู่ใน `ERR`/`PERF` |
-| กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 67 จาก 488 ข้อ — หมวดที่ยังไม่มีกฎเลยสักข้อมี 17 จาก 31 หมวด |
+| กฎใน `hell-rules.yaml` เพิ่ม | ตอนนี้ตรวจอัตโนมัติได้ 68 จาก 490 ข้อ — หมวดที่ยังไม่มีกฎเลยสักข้อมี 16 จาก 31 หมวด |
 | ตัวสแกนฐานข้อมูลอื่น | `detect-sqlserver.sql` มีแล้ว ยังไม่มีของ PostgreSQL / MySQL |
 | ขยาย `scripts/nohell-check.py` | ตัวรันมีแล้วและรองรับ `engine: pcre2` · `multiline: true` · `exclude:` · `allow_comment:` · `.nohellignore` · โหมด diff-only ที่เป็น `ratchet` ในตัว **ที่ยังไม่ทำคือ** `kind: cmd` 13 ข้อ (เรียกของนอก ต้องคิดเรื่อง arbitrary execution ก่อน) และ `kind: sql` 12 ข้อ (ต้องต่อฐานข้อมูล) ทั้ง 27 ข้อขึ้นในรายงานว่าไม่ได้ตรวจอยู่แล้ว |
 

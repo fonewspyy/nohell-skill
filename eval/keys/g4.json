@@ -1,0 +1,128 @@
+{
+  "group": "g4",
+  "cases": {
+    "c02-explicit-columns": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "SQL-05",
+          "why": "คอลัมน์ถูกระบุชื่อครบทุกตัว (h.OrderNo, h.CreatedAt, l.LineNo, l.Qty) ไม่มี SELECT * ปรากฏเลย"
+        },
+        {
+          "id": "SQL-15",
+          "why": "ไม่มีคำว่า NOLOCK หรือ locking hint ใดๆ ในสตริง query"
+        },
+        {
+          "id": "SQL-10",
+          "why": "เงื่อนไขวันที่เป็น h.CreatedAt >= @from AND h.CreatedAt < @to คือรูปแบบช่วงครึ่งเปิดที่ SARGable อยู่แล้ว ไม่มีฟังก์ชันครอบคอลัมน์ (ไม่ใช่ CONVERT/YEAR(...))"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "SELECT ระบุคอลัมน์ชัดเจน + ช่วงวันที่แบบ half-open ถูกต้องตามกฎอยู่แล้ว ไม่พบข้อความในสนิพเพ็ตที่พิสูจน์การละเมิดข้อใด"
+    },
+    "c03-idempotent-upsert": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "TXN-17",
+          "why": "กฎแทนของ TXN-17 เองคือ 'ทำการเช็คและเขียนในคำสั่งเดียว' — MERGE ทำสิ่งนี้อยู่แล้ว (เช็ค t.DriverID = s.DriverID แล้ว UPDATE/INSERT ในสเตทเมนต์เดียว) การ flag ข้อนี้จึงขัดกับกฎที่ตัวเองอ้าง"
+        },
+        {
+          "id": "SQL-04",
+          "why": "ไม่มีการต่อสตริงเข้า query เลย ใช้ @driverId/@phone เป็น parameter ตลอด ไม่ใช่ dynamic SQL ต่อสตริง"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "MERGE คีย์ด้วย DriverID ทำให้ผลลัพธ์เหมือนเดิมไม่ว่ารันกี่ครั้ง (idempotent จริงตามชื่อเคส). หมายเหตุนอกเหนือแคตตาล็อก: MERGE มีช่องโหว่ race condition ที่รู้จักกันดีภายใต้ concurrency สูง (ต้องใช้ WITH (HOLDLOCK) ถึงจะปลอดภัยจริง) แต่แคตตาล็อกไม่มี ID เฉพาะสำหรับเรื่องนี้ และ TXN-17 ตามตัวอักษรก็ถือว่า MERGE เป็นรูปแบบที่ 'ทำถูกแล้ว' จึงไม่ผูก ID ใดกับกรณีนี้"
+    },
+    "c04-rethrow-with-context": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "ERR-01",
+          "why": "catch ไม่ได้ว่างเปล่า มีการสร้าง DoorResolveException ใหม่พร้อม context (loadNo) และ throw ต่อ"
+        },
+        {
+          "id": "ERR-02",
+          "why": "ไม่ได้ catch แล้ว return null เพื่อกลบว่า 'ไม่มีข้อมูล' — โยน exception ต่อพร้อม inner exception (ex) ครบ ต้นทางแยกออกได้ว่าพัง ไม่ใช่ไม่มี"
+        },
+        {
+          "id": "SQL-16",
+          "why": "ข้อนี้ระบุ 'ใช้กับ: SQL Server' หมายถึง T-SQL CATCH block ส่วนนี้เป็น C# try/catch คนละภาษาคนละบริบท ใช้ไม่ได้"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "ตัวอย่าง rethrow-with-context ที่ถูกต้อง: เก็บ inner exception (ex) ไว้ครบ ใส่ loadNo เป็นบริบทที่เป็นประโยชน์ต่อการ debug และห่อเป็นชนิด exception เฉพาะทาง ไม่พบการละเมิดที่มีหลักฐานตรง"
+    },
+    "c05-typed-result": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "API-10",
+          "why": "ไม่เห็นเนื้อหาจริงของตัวแปร sql ในสนิพเพ็ต จึงไม่มีหลักฐานว่า query ดึงคอลัมน์ภายใน/ความลับเกินจำเป็น การสรุปว่า over-fetch จากแค่ชื่อตัวแปร rows เป็นการเดา ไม่ใช่หลักฐานจากข้อความ"
+        },
+        {
+          "id": "CODE-20",
+          "why": "ไม่มี any หรือ as any ปรากฏในสนิพเพ็ตเลย ชนิดของ rows ขึ้นกับ signature ของ db.query ซึ่งไม่ได้แสดงในเคสนี้ ไม่มีหลักฐานว่าเป็น any"
+        },
+        {
+          "id": "API-09",
+          "why": "ไม่เห็นเนื้อหาของ sql จึงไม่มีหลักฐานว่าไม่มี LIMIT/OFFSET หรือ cursor ฝังอยู่ในคิวรีอยู่แล้ว"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "response shape คงที่ ({items, count}) ตรงตาม API-03 และใช้ parameterized query (db.query(sql, params)) ตามที่ควรอยู่แล้ว ข้อกังขาที่เป็นไปได้ (over-fetch, any) ไม่มีข้อความในสนิพเพ็ตยืนยันได้"
+    },
+    "c06-named-constant": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "CODE-04",
+          "why": "ใช้ชื่อคงที่ StatusClosed แทนเลข 9 ตรงในเงื่อนไขอยู่แล้ว (if (shipment.Status == StatusClosed)) — นี่คือรูปแบบที่ถูกต้องตามกฎแทนของ CODE-04 เอง ไม่ใช่การละเมิด"
+        },
+        {
+          "id": "CODE-26",
+          "why": "ใช้ named int constant (ไม่ใช่ string/เลขดิบ) ตรงกับรูปแบบที่ SQL-19 เองแนะนำไว้ ('ชื่อคงที่ที่ใช้ร่วมกับฝั่งแอป') การถือว่า const int ยังนับเป็น primitive obsession ขัดกับกฎแทนที่แคตตาล็อกกำหนดไว้เองในอีกข้อหนึ่ง"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "ตัวอย่างการตั้งชื่อคงที่แทน magic number ตรงตามกฎแทนของ CODE-04 พอดี ไม่พบการละเมิดที่มีหลักฐาน"
+    },
+    "c07-bounded-retry": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "ERR-08",
+          "evidence": "await sleep(200 * 2 ** attempt)",
+          "why": "กฎแทนของ ERR-08 ระบุชัดว่าต้องเป็น 'exponential backoff + jitter' คู่กัน สูตรนี้เป็น exponential ล้วนแบบ deterministic (200ms, 400ms) ไม่มีองค์ประกอบสุ่ม (jitter) เลย เป็นการละเมิดจริงตามตัวอักษรของกฎ แต่ไม่ใช่ประเด็นหลักของเคสซึ่งเน้นเรื่อง bounded attempt (attempt<3) และ retryable-check (isRetryable(e)) ซึ่งทั้งสองอย่างทำถูกต้อง — รายงาน ERR-08 มาไม่ควรถือเป็นความผิด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "TXN-06",
+          "why": "ไม่เห็นเนื้อหาของ body หรือนิยามของ postOnce ในสนิพเพ็ต จึงไม่มีหลักฐานบวกว่าคำขอนี้ขาด idempotency key การขาดหลักฐานไม่ใช่หลักฐานของการละเมิด (ต่างจากเคส b01 ที่มีข้อความ WHERE o.Status = 3 ยืนยันตรงๆ)"
+        },
+        {
+          "id": "ERR-09",
+          "why": "มีการจำกัดจำนวนครั้งชัดเจนด้วย attempt < 3 และเงื่อนไข attempt === 2 ก่อน throw ไม่ใช่ retry ไม่จำกัด"
+        },
+        {
+          "id": "ERR-07",
+          "why": "มีการเช็ค isRetryable(e) ก่อน retry ทุกครั้ง ไม่ใช่ retry ทุก error รวม 4xx"
+        }
+      ],
+      "key_verdict": "incomplete",
+      "note": "bounded attempt และ retryable-check ถูกต้องตามกฎ แต่สูตร backoff ไม่มี jitter ตามที่ ERR-08 กำหนดไว้ตรงตัว ('exponential backoff + jitter' เป็นคู่บังคับ) เป็นช่องว่างจริงระดับ acceptable — ทำให้ข้อความ 'ต้องไม่มี ID ใดถูกรายงาน' ไม่ครบ 100% แม้จะไม่ใช่ประเด็นหลักของเคส"
+    }
+  },
+  "summary": {
+    "cases_checked": 6,
+    "keys_incomplete": 1,
+    "ids_added": 1
+  }
+}

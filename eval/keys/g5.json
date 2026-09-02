@@ -1,0 +1,410 @@
+{
+  "group": "g5",
+  "cases": {
+    "c08-migration-guarded": {
+      "must_find": [],
+      "acceptable": [],
+      "wrong": [
+        {
+          "id": "DATA-07",
+          "why": "อาการของข้อนี้คือชื่อคอลัมน์ที่ไม่บอกความหมาย (Field1..Field20 / Spare1..Spare5) ส่วน Phone2 บอกความหมายได้ว่าเบอร์ที่สอง เป็นข้อที่เฉียดที่สุดแต่ไม่เข้า"
+        },
+        {
+          "id": "DATA-02",
+          "why": "อาการคือ 'ทุกคอลัมน์ nullable' ซึ่งพิสูจน์จาก snippet ไม่ได้เพราะเห็นคอลัมน์เดียว และกฎแทนอนุญาต null ที่ความหมายชัด — เบอร์สำรองที่ไม่มีคือ null ที่มีความหมายชัด อีกทั้ง ADD คอลัมน์ NOT NULL บนตารางที่มีข้อมูลแล้วต้องมี DEFAULT"
+        },
+        {
+          "id": "SHIP-06",
+          "why": "สคริปต์ย้อนกลับและการสำรองอยู่คนละไฟล์ snippet สองบรรทัดพิสูจน์การไม่มีอยู่ไม่ได้ และ ADD COLUMN คือฝั่ง expand ที่ SHIP-07 สั่งให้ทำก่อนอยู่แล้ว"
+        },
+        {
+          "id": "SQL-23",
+          "why": "snippet นี้คือ migration script เอง ไม่ใช่การแก้ผ่าน SSMS — เป็นการทำตามกฎแทนของ SQL-23 ไม่ใช่ละเมิด"
+        },
+        {
+          "id": "SHIP-05",
+          "why": "มี guard IF COL_LENGTH(...) IS NULL อยู่แล้ว รันซ้ำได้ นี่คือรูปแบบที่ SHIP-05 สั่งให้ทำ"
+        },
+        {
+          "id": "TIME-11",
+          "why": "ใช้ nvarchar(20) ไม่ใช่ varchar จึงเป็นการทำตามกฎแทน"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "เคสสะอาดจริง ไม่พบ ID ใดที่มีข้อความใน snippet รองรับ · baseline ตอบ NONE false_alarm=0 · เฉลย [] ถูกต้อง"
+    },
+    "c09-validated-input": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "API-05",
+          "evidence": "{ error: parsed.error.flatten() }",
+          "why": "กฎแทนของ API-05 คือ 'ทุก error มี code คงที่ + message สำหรับคน' · payload ที่คืนออกไปเห็นครบทั้งก้อนใน snippet และไม่มีทั้ง code และ message ที่คนอ่าน มีแต่รูปของ Zod ที่ผูกกับไลบรารี · ไม่ใช่ประเด็นหลักของเคส (ประเด็นคือ API-11 validate ที่ขอบ ซึ่งทำถูกแล้ว) จึงไม่ควรนับเป็นความผิด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "API-11",
+          "why": "snippet ทำตามกฎแทนของ API-11 ตรงตัว — validate ที่ server ด้วย schema (Zod) และปฏิเสธด้วย 400"
+        },
+        {
+          "id": "FE-07",
+          "why": "ช่อง 'ใช้กับ' ระบุ เว็บ และอาการคือ validate เฉพาะฝั่ง client — โค้ดนี้คือฝั่ง server (req.json / NextResponse) จึงเป็นด้านที่ FE-07 เรียกร้อง ไม่ใช่ด้านที่ผิด"
+        },
+        {
+          "id": "ERR-14",
+          "why": "ใช้ status 400 กับ input error ตรงตามกฎแทน"
+        },
+        {
+          "id": "CODE-20",
+          "why": "ไม่มี any / as any / dynamic ใน snippet เลย ไม่มีข้อความรองรับ"
+        },
+        {
+          "id": "ERR-15",
+          "why": "correlation id เป็นเรื่องระดับระบบ 3 บรรทัดของ handler พิสูจน์ไม่ได้ว่าทั้งระบบไม่มี ต่างจาก API-05 ที่รูปของ payload เห็นครบในบรรทัดเดียว"
+        },
+        {
+          "id": "API-06",
+          "why": "parsed.error.flatten() คืนชื่อ field ของสัญญาที่ประกาศเอง ไม่ใช่ stack trace หรือ SQL"
+        },
+        {
+          "id": "SEC-05",
+          "why": "snippet ตัดมาเฉพาะขั้น validate การตรวจสิทธิ์อาจอยู่ก่อนหน้าในไฟล์เดียวกันหรือใน middleware — อ้างการไม่มีอยู่จากส่วนที่ตัดมาไม่ได้"
+        },
+        {
+          "id": "TYPE-08",
+          "why": ".max(20) ทำให้ค่าที่ยาวเกินถูก *ปฏิเสธ* ด้วย 400 ไม่ใช่ถูกตัดเงียบ ซึ่งตรงข้ามกับอาการของ TYPE-08"
+        },
+        {
+          "id": "PERF-16",
+          "why": "เพดานขนาด body ตั้งที่ framework/proxy ไม่ใช่ที่บรรทัดนี้ และ .max(20)/.int().positive() คือการจำกัด input ที่มีอยู่จริงใน snippet"
+        },
+        {
+          "id": "API-15",
+          "why": "schema ประกาศทั้งสอง field เป็น required ตรงตามกฎแทน"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "เฉลย [] ถูกต้อง ไม่มีข้อที่ต้องเจอ · API-05 เป็นข้อที่ป้องกันได้ว่าถูก ห้ามนับเป็น false alarm · baseline ตอบ NONE"
+    },
+    "c10-decimal-money": {
+      "must_find": [
+        {
+          "id": "DATA-18",
+          "evidence": "CREATE INDEX IX_InvoiceLine_InvoiceNo ON dbo.InvoiceLine (InvoiceNo);",
+          "why": "index นี้ซ้อนกับ PK เต็มๆ — 'CONSTRAINT PK_InvoiceLine PRIMARY KEY (InvoiceNo, LineNo)' บน SQL Server เป็น clustered โดยปริยาย และ InvoiceNo คือคอลัมน์นำของ clustered key อยู่แล้ว การ seek/range ด้วย InvoiceNo ใช้ PK ได้ทันที · กฎแทนของ DATA-18 คือ 'รวม index ที่ซ้อนกัน' ตรงเคสนี้เป๊ะ · ผู้เขียนเคสเติม index ตัวนี้เพื่อปิด DATA-19 (index ทุก FK) ทั้งที่ DATA-19 ถูกปิดด้วย PK อยู่แล้ว จึงกลายเป็นการแก้เกินที่สร้างข้อใหม่ · baseline รายงาน DATA-18 แล้วถูกนับเป็น false alarm ทั้งที่ถูก"
+        }
+      ],
+      "acceptable": [
+        {
+          "id": "SHIP-05",
+          "evidence": "CREATE TABLE dbo.InvoiceLine (",
+          "why": "ไม่มี guard IF OBJECT_ID(...) IS NULL รันซ้ำจะ error 'There is already an object named' ทั้ง CREATE TABLE และ CREATE INDEX · เทียบกับ c08 ในชุดเดียวกันที่ใช้ guard เป็นแบบอย่าง ความไม่สม่ำเสมอนี้เห็นได้จากตัวหนังสือ · ไม่ยกเป็น must_find เพราะ migration runner ที่จำเวอร์ชันที่รันแล้วก็ปิดข้อนี้ได้ ซึ่ง snippet ไม่ได้บอกว่ามีหรือไม่มี"
+        },
+        {
+          "id": "TIME-04",
+          "evidence": "UnitPrice   decimal(18,4) NOT NULL,",
+          "why": "กฎแทนคือ 'เก็บ (จำนวน, สกุล) คู่กันเสมอ' · รายการคอลัมน์ของตารางเห็นครบทั้งก้อนใน snippet และไม่มีคอลัมน์สกุลเงิน จึงพิสูจน์การไม่มีอยู่ได้จริง · แต่มีข้อแก้ต่างที่หนักพอ — FK ชี้ไป dbo.Invoice ซึ่งเก็บสกุลเงินที่ระดับหัวเอกสารเป็นการ normalize ที่ถูกต้อง จึงเป็น acceptable ไม่ใช่ must_find"
+        },
+        {
+          "id": "TIME-11",
+          "evidence": "CreatedBy   varchar(50)   NOT NULL,",
+          "why": "ใช้กับ = SQL Server และ snippet เป็น T-SQL แน่นอน (dbo. / datetime2 / SYSUTCDATETIME) · CreatedBy/UpdatedBy เก็บชื่อหรือ username ของคน ซึ่งในระบบไทยเป็นภาษาไทยได้ varchar จะกลายเป็น ??? · InvoiceNo เป็นเลขเอกสาร ASCII จึงไม่ใช่จุดที่อ้าง · เคส c08 ในชุดเดียวกันใช้ nvarchar แสดงว่า convention ของ repo คือ nvarchar"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "DATA-19",
+          "why": "snippet มี index บน FK อยู่จริง (IX_InvoiceLine_InvoiceNo) และ PK ก็นำด้วย InvoiceNo — รายงานข้อนี้คือขัดกับตัวหนังสือตรงๆ"
+        },
+        {
+          "id": "DATA-10",
+          "why": "มี CONSTRAINT FK_InvoiceLine_Invoice FOREIGN KEY (InvoiceNo) REFERENCES dbo.Invoice (InvoiceNo) อยู่ในตัว"
+        },
+        {
+          "id": "DATA-01",
+          "why": "มี PK_InvoiceLine PRIMARY KEY (InvoiceNo, LineNo)"
+        },
+        {
+          "id": "DATA-15",
+          "why": "มี CreatedAt/CreatedBy/UpdatedAt/UpdatedBy ครบตามกฎแทน"
+        },
+        {
+          "id": "DATA-04",
+          "why": "ใช้ decimal(18,4) ไม่ใช่ FLOAT — เป็นการทำตามกฎแทน"
+        },
+        {
+          "id": "DATA-25",
+          "why": "PK (InvoiceNo, LineNo) คือ unique constraint บน business key อยู่แล้ว"
+        },
+        {
+          "id": "DATA-20",
+          "why": "ไม่มี GUID ใน snippet เลย"
+        },
+        {
+          "id": "DATA-21",
+          "why": "LineNo เป็นเลขบรรทัดในใบ ไม่ใช่ identity ที่เดินต่อทั้งตาราง ไม่มีข้อความบอกว่าเป็น IDENTITY"
+        },
+        {
+          "id": "PERF-05",
+          "why": "snippet ไม่มี query และไม่มี execution plan ให้ดู อีกทั้งคอลัมน์ที่กรองมี index แล้ว"
+        },
+        {
+          "id": "DATA-16",
+          "why": "CreatedAt มี DEFAULT SYSUTCDATETIME() และ CreatedBy เป็น NOT NULL ไม่มี default จึงถูกบังคับให้เขียนจริง — ตรงข้ามกับอาการ 'มีคอลัมน์แต่เป็น null หมด'"
+        },
+        {
+          "id": "TIME-05",
+          "why": "ใช้ SYSUTCDATETIME() คือ UTC ตรงตามกฎแทน"
+        }
+      ],
+      "key_verdict": "incomplete",
+      "note": "เฉลยผิดที่ป้ายกำกับ — เคสนี้ไม่สะอาดจริง DATA-18 ละเมิดชัดจาก DDL เอง โดยเกิดจากการแก้เกินตอนไปปิด DATA-10/DATA-15 รอบก่อน · อย่างน้อยที่สุด DATA-18 ต้องเลิกถูกนับเป็น false alarm"
+    },
+    "c11-mobile-durable-queue": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "ERR-11",
+          "evidence": "final res = await api.post(\"/scan\", body: job.toJson());",
+          "why": "จุดเรียก I/O เห็นครบทั้งบรรทัดและไม่มี timeout · ค่าเริ่มต้นของ http client ใน Dart คือไม่มี timeout เมื่อเครื่องเกาะ Wi-Fi ที่ไม่มีทางออก (สภาพเดียวกับที่ MOBILE-03 บรรยาย) คำขอนี้ค้างและบล็อกลูป drain ทั้งคิว · ไม่ใช่ประเด็นหลักของเคส"
+        },
+        {
+          "id": "TOOL-08",
+          "evidence": "final res = await api.post(\"/scan\", body: job.toJson());",
+          "why": "ข้อเดียวกันในมุมของ 'ค่า timeout เริ่มต้นของไลบรารีไม่เคยถูกตั้ง' — กฎแทนสั่งให้ตั้งอย่างตั้งใจพร้อมเหตุผลกำกับ ซึ่งบรรทัดนี้ไม่มีทั้งสองอย่าง"
+        },
+        {
+          "id": "ARCH-05",
+          "evidence": "for (final job in await outbox.pending()) {",
+          "why": "ยิงข้ามเน็ตในลูปหนึ่งคำขอต่อหนึ่งงาน ตรงกับอาการ 'เรียกข้าม service ในลูป' ตามตัวหนังสือ · มีข้อแก้ต่างที่ดี — การส่งทีละชิ้นคือสิ่งที่ทำให้ MOBILE-03 (ลบเมื่อยืนยันรายตัว) และ MOBILE-07 (dead-letter รายตัว) ทำได้ ถ้าเปลี่ยนเป็น batch ต้องคืนผลรายรายการตาม API-19 · จึงรายงานมาก็ไม่ควรถือเป็นความผิด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "MOBILE-01",
+          "why": "snippet ทำตามกฎแทนตรงตัว — outbox.insert(job) ลง SQLite บนเครื่อง *ก่อน* showQueued() และ showQueued ไม่ได้บอกว่าสำเร็จ"
+        },
+        {
+          "id": "MOBILE-02",
+          "why": "requestId ถูกสร้างใน onSubmitPressed คือวินาทีที่ผู้ใช้กด แล้วเก็บลงคิวพร้อมงาน ใช้ค่าเดิมทุกครั้งที่ส่ง — คือกฎแทนของข้อนี้"
+        },
+        {
+          "id": "MOBILE-03",
+          "why": "ลบออกจากคิวเมื่อ res.accepted เท่านั้น ไม่ได้ใช้สถานะการเชื่อมต่อเป็นหลักฐาน"
+        },
+        {
+          "id": "MOBILE-07",
+          "why": "มี moveToDeadLetter(job, res.reason) สำหรับ permanentReject อยู่แล้ว"
+        },
+        {
+          "id": "TXN-06",
+          "why": "มี idempotency key ที่เกิดตอนผู้ใช้ลงมือและคงค่าเดิมทุก retry ตรงตามกฎแทนที่เน้นตัวหนาไว้"
+        },
+        {
+          "id": "MOBILE-05",
+          "why": "qty ถูกส่งเป็นเหตุการณ์ scan ใหม่ที่มี requestId กันซ้ำ ไม่ใช่การเขียนทับค่าจำนวนของแถวที่มีอยู่ อาการ 'ของหลังสุดชนะ' จึงไม่เกิด"
+        },
+        {
+          "id": "MOBILE-09",
+          "why": "snippet รับ ScanInput ที่ประกอบเสร็จแล้ว ไม่มีการอ่านอักขระจากเครื่องยิงใน snippet ให้ตรวจ"
+        },
+        {
+          "id": "MOBILE-11",
+          "why": "เวอร์ชันแอป/สัญญาปกติอยู่ใน header ซึ่ง snippet ไม่ได้แสดง เห็นแต่ body — อ้างการไม่มีอยู่ไม่ได้"
+        },
+        {
+          "id": "MOBILE-12",
+          "why": "outbox เก็บ boxNo/qty/requestId ไม่มีโทเคนหรือข้อมูลส่วนบุคคลใน snippet"
+        },
+        {
+          "id": "MOBILE-13",
+          "why": "ไม่มีไฟล์เทสใน snippet การไม่มีเทสจึงพิสูจน์จากตัวหนังสือไม่ได้"
+        },
+        {
+          "id": "ERR-08",
+          "why": "จังหวะการลองใหม่อยู่ใน syncWorker ซึ่ง snippet ไม่ได้แสดง drain() เป็นการกวาดหนึ่งรอบ ไม่ใช่ตัว retry loop"
+        },
+        {
+          "id": "ERR-09",
+          "why": "เหตุผลเดียวกับ ERR-08 และ permanentReject ก็ตัดเคส poison ออกไป dead-letter แล้ว"
+        },
+        {
+          "id": "INT-04",
+          "why": "มี dead-letter รับงานที่ปฏิเสธถาวรอยู่แล้ว ส่วนตัวนับครั้งอยู่นอก snippet"
+        },
+        {
+          "id": "AI-07",
+          "why": "คอมเมนต์สองก้อนตรงกับโค้ดจริงทุกประโยค ตรวจได้ทีละข้อ"
+        },
+        {
+          "id": "SQL-15",
+          "why": "ช่อง 'ใช้กับ' ระบุ SQL Server ห้ามใช้กับ snippet ภาษา Dart"
+        },
+        {
+          "id": "MOBILE-04",
+          "why": "ไม่มีการใช้เวลาของเครื่องตัดสินลำดับใน snippet เลย"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "เฉลย [] ถูกต้อง เคสปิด MOBILE-01/02/03/07 และ TXN-06 ครบ · จุดอ่อนจริงที่พบคือ unawaited(syncWorker.wake()) ทำให้ข้อผิดพลาดตอนออฟไลน์ถูกทิ้งเงียบ แต่ไม่มีแถวไหนในแคตตาล็อกที่ครอบตรงๆ จึงไม่ใส่ในกลุ่มใด"
+    },
+    "c12-ml-shared-pipeline": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "ML-06",
+          "evidence": "{\"pipeline\": pipe, \"feature_version\": FEATURE_VERSION,",
+          "why": "กฎแทนสั่งให้ผูก 'เวอร์ชันของข้อมูล โค้ดเตรียมข้อมูล พารามิเตอร์ และค่าสุ่ม' เข้ากับตัวโมเดล · dict ของ artifact เห็นครบทั้งก้อนใน snippet มีแค่ feature_version ขาดเวอร์ชันข้อมูล พารามิเตอร์ และค่าสุ่ม (LogisticRegression() ไม่มี random_state) จึงสร้างชุดเทรนเดิมขึ้นใหม่ไม่ได้"
+        },
+        {
+          "id": "ML-13",
+          "evidence": "log.info(\"scored\", model_version=art[\"feature_version\"], score=score)",
+          "why": "กฎแทนขอ *สองอย่าง* คือเวอร์ชันโมเดลและเวอร์ชันชุดฟีเจอร์ · บรรทัดนี้เอา feature_version ไปใส่ในชื่อ model_version จึงมีค่าเดียวทำหน้าที่สองอย่าง และชื่อ field โกหกว่าเป็นเวอร์ชันโมเดล · รายการ kwarg เห็นครบ พิสูจน์การขาดได้"
+        },
+        {
+          "id": "CFG-03",
+          "evidence": "joblib.load(\"model.pkl\")",
+          "why": "path ของ artifact ถูก hard-code ซ้ำสองที่ (dump ใน train.py และ load ใน serve.py) กฎแทนคือ 'ทุกที่อยู่ภายนอกมาจาก config' · ผลตรงคือปักหมุดโมเดลคนละเวอร์ชันตอน deploy ไม่ได้ถ้าไม่แก้โค้ด"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "ML-03",
+          "why": "เป็นข้อที่เคสนี้ทำถูก — build_pipeline() ตัวเดียวถูกเรียกทั้ง train และ serve ผ่าน artifact เดียวกัน ตรงตามกฎแทน"
+        },
+        {
+          "id": "ML-04",
+          "why": "threshold มาจาก pick_threshold(..., cost_fp=20, cost_fn=300) คือคำนวณจากต้นทุนของการผิดแต่ละแบบและคำนวณใหม่ทุกครั้งที่เทรน ตรงตามกฎแทน ไม่ใช่ค่าคงที่ 0.5"
+        },
+        {
+          "id": "ML-01",
+          "why": "snippet ไม่แสดงนิยามของฟีเจอร์หรือแกนเวลา ไม่มีข้อความให้ตัดสินเรื่อง leakage"
+        },
+        {
+          "id": "ML-02",
+          "why": "X_train/X_val ถูกส่งเข้ามาสำเร็จรูป วิธีแบ่งอยู่นอก snippet"
+        },
+        {
+          "id": "ML-05",
+          "why": "การเฝ้า drift เป็นโมดูลแยก การไม่มีอยู่พิสูจน์จาก 12 บรรทัดนี้ไม่ได้"
+        },
+        {
+          "id": "ML-07",
+          "why": "ไม่มีการรายงานตัวชี้วัดใดใน snippet ให้ตรวจว่าใช้ตัวเลขเดียวหรือไม่"
+        },
+        {
+          "id": "ML-08",
+          "why": "ตัวเทียบที่ไม่ใช่ ML อยู่นอกไฟล์ทั้งสาม ไม่มีข้อความรองรับ"
+        },
+        {
+          "id": "ML-09",
+          "why": "ไม่มีข้อความใดบอกว่าชุดเทรนถูกคัดมาจากผลของโมเดลตัวเดิม"
+        },
+        {
+          "id": "ML-10",
+          "why": "สวิตช์กลับไปใช้กฎเดิมจะอยู่ที่จุดเรียก ไม่ใช่ในฟังก์ชัน scoring ที่ตัดมา — เป็นการอ้างการไม่มีอยู่จากส่วนที่แจกแจงไม่ครบ"
+        },
+        {
+          "id": "ML-11",
+          "why": "X_train ทึบ ไม่มีชื่อฟิลด์ให้ดูว่ามีข้อมูลระบุตัวตนปนหรือไม่"
+        },
+        {
+          "id": "ML-12",
+          "why": "snippet ไม่บอกว่าผลนี้กระทบคนหรือกระทบเครื่อง เงื่อนไขของข้อนี้จึงยังตัดสินไม่ได้"
+        },
+        {
+          "id": "SEC-12",
+          "why": "model.pkl เป็น artifact ที่เราสร้างเอง ไม่ใช่ input ที่ไม่เชื่อถือจากภายนอกตามอาการของข้อนี้"
+        },
+        {
+          "id": "OBS-05",
+          "why": "log เขียนแค่ score กับ version ไม่มีข้อมูลส่วนบุคคลหรือความลับใน snippet"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "เฉลย [] ถูกต้องในความหมายว่าไม่มีข้อที่ต้องเจอ · เคสปิด ML-03/ML-04 ได้จริง แต่ ML-06/ML-13/CFG-03 มีข้อความรองรับ ห้ามนับเป็น false alarm"
+    },
+    "c13-pdpa-scoped-retention": {
+      "must_find": [],
+      "acceptable": [
+        {
+          "id": "JOB-02",
+          "evidence": "erasure_log.write(purpose=spec[\"purpose\"], basis=spec[\"lawful_basis\"],",
+          "why": "กฎแทนขอ 'เวลาเริ่ม จบ จำนวนที่ทำ และผลลัพธ์' · รายการ kwarg ของ erasure_log.write เห็นครบทั้งก้อน มีจำนวนและผลลัพธ์ (erased_per_store) แต่ไม่มีเวลาเริ่มและเวลาจบ · cutoff เป็นเส้นวันที่ของข้อมูล ไม่ใช่เวลาที่ job รัน"
+        },
+        {
+          "id": "OBS-11",
+          "evidence": "cutoff=cutoff, erased_per_store=erased)",
+          "why": "กฎแทนขอ 'ผู้กระทำ เวลา ค่าก่อน/หลัง' สำหรับข้อมูลสำคัญ · การลบตาม PDPA เป็นการเขียนที่ย้อนไม่ได้ แต่บันทึกที่เห็นครบนี้ไม่มีผู้กระทำและไม่มีเวลา ตอบผู้ตรวจไม่ได้ว่าใครสั่งลบเมื่อไร"
+        },
+        {
+          "id": "TXN-13",
+          "evidence": "for store in spec[\"stores\"]:",
+          "why": "ลบทีละ store แล้วเขียนบันทึกครั้งเดียวหลังลูปจบ · ถ้า store ตัวที่สามโยน exception ตัวที่หนึ่งและสองถูกลบไปแล้วโดยไม่มีบันทึกใดถูกเขียนเลย — คือ 'พังกลางทางแล้วข้อมูลค้างครึ่งทาง' และการลบย้อนกลับไม่ได้ · ข้อแก้ต่างคือ erase_older_than idempotent การรันใหม่จึงเป็น 'ทางเดินหน้าให้จบ' โดยปริยาย จึงเป็น acceptable ไม่ใช่ must_find"
+        }
+      ],
+      "wrong": [
+        {
+          "id": "PDPA-03",
+          "why": "เคสนี้ทำถูก — keep_days มาจาก spec ที่ผูกกับ purpose และ lawful_basis ใน ropa.yaml และมี job ที่ลบจริง ตรงตามกฎแทน"
+        },
+        {
+          "id": "PDPA-04",
+          "why": "เคสนี้ทำถูก — วนลบครบทุก store ใน spec['stores'] ซึ่งคอมเมนต์ระบุว่าคือบัญชีปลายทางทุกที่"
+        },
+        {
+          "id": "PDPA-06",
+          "why": "เคสนี้ทำถูก — ropa.yaml คือบันทึกกิจกรรมการประมวลผลที่อยู่ในที่เดียวกับโค้ด ระบุ purpose/lawful_basis/keep_days/stores"
+        },
+        {
+          "id": "OBS-05",
+          "why": "บันทึกเขียนแค่ purpose/basis/cutoff/จำนวนต่อ store ไม่มีข้อมูลระบุตัวตนตามที่ why ของเคสบอก และตรวจจากตัวหนังสือได้"
+        },
+        {
+          "id": "PDPA-09",
+          "why": "ไม่มีข้อความใน snippet ที่บอกว่าข้อมูลอ่อนไหวอยู่ปนกับข้อมูลทั่วไป"
+        },
+        {
+          "id": "PDPA-05",
+          "why": "เป็นคนละเส้นทาง (คำขอดู/ขอสำเนา) ที่ snippet นี้ไม่ได้แตะ"
+        },
+        {
+          "id": "PDPA-10",
+          "why": "ไม่มีการนำข้อมูลไปใช้วัตถุประสงค์ใหม่ใน snippet — ตรงข้าม โค้ดอ่าน purpose มาใช้กำกับ"
+        },
+        {
+          "id": "JOB-05",
+          "why": "erase_older_than(cutoff) รันซ้ำแล้วผลเท่าเดิม (รอบสองไม่มีอะไรให้ลบ) เป็นการทำตามกฎแทน"
+        },
+        {
+          "id": "JOB-03",
+          "why": "ล็อกกันรันซ้อนอยู่ที่ตัวจัดตาราง ไม่ใช่ในฟังก์ชันที่ตัดมา อ้างการไม่มีอยู่ไม่ได้"
+        },
+        {
+          "id": "JOB-06",
+          "why": "การ alert อยู่นอก snippet เช่นเดียวกับ JOB-03"
+        },
+        {
+          "id": "TIME-05",
+          "why": "today ถูกฉีดเข้ามาเป็นพารามิเตอร์ การตัดสินใจเรื่อง timezone จึงอยู่ที่ผู้เรียก ไม่มีข้อความใน snippet ที่บอกว่าเป็นเวลา local"
+        },
+        {
+          "id": "CFG-11",
+          "why": "เหตุผลเดียวกับ TIME-05 — snippet ไม่ได้เรียก now() ของเครื่อง"
+        },
+        {
+          "id": "JOB-09",
+          "why": "ใช้ timedelta(days=...) จากปฏิทินจริง ไม่มีการ hard-code ว่าเดือนมี 30 วัน"
+        }
+      ],
+      "key_verdict": "correct",
+      "note": "เฉลย [] ถูกต้อง เคสปิด PDPA-03/04/06 ได้จริง · ข้อที่มีข้อความรองรับคือคุณภาพของ 'บันทึก' และความทนต่อการพังกลางลูป ไม่ใช่เรื่อง PDPA scoping"
+    }
+  },
+  "summary": {
+    "cases_checked": 6,
+    "keys_incomplete": 1,
+    "ids_added": 14
+  }
+}

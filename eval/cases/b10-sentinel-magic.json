@@ -3,6 +3,7 @@
   "lang": "sql",
   "must_ask": false,
   "expected_ids": [
+    "CODE-04",
     "SQL-19"
   ],
   "task": "รายงาน ID ในแคตตาล็อกที่โค้ดนี้ละเมิด",

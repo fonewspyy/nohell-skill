@@ -3,204 +3,342 @@
   "runs": 3,
   "summary": {
     "recall": {
-      "mean": 0.8445,
-      "min": 0.8,
-      "max": 0.8667,
-      "stdev": 0.0385
+      "mean": 0.9584,
+      "min": 0.9375,
+      "max": 0.9688,
+      "stdev": 0.0181
     },
     "false_alarm_ids": {
-      "mean": 13.6667,
-      "min": 10,
-      "max": 16,
-      "stdev": 3.2146
+      "mean": 8.3333,
+      "min": 8,
+      "max": 9,
+      "stdev": 0.5774
+    },
+    "acceptable_ids": {
+      "mean": 6,
+      "min": 3,
+      "max": 8,
+      "stdev": 2.6458
     },
     "must_ask_hit": {
       "mean": 0.5,
       "min": 0.5,
       "max": 0.5,
       "stdev": 0.0
+    },
+    "ask_on_bug": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "stdev": 0.0
+    },
+    "unlisted_ids": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "stdev": 0.0
     }
   },
   "per_case": {
     "a01-must-ask-money-rounding": {
-      "reply": "TYPE-04 TIME-02 TIME-03 TIME-15 CODE-04",
       "recall": null,
-      "false_alarm": 0,
-      "ask_ok": 0
+      "false_alarm": 4,
+      "acceptable": 1,
+      "ask_ok": 0,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "TYPE-04 TIME-02 TIME-03 TIME-15 CODE-04"
     },
     "a02-must-ask-retention": {
-      "reply": "ASK",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": 1
+      "acceptable": 0,
+      "ask_ok": 1,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "ASK"
     },
     "b01-nolock": {
-      "reply": "SQL-15 SQL-19",
       "recall": 1.0,
-      "false_alarm": 1,
-      "ask_ok": null
+      "false_alarm": 0,
+      "acceptable": 1,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "SQL-15 SQL-19"
     },
     "b02-or-chain": {
-      "reply": "ASK",
-      "recall": 0.0,
+      "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "SQL-32"
     },
     "b03-missing-index": {
-      "reply": "PERF-05",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "PERF-05"
     },
     "b04-harness-mismatch": {
-      "reply": "MEAS-01",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "MEAS-01"
     },
     "b05-stats-per-version": {
-      "reply": "MEAS-02",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "MEAS-02"
     },
     "b06-dual-master": {
-      "reply": "DATA-12 ARCH-12 LEG-04 LEG-05 SSOT-14 FILE-01",
       "recall": 1.0,
-      "false_alarm": 5,
-      "ask_ok": null
+      "false_alarm": 0,
+      "acceptable": 5,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "DATA-12 ARCH-12 LEG-04 LEG-05 SSOT-14 FILE-01"
     },
     "b07-catch-return-null": {
-      "reply": "ERR-02",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "ERR-02"
     },
     "b08-empty-as-error": {
-      "reply": "API-03",
-      "recall": 0.0,
-      "false_alarm": 1,
-      "ask_ok": null
+      "recall": 0.5,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "API-03"
     },
     "b09-read-modify-write": {
-      "reply": "TXN-03",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "TXN-03"
     },
     "b10-sentinel-magic": {
-      "reply": "CODE-04 SQL-19 DATA-11",
       "recall": 1.0,
-      "false_alarm": 2,
-      "ask_ok": null
+      "false_alarm": 1,
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "CODE-04 SQL-19 DATA-11"
     },
     "b11-registry-split-deploy": {
-      "reply": "REG-06 API-01",
       "recall": 1.0,
       "false_alarm": 1,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "REG-06 API-01"
     },
     "b12-migration-not-idempotent": {
-      "reply": "SHIP-05",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "SHIP-05"
     },
     "b13-mobile-idempotency-key": {
-      "reply": "TXN-06 ERR-12",
-      "recall": 0.0,
-      "false_alarm": 2,
-      "ask_ok": null
+      "recall": 0.5,
+      "false_alarm": 1,
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "TXN-06 ERR-12"
     },
     "b14-ml-train-serve-skew": {
-      "reply": "ML-03",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "ML-03"
     },
     "b15-pdpa-erasure-misses-copies": {
-      "reply": "PDPA-04",
       "recall": 1.0,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "PDPA-04"
     },
     "c01-parameterized": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c02-explicit-columns": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c03-idempotent-upsert": {
-      "reply": "TXN-09",
       "recall": null,
       "false_alarm": 1,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "TXN-09"
     },
     "c04-rethrow-with-context": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c05-typed-result": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c06-named-constant": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c07-bounded-retry": {
-      "reply": "ERR-08",
       "recall": null,
-      "false_alarm": 1,
-      "ask_ok": null
+      "false_alarm": 0,
+      "acceptable": 1,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "ERR-08"
     },
     "c08-migration-guarded": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c09-validated-input": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c10-decimal-money": {
-      "reply": "DATA-18",
-      "recall": null,
-      "false_alarm": 1,
-      "ask_ok": null
+      "recall": 1.0,
+      "false_alarm": 0,
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "DATA-18"
     },
     "c11-mobile-durable-queue": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c12-ml-shared-pipeline": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     },
     "c13-pdpa-scoped-retention": {
-      "reply": "NONE",
       "recall": null,
       "false_alarm": 0,
-      "ask_ok": null
+      "acceptable": 0,
+      "ask_ok": null,
+      "ask_on_bug": 0,
+      "excluded": false,
+      "unlisted": [],
+      "reply": "NONE"
     }
   }
 }

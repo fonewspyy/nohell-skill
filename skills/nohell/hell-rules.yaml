@@ -273,10 +273,36 @@ rules:
   - id: ERR-09
     severity: P2
     tested: no
-    experimental: true   # มี runner ตรวจแล้วไม่เจอ pattern นี้บน repo จริงเลย
+    # 🪤 เคยเขียน `experimental: true` ไว้พร้อมเหตุผลว่า "runner ตรวจแล้วไม่เจอ pattern นี้
+    #    บน repo จริงเลย" — ข้อสรุปนั้นผิด ตัว pattern จับไม่ได้ต่างหาก
+    #    ของเดิมมีแค่ `(?i)` ไม่มี `s` แต่ใช้ `.{0,300}?` ซึ่ง `.` ไม่แมตช์ `\n`
+    #    ⇒ จับได้เฉพาะกรณีที่ retry อยู่ *บรรทัดถัดไปทันที* เลื่อนลงสามบรรทัดก็เงียบ
+    #    วัดแล้ว: while(true) + retry บรรทัดติดกัน = จับ · ห่างสามบรรทัด = ไม่จับ
+    #    งบ 300 ตัวอักษรที่เขียนไว้เองบอกว่าตั้งใจให้ข้ามหลายบรรทัด
+    #    `--multiline-dotall` ไม่ถูกส่งจาก nohell-check.py (มีแค่ -U กับ -P) จึงต้องฝัง `s` ใน pattern
+    #    เติม `s` เฉย ๆ ไม่พอ: `.` จะข้ามออกไปนอกลูปแล้วจับ fetch ในฟังก์ชันอื่น (วัดแล้วว่าเกิด)
+    #    จึงใช้ tempered dot `(?!\n\})` กันไม่ให้ข้าม `}` ต้นบรรทัดซึ่งเป็นขอบลูป
     title: retry ไม่จำกัดจำนวน
-    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?i)while\\s*\\(\\s*true\\s*\\)[^\\n]{0,80}\\n(?:.{0,300}?)(retry|fetch|axios|HttpClient)" }
+    detect: { kind: regex, glob: "**/*.{ts,tsx,cs,js}", pattern: "(?is)while\\s*\\(\\s*true\\s*\\)[^\\n]{0,80}\\n(?:(?!\\n\\}).){0,300}?(retry|fetch|axios|HttpClient)" }
     multiline: true   # \n ข้ามบรรทัด — rg ต้องใช้ -U
+    engine: pcre2     # ใช้ negative lookahead ใน tempered dot
+
+  - id: TXN-19
+    severity: P1
+    tested: no
+    title: MERGE ไม่มี HOLDLOCK
+    # ตั้งใจ over-match: regex เห็นแค่ว่าสเตทเมนต์ MERGE ไม่มีคำว่า HOLDLOCK/SERIALIZABLE
+    # มองไม่เห็นสองอย่างที่ตัดสินว่าผิดจริงไหม — คีย์ใน ON มี unique constraint หนุนอยู่แล้วหรือเปล่า
+    # และ MERGE ตัวนั้นเจอ concurrent writer จริงไหม (batch job ที่รันตัวเดียวไม่เสี่ยงเลย)
+    # และจับไม่ได้ถ้า SERIALIZABLE ถูกตั้งที่ระดับ session ด้วย SET TRANSACTION ISOLATION LEVEL
+    # จึงเป็น P1 ที่ต้องให้คนยืนยันรายจุด ไม่ใช่ block อัตโนมัติ
+    detect: { kind: regex, glob: "**/*.sql", pattern: "(?is)MERGE\\s+(?:INTO\\s+)?(?:(?!;)(?!HOLDLOCK)(?!SERIALIZABLE).)*?;" }
+    multiline: true   # สเตทเมนต์ MERGE คร่อมหลายบรรทัดจนถึง ; — rg ต้องใช้ -U
+    engine: pcre2     # ใช้ negative lookahead ใน tempered dot
+    note: >
+      ต้องมี s ใน (?is) — nohell-check.py ส่งแค่ -U กับ -P ไม่ส่ง --multiline-dotall
+      ถ้าไม่ฝัง s ไว้ `.` จะไม่ข้าม \n แล้วกฎนี้จับอะไรไม่ได้เลยแบบเงียบ ๆ (ดู ERR-09)
+    allow_comment: 'nohell-allow: TXN-19'
 
   - id: ERR-11
     severity: P2
