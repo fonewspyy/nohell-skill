@@ -147,6 +147,24 @@ skills/nohell/HELL-CATALOG.md (ใช้ grep หรือ sed อ่านเ�
 ''' + _ANSWER_RULES,
 }
 
+# แขนของการทดลอง C9 — ต่างจาก `full` **แค่ประโยคเดียวท้ายกติกาการตอบ** ส่วนวิธีเข้าถึง
+# แคตตาล็อก โจทย์ และเฉลย เหมือน `full` เป๊ะ
+#
+# ที่มา: docs/research/2026-09-02-accuracy-speed-eval.md §9 ข้อ C9
+# ฝ่าย ก  #2 สั่งใน system prompt ให้ abstain ได้ผลจริงและวัดได้
+# ฝ่าย ข  #42 scaffold ที่ดีที่สุดกลับ *ถามน้อยลง* (344 vs 369) แต่ถามลึกกว่า
+# รายงานบอกว่าสองข้อนี้ไม่ได้ขัดกันจริง (อัตราการถาม vs การเลือกว่าจะถามอะไร)
+# แต่ชี้ไปการแก้คนละทาง และผู้ตรวจตายทั้ง 3/3 ทั้งคู่ ⇒ ต้องวัดเอง
+#
+# ⚠️ เกณฑ์ตัดสินของการทดลองนี้ **ไม่ใช่ must_ask_hit ตัวเดียว** การดัน ask-rate ให้ขึ้น
+#    ทำได้ง่ายมากด้วยการสั่งให้ถามบ่อยขึ้น แล้วมันจะไปโผล่เป็น `ask_on_bug` แทน
+#    (ถาม ในเคสที่มีคำตอบชัด = ผลักภาระกลับไปหาคนโดยไม่จำเป็น ซึ่งเป็นสิ่งที่
+#    เจ้าของรีโปประกาศว่าอยากลด) ⇒ ต้องอ่านสามตัวพร้อมกันเสมอ:
+#    must_ask_hit ขึ้น · ask_on_bug ต้องไม่ขึ้น · recall ต้องไม่ตก
+PROMPTS['full_ask'] = PROMPTS['full'] + '''
+- กฎธุรกิจที่โจทย์ไม่ได้ระบุมา ห้ามเดาแทน ถ้าการตัดสินต้องใช้กฎแบบนั้น ให้ตอบ ASK
+  แม้จะเห็นข้อที่น่าจะเข้าอยู่ก็ตาม การเดากฎธุรกิจแล้วฝังลงโค้ดแก้ยากกว่าการถามมาก'''
+
 
 def load_cases():
     out = []
@@ -328,11 +346,33 @@ def main():
                 with io.open(tp, encoding='utf-8') as fh:
                     for cid, secs in json.load(fh).items():
                         tmerged.setdefault(cid, []).extend(secs)
+        # ⚠️ --merge **เขียนทับ** ไฟล์หลัก ไม่ได้เขียนต่อท้าย ถ้าผู้ใช้พิมพ์ tag มาไม่ครบ
+        # คำตอบรอบก่อน ๆ ที่อยู่ในไฟล์หลักจะหายไปเงียบ ๆ แล้วรอบถัดไปจะยิงใหม่ทับ
+        # โดยไม่มีอะไรบอกว่าเพิ่งทำข้อมูลหายไปกี่รอบ — ตายตรงนี้ดีกว่าเงียบ
+        # ⚠️ เทียบ **ตัวคำตอบ** ไม่ใช่จำนวน — วัดมาแล้วว่าเทียบจำนวนอย่างเดียวไม่พอ
+        # `--merge r2` ที่มี 1 คำตอบต่อเคสเท่ากับของเดิมพอดี ผ่านด่านที่นับจำนวน
+        # แล้วเขียนทับคำตอบรอบ 1 ทิ้งทั้งชุด โดยพิมพ์ว่า "รวมแล้ว 44 เคส" และคืน exit 0
+        # (ตัวด่านเองเป็นบั๊กคลาสเดียวกับที่มันถูกเขียนมากัน — ตรวจตัวแทนแทนของจริง)
+        from collections import Counter
+        cur = load_bank(a.arm)
+        lost = sorted(cid for cid, reps in cur.items()
+                      if Counter(reps) - Counter(merged.get(cid, [])))
+        if lost:
+            sys.stderr.write(
+                'ยกเลิกการรวม — จะทำให้ %d เคสมีคำตอบน้อยลงกว่าที่มีอยู่ใน %s\n'
+                '  เช่น %s\n'
+                '  --merge เขียนทับไฟล์หลักด้วยผลของ tag ที่ระบุเท่านั้น ไม่ได้เขียนต่อท้าย\n'
+                '  ⇒ ต้องใส่ tag ของรอบเก่าเข้าไปด้วย เช่น --merge เก่า,ใหม่\n'
+                % (len(lost), os.path.basename(bank_path(a.arm)), ' '.join(lost[:5])))
+            return 2
         io.open(bank_path(a.arm), 'w', encoding='utf-8', newline='\n').write(
             json.dumps(merged, ensure_ascii=False, indent=2) + '\n')
         io.open(timing_path(a.arm), 'w', encoding='utf-8', newline='\n').write(
             json.dumps(tmerged, ensure_ascii=False, indent=2) + '\n')
-        print('รวมแล้ว %d เคส เข้า %s' % (len(merged), os.path.basename(bank_path(a.arm))))
+        print('รวมแล้ว %d เคส เข้า %s (คำตอบต่อเคส %d-%d)'
+              % (len(merged), os.path.basename(bank_path(a.arm)),
+                 min(len(v) for v in merged.values()) if merged else 0,
+                 max(len(v) for v in merged.values()) if merged else 0))
         return 0
 
     cases = load_cases()
