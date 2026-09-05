@@ -74,6 +74,21 @@ def save_bank(bank, arm='full', tag=''):
 
 ID_RE = re.compile(r'\b([A-Z]{2,6}-\d{2})\b')
 
+# คำตอบที่บอกว่า "ยังอ่านไฟล์ไม่ได้" **ไม่ใช่คำตอบ** — มันคือการรันที่ไม่เคยเห็นแคตตาล็อกเลย
+# แล้วถูกเก็บลงธนาคารและให้คะแนน recall 0 ตามปกติ = ตัวเลขที่ดูเหมือนผลวัด แต่วัดการขอสิทธิ์
+#
+# วัดจริง 2026-09-03 · แขน full tag t1 ปนเปื้อน 1/44 · แขน full_ask tag c9 ปนเปื้อน **6/46**
+#   b05  "ต้องขออนุญาตอ่านไฟล์ skills/nohell/HELL-CATALOG.md ก่อน ระบบแจ้งว่าพาธนี้ต้องอนุมัติด้วยมือ"
+#   b13  "ต้องขออนุมัติแบบ manual สำหรับ path นี้ก่อนถึงจะอ่านไฟล์ได้"
+# ถ้าไม่กันออก แขน full_ask จะอ่านว่า recall ตก 11.8 จุด ทั้งที่กันปนเปื้อนแล้ว **recall เท่ากันเป๊ะ**
+# ⇒ สิ่งประดิษฐ์ตัวนี้ใหญ่พอที่จะพลิกข้อสรุปของการทดลองทั้งอัน
+#
+# เกณฑ์ตั้งไว้ให้ **แคบ**: ต้องไม่มีบรรทัดคำตอบที่ถูกรูปเลย *และ* มีคำที่ชี้เรื่องสิทธิ์
+# คำตอบที่ถูกรูปแล้วบังเอิญมีคำเหล่านี้ในร้อยแก้วประกอบ จะไม่ถูกทิ้ง
+BLOCKED_RE = re.compile(
+    r'claude-pools|permission prompt|permission denied|not permitted to read'
+    r'|ยังไม่อนุมัติ|ขออนุมัติ|ขออนุญาต|ต้องการสิทธิ์|ไม่มีสิทธิ์อ่าน|อนุมัติการอ่าน', re.I)
+
 # คำตอบที่ทำตามกติกาคือ *บรรทัดเดียว* มีแต่ ID / NONE / ASK
 # ผิดรูปแล้วยังถูกขูด ID จากร้อยแก้ว = นับข้อที่โมเดลบอกว่า *ไม่* เข้า ว่ารายงานมา
 # วัดแล้ว: b05 รอบ 1 ตอบ 495 ตัวอักษร ขึ้นต้นด้วยบล็อก "★ Insight" ในนั้นมีประโยค
@@ -243,7 +258,13 @@ def ask(job):
         if not why:
             why = (r.stderr or '').strip().split('\n')[0][:120]
         return '', why or ('exit %d' % r.returncode), time.time() - t0
-    return r.stdout.strip(), None, time.time() - t0
+    reply = r.stdout.strip()
+    # exit 0 แต่ไม่ได้ตอบโจทย์ — คืนเป็น error เพื่อไม่ให้ลงธนาคาร (ดู BLOCKED_RE)
+    # ยิงใหม่ได้เรื่อย ๆ เพราะเคสที่ไม่ลงธนาคารจะถูกหยิบมายิงซ้ำในรอบถัดไปเอง
+    if BLOCKED_RE.search(reply) and parse_answer(reply)[2]:
+        return '', ('ถูกบล็อกไม่ให้อ่านไฟล์ ไม่ใช่คำตอบ: '
+                    + reply[:90].replace('\n', ' ')), time.time() - t0
+    return reply, None, time.time() - t0
 
 
 def load_keys():
@@ -529,7 +550,17 @@ def main():
         summary[k] = {'mean': round(statistics.mean(vals), 4),
                       'min': min(vals), 'max': max(vals),
                       'stdev': round(statistics.stdev(vals), 4) if len(vals) > 1 else 0.0}
+    # se เคสต่อเคสของรอบสุดท้าย — sd ข้างล่างตอบว่า "ยิงชุดเดิมซ้ำจะต่างกันแค่ไหน"
+    # ซึ่ง **ไม่ใช่ความไม่แน่นอนของตัวเลข** วัดแล้วว่า se ใหญ่กว่า sd 3.8 เท่า
+    # และแขน routed เคยได้ sd 0.0000 ทั้งที่โมเดลเปลี่ยนคำตอบไป 13 จาก 37 เคส
+    # (ความผันผวนหักล้างกันในค่าเฉลี่ย) ⇒ พิมพ์ทั้งสองตัวคู่กันเสมอ
+    _rec = [d['recall'] for d in rounds[-1]['detail'].values() if d['recall'] is not None]
+    _se = (statistics.stdev(_rec) / (len(_rec) ** 0.5)) if len(_rec) > 1 else 0.0
     print('\nสรุปจาก %d รอบ' % a.runs)
+    print('  ** recall se เคสต่อเคส %.4f (n=%d เคส) = ความไม่แน่นอนของตัวเลข **' % (_se, len(_rec)))
+    print('     ผลต่างที่เล็กกว่า ~%.0f จุด แยกจาก noise ไม่ได้ที่จำนวนเคสเท่านี้' % (2.8 * _se * 100))
+    print('     sd ข้างล่างวัดความแปรปรวน *ระหว่างรอบ* เท่านั้น ห้ามอ่านว่าเป็นความแม่นยำ'
+          ' — ดู eval/reanalyze.py')
     for k, v in summary.items():
         print('  %-18s mean %-8s min %-6s max %-6s sd %s'
               % (k, v['mean'], v['min'], v['max'], v['stdev']))

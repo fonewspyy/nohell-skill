@@ -1,0 +1,10 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อบริษัท/ระบบ/ตาราง/รหัสเอกสาร/คนออกแล้ว ที่มาคือเอกสารส่งงานภายในของ repo A เรื่องรายงานสถานะบิลที่ผู้ใช้ตามบิลไม่ได้ (2026-07-08) โจทย์ในฟิลด์ task เป็นคำที่ผู้ใช้พูดจริง ไม่ได้เรียบเรียงใหม่ · snippet รุ่นแรกใช้ `CancelFlag = 1` ซึ่งกฎอัตโนมัติจับได้ว่าเป็น SQL-19 (magic status code) — เป็นข้อบกพร่องจริงที่หลุดเข้ามาโดยไม่ตั้งใจ และจะทำให้การตอบ ID *ถูก* แทนที่จะเป็น ASK จึงเขียนใหม่ให้เข้ารูป IS NOT NULL เหมือนกิ่งอื่น (กับดักเดียวกับ a08 รุ่นแรก)",
+  "lang": "sql",
+  "must_ask": true,
+  "expected_ids": [],
+  "task": "บิลที่จริงอยู่แผนกรับคืนสินค้า แต่รายงานโชว์กระจายไปหลายสถานะ ทั้งส่งสำเร็จ ส่งไม่สำเร็จ และรออีกฝ่ายรับ ทำให้ตามบิลไม่ได้ แก้ให้มันโชว์ว่าอยู่รับคืน",
+  "why": "แผนกรับคืนมาร์คบิลไว้แล้วจริงในตารางของเขา แต่รายงานไม่เคยอ่านค่านั้น สิ่งที่เดาแทนไม่ได้คือ **ลำดับความสำคัญ**: สถานะ 'อยู่รับคืน' ควรวางไว้ตรงไหนในลูกโซ่ และเมื่อบิลใบเดียวกันถูกมาร์คว่าอยู่รับคืน *แล้วต่อมาปลายทางรับบิลไปจริง* สถานะไหนชนะ — วัดจริงแล้วชนกันแค่ 1 ใบจาก 331 ⇒ ข้อมูลไม่ได้บังคับคำตอบ เป็นการตัดสินใจเชิงนโยบายล้วน ๆ ที่ต้องถามเจ้าของกระบวนการ เดาผิดแล้วบิลหายจากสายตาฝ่ายที่ต้องตาม",
+  "snippet": "SELECT b.BillNo,\n       Stage = CASE\n           WHEN b.CancelledAt IS NOT NULL       THEN N'CANCELLED'\n           WHEN acc.PostedAt   IS NOT NULL      THEN N'POSTED'\n           WHEN acc.SubmittedAt IS NOT NULL     THEN N'SUBMITTED'\n           WHEN rcv.ReceivedAt IS NOT NULL      THEN N'RECEIVED'\n           WHEN sh.ClosedAt    IS NOT NULL      THEN N'DELIVERED'\n           WHEN sh.JobNo       IS NOT NULL      THEN N'IN_DELIVERY'\n           ELSE N'NOT_STARTED' END\nFROM   #Bill AS b\n       LEFT JOIN #Acc      AS acc ON acc.BillNo = b.BillNo\n       LEFT JOIN #Receipt  AS rcv ON rcv.BillNo = b.BillNo\n       LEFT JOIN #Shipment AS sh  ON sh.BillNo  = b.BillNo;",
+  "id": "a10-must-ask-custody-precedence"
+}

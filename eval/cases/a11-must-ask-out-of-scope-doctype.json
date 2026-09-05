@@ -1,0 +1,10 @@
+{
+  "source": "บั๊ก production จริง (repo A) — ตัดชื่อบริษัท/ระบบ/ตาราง/รหัสเอกสาร/คนออกแล้ว ที่มาคือเอกสารส่งงานภายในของ repo A ฉบับเดียวกับ a10 คนละอาการ (2026-07-08) โจทย์ในฟิลด์ task เป็นคำที่ผู้ใช้พูดจริง",
+  "lang": "sql",
+  "must_ask": true,
+  "expected_ids": [],
+  "task": "ใบส่งของ 84 ใบขึ้นว่า ยังไม่เริ่มส่ง ตลอด ไม่เคยขยับเลย เกิดอะไรขึ้น แก้ให้หน่อย",
+  "why": "ใบส่งบางชนิดไม่วิ่งผ่านคลังจัดส่งโดยธรรมชาติ (ของแถม/ชดเชย) จึงไม่มีวันมีข้อมูลจัดส่งให้รายงานเห็น แล้วตกลงมาที่ ELSE เป็น 'ยังไม่เริ่มส่ง' ถาวร สิ่งที่เดาแทนไม่ได้คือ **ชนิดใบส่งชนิดไหนบ้างที่ถือว่าอยู่นอกขอบข่ายจัดส่ง** — วัดจริงพบว่า blanket-exclude ตามชนิดไม่ได้: ชนิดหนึ่งไม่วิ่ง 196/196 อีกชนิดไม่วิ่ง 49/57 แต่อีกชนิดไม่วิ่งแค่ 13/287 ⇒ ต้องมีคนตัดสินว่าเส้นแบ่งอยู่ตรงไหนและใครเป็นเจ้าของรายการนั้น snippet ไม่มีข้อมูลชนิดใบส่งเข้ามาถึงเลยด้วยซ้ำ",
+  "snippet": "SELECT d.DocNo,\n       Stage = CASE\n           WHEN sh.ClosedAt IS NOT NULL THEN N'DELIVERED'\n           WHEN sh.JobNo    IS NOT NULL THEN N'IN_DELIVERY'\n           ELSE N'NOT_STARTED' END\nFROM   #Doc AS d\n       LEFT JOIN #Shipment AS sh ON sh.DocNo = d.DocNo\nWHERE  d.IssuedAt >= @fromUtc AND d.IssuedAt < @toUtc;",
+  "id": "a11-must-ask-out-of-scope-doctype"
+}
