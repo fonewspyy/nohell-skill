@@ -1,0 +1,113 @@
+{
+  "a01-must-ask-money-rounding": [
+    "TIME-02 TIME-03"
+  ],
+  "a02-must-ask-retention": [
+    "ASK"
+  ],
+  "a03-must-ask-negative-stock": [
+    "TXN-17"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "ASK"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "ASK"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "TIME-05"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "AGG-05"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "TIME-02 TIME-03"
+  ],
+  "b01-nolock": [
+    "SQL-15"
+  ],
+  "b02-or-chain": [
+    "SQL-32"
+  ],
+  "b03-missing-index": [
+    "PERF-05 ตรงกับปัญหา: ไม่มี index บนคอลัมน์ที่กรองบ่อย (TranType, ShipmentID) ทำให้ scan ทั้งตาราง\n\nPERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01 MEAS-09"
+  ],
+  "b05-stats-per-version": [
+    "MEAS-02"
+  ],
+  "b06-dual-master": [
+    "SSOT-02 SSOT-13 SSOT-14 ARCH-12"
+  ],
+  "b07-catch-return-null": [
+    "ERR-02"
+  ],
+  "b08-empty-as-error": [
+    "API-03 API-10"
+  ],
+  "b09-read-modify-write": [
+    "This is a classic read-modify-write without concurrency control (SELECT then UPDATE with no lock/version check).\n\nTXN-03"
+  ],
+  "b10-sentinel-magic": [
+    "SQL-19"
+  ],
+  "b11-registry-split-deploy": [
+    "MOBILE-11"
+  ],
+  "b12-migration-not-idempotent": [
+    "SHIP-05"
+  ],
+  "b13-mobile-idempotency-key": [
+    "MOBILE-02 matches exactly: idempotency key generated at send-time (new UUID per retry attempt) instead of at creation, and not persisted in the queue with the job.\n\nMOBILE-02"
+  ],
+  "b14-ml-train-serve-skew": [
+    "ML-03"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04"
+  ],
+  "c01-parameterized": [
+    "NONE"
+  ],
+  "c02-explicit-columns": [
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "Found it — TXN-19 directly matches: the MERGE targets `dbo.DriverPhone` on `DriverID` without `WITH (HOLDLOCK)`, exactly the described race condition.\n\nTXN-19"
+  ],
+  "c04-rethrow-with-context": [
+    "NONE"
+  ],
+  "c05-typed-result": [
+    "PERF-03 also matches (no pagination on list endpoint), overlapping with API-09.\n\n**API-09 PERF-03**"
+  ],
+  "c06-named-constant": [
+    "CODE-26"
+  ],
+  "c07-bounded-retry": [
+    "TXN-06"
+  ],
+  "c08-migration-guarded": [
+    "DATA-07"
+  ],
+  "c09-validated-input": [
+    "API-05"
+  ],
+  "c10-decimal-money": [
+    "DATA-18"
+  ],
+  "c11-mobile-durable-queue": [
+    "NONE"
+  ],
+  "c12-ml-shared-pipeline": [
+    "NONE"
+  ],
+  "c13-pdpa-scoped-retention": [
+    "NONE"
+  ]
+}

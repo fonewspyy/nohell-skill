@@ -1,0 +1,134 @@
+{
+  "a01-must-ask-money-rounding": [
+    "TIME-02"
+  ],
+  "a02-must-ask-retention": [
+    "ASK"
+  ],
+  "a03-must-ask-negative-stock": [
+    "TXN-17"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "ASK"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "NONE"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "TIME-08"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "ASK"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "TIME-02"
+  ],
+  "b01-nolock": [
+    "SQL-15 SQL-19"
+  ],
+  "b02-or-chain": [
+    "SQL-32"
+  ],
+  "b03-missing-index": [
+    "PERF-05 ตรงกับ \"ไม่มี index บนคอลัมน์ที่กรองบ่อย → scan ทั้งตารางทุกครั้ง\" ซึ่งตรงกับโจทย์เป๊ะ (ไม่มี index บน TranType, ShipmentID ทำให้สแกนทั้งตารางจนช้า 122 วิ)\n\nPERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01 MEAS-09"
+  ],
+  "b05-stats-per-version": [
+    "MEAS-02"
+  ],
+  "b06-dual-master": [
+    "SSOT-01 SSOT-14 ARCH-12"
+  ],
+  "b07-catch-return-null": [
+    "ERR-02 ERR-03"
+  ],
+  "b08-empty-as-error": [
+    "API-03 API-10"
+  ],
+  "b09-read-modify-write": [
+    "TXN-03 TXN-17"
+  ],
+  "b10-sentinel-magic": [
+    "SQL-19 ERR-04"
+  ],
+  "b11-registry-split-deploy": [
+    "MOBILE-11"
+  ],
+  "b12-migration-not-idempotent": [
+    "SHIP-05"
+  ],
+  "b13-mobile-idempotency-key": [
+    "Code generates a new idempotency key (`Uuid().v4()`) on every retry attempt instead of once at enqueue time and persisting it with the job, so a retry after app kill/restart produces a duplicate server-side record.\n\nMOBILE-02"
+  ],
+  "b14-ml-train-serve-skew": [
+    "ML-03"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04"
+  ],
+  "c01-parameterized": [
+    "NONE"
+  ],
+  "c02-explicit-columns": [
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "TXN-19 matches exactly: MERGE without WITH (HOLDLOCK) on target table.\n\nTXN-19"
+  ],
+  "c04-rethrow-with-context": [
+    "NONE"
+  ],
+  "c05-typed-result": [
+    "API-09"
+  ],
+  "c06-named-constant": [
+    "CODE-26"
+  ],
+  "c07-bounded-retry": [
+    "TXN-06"
+  ],
+  "c08-migration-guarded": [
+    "DATA-07"
+  ],
+  "c09-validated-input": [
+    "Given only this snippet — server-side Zod validation at the boundary, correct 400 status, no stack trace/SQL leak — it does not violate any catalog item.\n\nNONE"
+  ],
+  "c10-decimal-money": [
+    "DATA-18"
+  ],
+  "c11-mobile-durable-queue": [
+    "NONE"
+  ],
+  "c12-ml-shared-pipeline": [
+    "ML-13"
+  ],
+  "c13-pdpa-scoped-retention": [
+    "NONE"
+  ],
+  "p01-prose-money-rounding": [
+    "TIME-02 TIME-03"
+  ],
+  "p03-prose-negative-stock": [
+    "TXN-17"
+  ],
+  "p04-prose-cancelled-in-report": [
+    "FILE-01"
+  ],
+  "p05-prose-discount-stacking": [
+    "ASK"
+  ],
+  "p06-prose-month-cutoff-tz": [
+    "TIME-05"
+  ],
+  "p07-prose-edit-after-approve": [
+    "ASK"
+  ],
+  "p08-prose-payment-allocation": [
+    "ASK"
+  ]
+}

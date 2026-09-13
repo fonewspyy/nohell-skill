@@ -1,0 +1,92 @@
+{
+  "a01-must-ask-money-rounding": [
+    "TIME-02"
+  ],
+  "a02-must-ask-retention": [
+    "ASK"
+  ],
+  "a03-must-ask-negative-stock": [
+    "TXN-17"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "DATA-11"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "ASK"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "TIME-05"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "ASK"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "TIME-02 TIME-03"
+  ],
+  "b01-nolock": [
+    "SQL-15 SQL-19"
+  ],
+  "b02-or-chain": [
+    "SQL-32"
+  ],
+  "b03-missing-index": [
+    "PERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01 MEAS-09"
+  ],
+  "b05-stats-per-version": [
+    "MEAS-02"
+  ],
+  "b06-dual-master": [
+    "SSOT-01 SSOT-02 SSOT-13 SSOT-14"
+  ],
+  "b07-catch-return-null": [
+    "This path requires manual approval before I can read it — it's flagged as a suspicious Windows path pattern. Could you approve access to `C:\\Users\\<USER~1>\\AppData\\Local\\Temp\\nohell-eval-ijc2j0jp\\` (or confirm this is expected), so I can proceed?"
+  ],
+  "b08-empty-as-error": [
+    "API-03"
+  ],
+  "b09-read-modify-write": [
+    "TXN-03"
+  ],
+  "b10-sentinel-magic": [
+    "SQL-19"
+  ],
+  "b11-registry-split-deploy": [
+    "API-01 also somewhat fits (no versioning → old client breaks immediately), but MOBILE-11 is the precise match for this exact scenario (server-driven feature rolled out before app version that understands it, no version gate). Since the task says \"logic is in stored procedure\" controlling mobile UI, and the app is unaware of new buttons — this is squarely MOBILE-11.\n\nMOBILE-11"
+  ],
+  "b12-migration-not-idempotent": [
+    "SHIP-05 TXN-14"
+  ],
+  "b13-mobile-idempotency-key": [
+    "The code generates a fresh idempotency key on every retry attempt instead of once when the job is created/queued, and it's not persisted with the job—exact match to MOBILE-02.\n\nMOBILE-02"
+  ],
+  "b14-ml-train-serve-skew": [
+    "ML-03"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04 matches exactly: erasure request only hits `customers` table, but the doc explicitly lists backup/search_index/report_cache as other locations still holding the data, yet the code notifies \"erased\" as if complete.\n\n**PDPA-04**"
+  ],
+  "c01-parameterized": [
+    "NONE"
+  ],
+  "c02-explicit-columns": [
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "TXN-19 matches exactly: this `MERGE` statement targets `dbo.DriverPhone` without `WITH (HOLDLOCK)`, exactly the described race condition.\n\nTXN-19"
+  ],
+  "c05-typed-result": [
+    "API-09 PERF-03"
+  ],
+  "c06-named-constant": [
+    "NONE"
+  ],
+  "c04-rethrow-with-context": [
+    "NONE"
+  ]
+}

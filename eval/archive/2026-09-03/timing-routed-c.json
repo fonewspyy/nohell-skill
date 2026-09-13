@@ -1,0 +1,113 @@
+{
+  "a01-must-ask-money-rounding": [
+    31.11
+  ],
+  "a02-must-ask-retention": [
+    104.32
+  ],
+  "a03-must-ask-negative-stock": [
+    37.49
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    51.58
+  ],
+  "a05-must-ask-discount-stacking": [
+    37.63
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    42.95
+  ],
+  "a07-must-ask-edit-after-approve": [
+    181.26
+  ],
+  "a08-must-ask-payment-allocation": [
+    82.55
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    33.42
+  ],
+  "b01-nolock": [
+    16.95
+  ],
+  "b02-or-chain": [
+    15.25
+  ],
+  "b03-missing-index": [
+    35.64
+  ],
+  "b04-harness-mismatch": [
+    29.61
+  ],
+  "b05-stats-per-version": [
+    27.42
+  ],
+  "b06-dual-master": [
+    138.24
+  ],
+  "b07-catch-return-null": [
+    17.06
+  ],
+  "b08-empty-as-error": [
+    48.89
+  ],
+  "b09-read-modify-write": [
+    15.78
+  ],
+  "b10-sentinel-magic": [
+    63.83
+  ],
+  "b11-registry-split-deploy": [
+    27.88
+  ],
+  "b12-migration-not-idempotent": [
+    33.03
+  ],
+  "b13-mobile-idempotency-key": [
+    30.79
+  ],
+  "b14-ml-train-serve-skew": [
+    42.69
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    54.01
+  ],
+  "c01-parameterized": [
+    31.76
+  ],
+  "c02-explicit-columns": [
+    38.06
+  ],
+  "c03-idempotent-upsert": [
+    66.16
+  ],
+  "c04-rethrow-with-context": [
+    93.47
+  ],
+  "c05-typed-result": [
+    66.44
+  ],
+  "c06-named-constant": [
+    89.99
+  ],
+  "c07-bounded-retry": [
+    40.09
+  ],
+  "c08-migration-guarded": [
+    65.09
+  ],
+  "c09-validated-input": [
+    54.64
+  ],
+  "c10-decimal-money": [
+    40.87
+  ],
+  "c11-mobile-durable-queue": [
+    36.36
+  ],
+  "c12-ml-shared-pipeline": [
+    76.47
+  ],
+  "c13-pdpa-scoped-retention": [
+    115.11
+  ]
+}

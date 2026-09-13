@@ -1,0 +1,187 @@
+{
+  "a01-must-ask-money-rounding": [
+    "TYPE-04 TIME-02 TIME-03 TIME-15 CODE-04",
+    "TYPE-04 TIME-03 TIME-15 CODE-04",
+    "TYPE-04 TIME-02 TIME-03 TIME-15 CODE-04"
+  ],
+  "a02-must-ask-retention": [
+    "ASK",
+    "ASK",
+    "ASK"
+  ],
+  "b01-nolock": [
+    "SQL-15 SQL-19",
+    "SQL-15 SQL-19",
+    "SQL-15 SQL-19"
+  ],
+  "b03-missing-index": [
+    "PERF-05",
+    "PERF-05",
+    "PERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01",
+    "MEAS-01",
+    "MEAS-01"
+  ],
+  "b05-stats-per-version": [
+    "`★ Insight ─────────────────────────────────────`\n- อาการนี้คือ baseline ที่ผูกกับ **ตัวระบุรายเวอร์ชันของ object** (เช่น `plan_handle`/`sql_handle`/`object_id` รุ่นใหม่หลัง ALTER) แทนที่จะผูกกับ **ตัวตนของ query** (`query_hash`/`plan_hash`) — พอ recompile/ALTER ตัวระบุก็เกิดใหม่ ประวัติเลยขาดตอน\n- ต่างจาก MEAS-10 (ไม่มีค่าตั้งต้นเลย) — เคสนี้ *มี* การเก็บ baseline แต่คีย์ที่ใช้เก็บไม่เสถียร ผลลัพธ์จึงเทียบก่อน–หลังไม่ได้เหมือนกัน\n`─────────────────────────────────────────────────`\n\nMEAS-02",
+    "MEAS-02",
+    "MEAS-02"
+  ],
+  "b06-dual-master": [
+    "DATA-12 SSOT-13 ARCH-12",
+    "DATA-12 SSOT-13 ARCH-12 LEG-05 SSOT-14",
+    "DATA-12 ARCH-12 LEG-04 LEG-05 SSOT-14 FILE-01"
+  ],
+  "b07-catch-return-null": [
+    "ERR-02",
+    "ERR-02",
+    "ERR-02"
+  ],
+  "b08-empty-as-error": [
+    "API-03",
+    "API-03 API-05",
+    "API-03"
+  ],
+  "b10-sentinel-magic": [
+    "DATA-11 SQL-19 CODE-04",
+    "DATA-11 SQL-19 CODE-04",
+    "CODE-04 SQL-19 DATA-11"
+  ],
+  "b11-registry-split-deploy": [
+    "REG-06",
+    "REG-06 API-01",
+    "REG-06 API-01"
+  ],
+  "b12-migration-not-idempotent": [
+    "SHIP-05",
+    "SHIP-05",
+    "SHIP-05"
+  ],
+  "c01-parameterized": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c02-explicit-columns": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "NONE",
+    "TXN-09",
+    "TXN-09"
+  ],
+  "c04-rethrow-with-context": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c05-typed-result": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c06-named-constant": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c07-bounded-retry": [
+    "NONE",
+    "TXN-06 ERR-08",
+    "ERR-08"
+  ],
+  "c08-migration-guarded": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c09-validated-input": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "c10-decimal-money": [
+    "DATA-18",
+    "DATA-18",
+    "DATA-18"
+  ],
+  "c11-mobile-durable-queue": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "b09-read-modify-write": [
+    "TXN-03",
+    "TXN-03",
+    "TXN-03"
+  ],
+  "b13-mobile-idempotency-key": [
+    "MOBILE-02 TXN-06 ERR-03",
+    "MOBILE-02 TXN-06 ERR-03",
+    "TXN-06 ERR-12"
+  ],
+  "b14-ml-train-serve-skew": [
+    "ML-03",
+    "ML-03",
+    "ML-03"
+  ],
+  "c12-ml-shared-pipeline": [
+    "NONE",
+    "NONE",
+    "NONE"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04",
+    "PDPA-04",
+    "PDPA-04"
+  ],
+  "c13-pdpa-scoped-retention": [
+    "NONE",
+    "อ่านแคตตาล็อกครบทั้ง 483 ข้อ 31 หมวดแล้ว (รวมหมวด PDPA/JOB/ERR ที่เกี่ยวข้องที่สุด)\n\nNONE",
+    "NONE"
+  ],
+  "b02-or-chain": [
+    "SQL-32",
+    "SQL-32",
+    "SQL-32"
+  ],
+  "a03-must-ask-negative-stock": [
+    "ASK",
+    "ASK",
+    "ASK"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "ASK",
+    "ASK",
+    "ASK"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "ASK",
+    "ASK",
+    "ASK"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "ASK",
+    "ASK",
+    "ASK"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK",
+    "ASK",
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "ASK",
+    "ASK",
+    "ASK\n\n`★ Insight ─────────────────────────────────────`\n- โจทย์นี้ไม่ได้ขาด \"โค้ด\" แต่ขาด **นโยบายตัดชำระ** ที่เดาแทนเจ้าของกฎไม่ได้: 5,000 กับ 3 ใบรวม 7,200 จะตัดแบบ FIFO ตาม DueDate, ตามวันที่เอกสาร, เฉลี่ยตามสัดส่วน, หรือตามที่ลูกค้าระบุมา — และตัดใบสุดท้าย \"บางส่วน\" ได้หรือไม่ ทั้งสี่ทางให้ผลลัพธ์ทางบัญชีต่างกันหมด\n- `AI-06` คือข้อที่บังคับให้หยุด: rule ต้องอ้างแหล่ง (คน/เอกสาร/ข้อมูลจริง) ถ้าไม่มีให้ถาม ไม่ใช่เดา — ถ้าเดาแล้วเขียนลงไป กฎที่ไม่มีใครเคยตกลงจะฝังอยู่ในโค้ดถาวร\n- ตัว SELECT ที่ให้มาสะอาดโดยเจตนา (ระบุคอลัมน์ ไม่มี `NOLOCK` ไม่มี dynamic SQL) จึงยังไม่ผิดข้อไหนด้วยตัวมันเอง — แต่ `ORDER BY i.DueDate` ที่ไม่มีคีย์รองจะกลายเป็น `AGG-05` ทันทีที่ยืนยันว่าใช้ FIFO เพราะใบที่ DueDate เท่ากันจะสลับกันได้ทุกรัน และตอนเขียนฝั่ง write ยังต้องคุม `TXN-03`/`TXN-06` อีก\n`─────────────────────────────────────────────────`"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "TYPE-04 TIME-02 TIME-03 TIME-15 TYPE-03",
+    "ASK",
+    "TIME-02 TIME-03 TIME-15 TYPE-04"
+  ]
+}

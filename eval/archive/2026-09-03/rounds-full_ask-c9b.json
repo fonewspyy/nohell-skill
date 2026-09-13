@@ -1,0 +1,140 @@
+{
+  "a01-must-ask-money-rounding": [
+    "ASK"
+  ],
+  "a02-must-ask-retention": [
+    "ASK"
+  ],
+  "a03-must-ask-negative-stock": [
+    "ASK"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "ASK"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "ASK"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "ASK"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "ASK"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "ASK"
+  ],
+  "a10-must-ask-custody-precedence": [
+    "ASK"
+  ],
+  "a11-must-ask-out-of-scope-doctype": [
+    "ASK"
+  ],
+  "b01-nolock": [
+    "ผมไม่สามารถอ่านไฟล์ในโฟลเดอร์นี้ได้ เพราะระบบบล็อกการเข้าถึง path นี้โดยอัตโนมัติ (ต้องได้รับอนุมัติด้วยตนเอง) กรุณาอนุมัติสิทธิ์การอ่าน หรือระบุ path อื่นที่เข้าถึงได้"
+  ],
+  "b02-or-chain": [
+    "SQL-32"
+  ],
+  "b03-missing-index": [
+    "PERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01"
+  ],
+  "b05-stats-per-version": [
+    "I need permission to read that file, but the tool keeps flagging the path and I can't get manual approval in this session. Could you either grant access or paste the relevant contents of `skills/nohell/HELL-CATALOG.md` so I can check the baseline-tracking issue against it?"
+  ],
+  "b06-dual-master": [
+    "ARCH-12 FILE-01 SSOT-01 SSOT-02"
+  ],
+  "b07-catch-return-null": [
+    "ERR-02"
+  ],
+  "b08-empty-as-error": [
+    "API-03"
+  ],
+  "b09-read-modify-write": [
+    "TXN-03 TXN-17"
+  ],
+  "b10-sentinel-magic": [
+    "No further matches. Best fits are the magic-literal entries.\n\n**CODE-04 SQL-19**"
+  ],
+  "b11-registry-split-deploy": [
+    "MOBILE-11"
+  ],
+  "b12-migration-not-idempotent": [
+    "No specific catalog entry covers table-lock size from `ADD COLUMN`. The only clearly determinable violation from the script itself (no business-rule guessing needed) is non-idempotency: rerunning it duplicates every row in `DriverAudit` and the `ALTER TABLE ADD` fails on a second run.\n\nSHIP-05"
+  ],
+  "b13-mobile-idempotency-key": [
+    "MOBILE-02"
+  ],
+  "b14-ml-train-serve-skew": [
+    "Found ML-03 which is an exact match: preprocessing at train time doesn't match serving time (scaler fit during training but not saved/applied at serving, raw values fed directly).\n\nML-03"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04"
+  ],
+  "c02-explicit-columns": [
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "TXN-19"
+  ],
+  "c04-rethrow-with-context": [
+    "NONE"
+  ],
+  "c01-parameterized": [
+    "NONE"
+  ],
+  "c05-typed-result": [
+    "ASK"
+  ],
+  "c06-named-constant": [
+    "Not applicable here. The relevant match is CODE-26.\n\nCODE-26"
+  ],
+  "c07-bounded-retry": [
+    "ERR-08"
+  ],
+  "c08-migration-guarded": [
+    "NONE"
+  ],
+  "c09-validated-input": [
+    "NONE"
+  ],
+  "c10-decimal-money": [
+    "DATA-18"
+  ],
+  "c11-mobile-durable-queue": [
+    "**NONE**"
+  ],
+  "c12-ml-shared-pipeline": [
+    "ML-13"
+  ],
+  "c13-pdpa-scoped-retention": [
+    "NONE"
+  ],
+  "p01-prose-money-rounding": [
+    "ASK"
+  ],
+  "p03-prose-negative-stock": [
+    "ASK"
+  ],
+  "p04-prose-cancelled-in-report": [
+    "ASK"
+  ],
+  "p05-prose-discount-stacking": [
+    "AI-06 คือข้อที่ตรงประเด็นที่สุด (agent เดา business rule แทนคน) — ในที่นี้ไม่ควรเดาว่า \"15%\" ที่ลูกค้าอ้างหมายถึงสูตรไหน (flat 15%, ปัดเศษระหว่างขั้น, หรือ rate จริงคือคนละคู่ เช่น 10%+X% ที่คำนวณแล้วได้ 15%) โดยไม่มีแหล่งอ้างอิงกฎธุรกิจนั้น\n\nASK"
+  ],
+  "p07-prose-edit-after-approve": [
+    "ARCH-21"
+  ],
+  "p06-prose-month-cutoff-tz": [
+    "ASK"
+  ],
+  "p08-prose-payment-allocation": [
+    "ASK"
+  ]
+}

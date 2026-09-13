@@ -1,0 +1,140 @@
+{
+  "a01-must-ask-money-rounding": [
+    31.64
+  ],
+  "a02-must-ask-retention": [
+    29.26
+  ],
+  "a03-must-ask-negative-stock": [
+    58.12
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    10.9
+  ],
+  "a05-must-ask-discount-stacking": [
+    42.57
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    58.91
+  ],
+  "a07-must-ask-edit-after-approve": [
+    97.33
+  ],
+  "a08-must-ask-payment-allocation": [
+    42.77
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    29.76
+  ],
+  "a10-must-ask-custody-precedence": [
+    44.9
+  ],
+  "a11-must-ask-out-of-scope-doctype": [
+    92.43
+  ],
+  "b01-nolock": [
+    13.27
+  ],
+  "b02-or-chain": [
+    22.21
+  ],
+  "b03-missing-index": [
+    33.95
+  ],
+  "b04-harness-mismatch": [
+    39.74
+  ],
+  "b05-stats-per-version": [
+    12.8
+  ],
+  "b06-dual-master": [
+    215.59
+  ],
+  "b07-catch-return-null": [
+    27.04
+  ],
+  "b08-empty-as-error": [
+    22.29
+  ],
+  "b09-read-modify-write": [
+    18.06
+  ],
+  "b10-sentinel-magic": [
+    43.28
+  ],
+  "b11-registry-split-deploy": [
+    84.71
+  ],
+  "b12-migration-not-idempotent": [
+    53.6
+  ],
+  "b13-mobile-idempotency-key": [
+    42.58
+  ],
+  "b14-ml-train-serve-skew": [
+    38.61
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    24.75
+  ],
+  "c02-explicit-columns": [
+    44.98
+  ],
+  "c03-idempotent-upsert": [
+    28.09
+  ],
+  "c04-rethrow-with-context": [
+    73.03
+  ],
+  "c01-parameterized": [
+    39.73
+  ],
+  "c05-typed-result": [
+    89.22
+  ],
+  "c06-named-constant": [
+    46.87
+  ],
+  "c07-bounded-retry": [
+    83.36
+  ],
+  "c08-migration-guarded": [
+    76.28
+  ],
+  "c09-validated-input": [
+    71.23
+  ],
+  "c10-decimal-money": [
+    54.74
+  ],
+  "c11-mobile-durable-queue": [
+    72.75
+  ],
+  "c12-ml-shared-pipeline": [
+    70.84
+  ],
+  "c13-pdpa-scoped-retention": [
+    123.94
+  ],
+  "p01-prose-money-rounding": [
+    30.27
+  ],
+  "p03-prose-negative-stock": [
+    122.97
+  ],
+  "p04-prose-cancelled-in-report": [
+    77.09
+  ],
+  "p05-prose-discount-stacking": [
+    31.1
+  ],
+  "p07-prose-edit-after-approve": [
+    164.24
+  ],
+  "p06-prose-month-cutoff-tz": [
+    170.5
+  ],
+  "p08-prose-payment-allocation": [
+    40.52
+  ]
+}

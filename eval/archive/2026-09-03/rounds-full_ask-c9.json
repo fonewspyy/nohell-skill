@@ -1,0 +1,140 @@
+{
+  "a01-must-ask-money-rounding": [
+    "ASK"
+  ],
+  "a02-must-ask-retention": [
+    "ASK"
+  ],
+  "a03-must-ask-negative-stock": [
+    "ASK"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "ASK"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "ASK"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "ต้องขออนุมัติจากคุณก่อน เพราะระบบตรวจพบ path ที่ต้องอนุมัติด้วยตนเอง — กรุณายืนยันว่าให้อ่านไฟล์ `skills/nohell/HELL-CATALOG.md` ในโฟลเดอร์การทำงานปัจจุบันได้"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "ASK"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "ASK"
+  ],
+  "b01-nolock": [
+    "SQL-15 CODE-04"
+  ],
+  "b02-or-chain": [
+    "SQL-32 ตรงเป๊ะกับ `OR` คร่อม 3 คอลัมน์ (TransportNo/LoadNo/RefNo) — ไม่มีกฎธุรกิจให้เดา จึงตัดสินได้แน่ชัด\n\nSQL-32"
+  ],
+  "b03-missing-index": [
+    "PERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01"
+  ],
+  "b05-stats-per-version": [
+    "ต้องขออนุญาตอ่านไฟล์ `skills/nohell/HELL-CATALOG.md` ก่อน ระบบแจ้งว่าพาธนี้ต้องอนุมัติด้วยมือ — ช่วยอนุมัติการอ่านไฟล์นี้ให้หน่อยครับ ถึงจะตรวจสอบกับแคตตาล็อกได้"
+  ],
+  "b06-dual-master": [
+    "ARCH-12 SSOT-13 SSOT-14"
+  ],
+  "a10-must-ask-custody-precedence": [
+    "ASK"
+  ],
+  "a11-must-ask-out-of-scope-doctype": [
+    "ASK"
+  ],
+  "b07-catch-return-null": [
+    "ต้องขออนุมัติจากคุณก่อน เนื่องจาก path ปัจจุบันถูกระบบตีความว่ามี pattern ที่ต้องยืนยันด้วยตนเอง — ช่วยกดอนุมัติ (approve) คำขออ่านไฟล์ที่ขึ้นมาให้หน่อยได้ไหมครับ ถึงจะดำเนินการต่อได้"
+  ],
+  "b08-empty-as-error": [
+    "Good, all categories accounted for. API-03 is the clear match — no need to read further sections.\n\n**API-03**"
+  ],
+  "b09-read-modify-write": [
+    "TXN-03 TXN-09"
+  ],
+  "b10-sentinel-magic": [
+    "CODE-04 SQL-19"
+  ],
+  "b11-registry-split-deploy": [
+    "MOBILE-11"
+  ],
+  "b12-migration-not-idempotent": [
+    "SHIP-05 SHIP-06"
+  ],
+  "b13-mobile-idempotency-key": [
+    "ต้องขออนุมัติแบบ manual สำหรับ path นี้ก่อนถึงจะอ่านไฟล์ได้ — ช่วยอนุมัติ permission prompt เพื่อให้ผมอ่าน `skills/nohell/HELL-CATALOG.md` ได้ไหมครับ"
+  ],
+  "b14-ml-train-serve-skew": [
+    "ML-03"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04"
+  ],
+  "c01-parameterized": [
+    "NONE"
+  ],
+  "c02-explicit-columns": [
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "TXN-19"
+  ],
+  "c04-rethrow-with-context": [
+    "ERR-04"
+  ],
+  "c05-typed-result": [
+    "API-09 API-10"
+  ],
+  "c06-named-constant": [
+    "NONE"
+  ],
+  "c07-bounded-retry": [
+    "ขออนุญาตอ่านไฟล์ก่อน — ระบบต้องการการอนุมัติด้วยมือสำหรับ path นี้ ช่วยกดอนุมัติให้หน่อยครับ ถ้าไม่สามารถอนุมัติได้ ผมต้องตอบ ASK เนื่องจากยังไม่ได้เห็นเนื้อหาแคตตาล็อก"
+  ],
+  "c08-migration-guarded": [
+    "ASK"
+  ],
+  "c09-validated-input": [
+    "NONE"
+  ],
+  "c10-decimal-money": [
+    "DATA-18"
+  ],
+  "c11-mobile-durable-queue": [
+    "TXN-15"
+  ],
+  "c12-ml-shared-pipeline": [
+    "ตอนนี้ระบบบล็อกการอ่านไฟล์ในโฟลเดอร์นี้ (ต้องขออนุมัติจากผู้ใช้ก่อน) ทำให้ยังเข้าไม่ถึง `skills/nohell/HELL-CATALOG.md` — ช่วยอนุมัติ permission prompt ให้หน่อยได้ไหม เพื่อให้ผมอ่านแคตตาล็อกแล้วเทียบกับโค้ดได้ครับ"
+  ],
+  "c13-pdpa-scoped-retention": [
+    "JOB-02"
+  ],
+  "p01-prose-money-rounding": [
+    "ASK"
+  ],
+  "p03-prose-negative-stock": [
+    "TXN-03"
+  ],
+  "p04-prose-cancelled-in-report": [
+    "I need permission to read files in this directory before I can check the catalog — please approve the read so I can continue."
+  ],
+  "p05-prose-discount-stacking": [
+    "ASK"
+  ],
+  "p06-prose-month-cutoff-tz": [
+    "Not relevant here (that was just an example format in the instructions). TIME-08 matches exactly: date-range comparison excluding end-of-day timestamps.\n\nTIME-08"
+  ],
+  "p07-prose-edit-after-approve": [
+    "ASK"
+  ],
+  "p08-prose-payment-allocation": [
+    "ASK"
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "a01-must-ask-money-rounding": [
+    31.11,
+    56.1
+  ],
+  "a02-must-ask-retention": [
+    104.32,
+    60.97
+  ],
+  "a03-must-ask-negative-stock": [
+    37.49,
+    49.36
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    51.58,
+    49.1
+  ],
+  "a05-must-ask-discount-stacking": [
+    37.63,
+    86.35
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    42.95,
+    25.87
+  ],
+  "a07-must-ask-edit-after-approve": [
+    181.26,
+    94.64
+  ],
+  "a08-must-ask-payment-allocation": [
+    82.55,
+    33.7
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    33.42,
+    50.25
+  ],
+  "b01-nolock": [
+    16.95,
+    26.61
+  ],
+  "b02-or-chain": [
+    15.25,
+    25.22
+  ],
+  "b03-missing-index": [
+    35.64,
+    75.63
+  ],
+  "b04-harness-mismatch": [
+    29.61,
+    74.04
+  ],
+  "b05-stats-per-version": [
+    27.42,
+    80.69
+  ],
+  "b06-dual-master": [
+    138.24,
+    81.07
+  ],
+  "b07-catch-return-null": [
+    17.06,
+    50.5
+  ],
+  "b08-empty-as-error": [
+    48.89,
+    98.45
+  ],
+  "b09-read-modify-write": [
+    15.78,
+    78.67
+  ],
+  "b10-sentinel-magic": [
+    63.83,
+    45.81
+  ],
+  "b11-registry-split-deploy": [
+    27.88,
+    33.47
+  ],
+  "b12-migration-not-idempotent": [
+    33.03,
+    34.31
+  ],
+  "b13-mobile-idempotency-key": [
+    30.79,
+    30.87
+  ],
+  "b14-ml-train-serve-skew": [
+    42.69,
+    20.66
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    54.01,
+    25.47
+  ],
+  "c01-parameterized": [
+    31.76,
+    26.56
+  ],
+  "c02-explicit-columns": [
+    38.06,
+    25.76
+  ],
+  "c03-idempotent-upsert": [
+    66.16,
+    27.82
+  ],
+  "c04-rethrow-with-context": [
+    93.47,
+    34.21
+  ],
+  "c05-typed-result": [
+    66.44,
+    43.69
+  ],
+  "c06-named-constant": [
+    89.99,
+    86.1
+  ],
+  "c07-bounded-retry": [
+    40.09,
+    61.61
+  ],
+  "c08-migration-guarded": [
+    65.09,
+    69.27
+  ],
+  "c09-validated-input": [
+    54.64,
+    46.79
+  ],
+  "c10-decimal-money": [
+    40.87,
+    46.38
+  ],
+  "c11-mobile-durable-queue": [
+    36.36,
+    66.41
+  ],
+  "c12-ml-shared-pipeline": [
+    76.47,
+    53.41
+  ],
+  "c13-pdpa-scoped-retention": [
+    115.11,
+    93.06
+  ],
+  "p01-prose-money-rounding": [
+    16.83
+  ],
+  "p03-prose-negative-stock": [
+    48.74
+  ],
+  "p04-prose-cancelled-in-report": [
+    115.18
+  ],
+  "p05-prose-discount-stacking": [
+    31.37
+  ],
+  "p06-prose-month-cutoff-tz": [
+    76.8
+  ],
+  "p07-prose-edit-after-approve": [
+    174.55
+  ],
+  "p08-prose-payment-allocation": [
+    36.27
+  ]
+}

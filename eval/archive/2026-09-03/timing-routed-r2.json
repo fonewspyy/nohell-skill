@@ -1,0 +1,134 @@
+{
+  "a01-must-ask-money-rounding": [
+    56.1
+  ],
+  "a02-must-ask-retention": [
+    60.97
+  ],
+  "a03-must-ask-negative-stock": [
+    49.36
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    49.1
+  ],
+  "a05-must-ask-discount-stacking": [
+    86.35
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    25.87
+  ],
+  "a07-must-ask-edit-after-approve": [
+    94.64
+  ],
+  "a08-must-ask-payment-allocation": [
+    33.7
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    50.25
+  ],
+  "b01-nolock": [
+    26.61
+  ],
+  "b02-or-chain": [
+    25.22
+  ],
+  "b03-missing-index": [
+    75.63
+  ],
+  "b04-harness-mismatch": [
+    74.04
+  ],
+  "b05-stats-per-version": [
+    80.69
+  ],
+  "b06-dual-master": [
+    81.07
+  ],
+  "b07-catch-return-null": [
+    50.5
+  ],
+  "b08-empty-as-error": [
+    98.45
+  ],
+  "b09-read-modify-write": [
+    78.67
+  ],
+  "b10-sentinel-magic": [
+    45.81
+  ],
+  "b11-registry-split-deploy": [
+    33.47
+  ],
+  "b12-migration-not-idempotent": [
+    34.31
+  ],
+  "b13-mobile-idempotency-key": [
+    30.87
+  ],
+  "b14-ml-train-serve-skew": [
+    20.66
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    25.47
+  ],
+  "c01-parameterized": [
+    26.56
+  ],
+  "c02-explicit-columns": [
+    25.76
+  ],
+  "c03-idempotent-upsert": [
+    27.82
+  ],
+  "c04-rethrow-with-context": [
+    34.21
+  ],
+  "c05-typed-result": [
+    43.69
+  ],
+  "c06-named-constant": [
+    86.1
+  ],
+  "c07-bounded-retry": [
+    61.61
+  ],
+  "c08-migration-guarded": [
+    69.27
+  ],
+  "c09-validated-input": [
+    46.79
+  ],
+  "c10-decimal-money": [
+    46.38
+  ],
+  "c11-mobile-durable-queue": [
+    66.41
+  ],
+  "c12-ml-shared-pipeline": [
+    53.41
+  ],
+  "c13-pdpa-scoped-retention": [
+    93.06
+  ],
+  "p01-prose-money-rounding": [
+    16.83
+  ],
+  "p03-prose-negative-stock": [
+    48.74
+  ],
+  "p04-prose-cancelled-in-report": [
+    115.18
+  ],
+  "p05-prose-discount-stacking": [
+    31.37
+  ],
+  "p06-prose-month-cutoff-tz": [
+    76.8
+  ],
+  "p07-prose-edit-after-approve": [
+    174.55
+  ],
+  "p08-prose-payment-allocation": [
+    36.27
+  ]
+}

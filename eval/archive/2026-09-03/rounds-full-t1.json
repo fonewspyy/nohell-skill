@@ -1,0 +1,134 @@
+{
+  "a01-must-ask-money-rounding": [
+    "TYPE-04"
+  ],
+  "a02-must-ask-retention": [
+    "ASK"
+  ],
+  "a03-must-ask-negative-stock": [
+    "ASK"
+  ],
+  "a04-must-ask-cancelled-in-report": [
+    "ASK"
+  ],
+  "a05-must-ask-discount-stacking": [
+    "ASK"
+  ],
+  "a06-must-ask-month-cutoff-tz": [
+    "TIME-08"
+  ],
+  "a07-must-ask-edit-after-approve": [
+    "ASK"
+  ],
+  "a08-must-ask-payment-allocation": [
+    "ASK"
+  ],
+  "a09-must-ask-money-rounding-clean": [
+    "TYPE-04 TIME-03"
+  ],
+  "b01-nolock": [
+    "SQL-15 CODE-04"
+  ],
+  "b02-or-chain": [
+    "SQL-32 ตรงเป๊ะ: `WHERE TransportNo=@key OR LoadNo=@key OR RefNo=@key` คือ OR คร่อมหลายคอลัมน์ที่ควรแยกเป็น UNION ALL\n\nSQL-32"
+  ],
+  "b03-missing-index": [
+    "PERF-05"
+  ],
+  "b04-harness-mismatch": [
+    "MEAS-01"
+  ],
+  "b05-stats-per-version": [
+    "MEAS-02"
+  ],
+  "b06-dual-master": [
+    "ARCH-12 LEG-04 LEG-05 SSOT-13"
+  ],
+  "b07-catch-return-null": [
+    "ผมต้องการสิทธิ์อ่านไฟล์ `C:\\Users\\<user>\\.claude-pools\\<pool>\\skills\\nohell\\HELL-CATALOG.md` แต่ระบบยังไม่อนุมัติให้ — รบกวนช่วยอนุมัติ permission prompt ที่ขึ้นมาด้วยครับ ไม่งั้นผมจะดูรายละเอียด ID ในแคตตาล็อกไม่ได้"
+  ],
+  "b08-empty-as-error": [
+    "API-03"
+  ],
+  "b09-read-modify-write": [
+    "TXN-03 TXN-09"
+  ],
+  "b10-sentinel-magic": [
+    "No further matches. Based on the catalog, the code hardcodes an unnamed sentinel value and status code directly into the INSERT (with the comment confirming every consumer must independently remember the exclusion rule), matching both the generic magic-value rule and its SQL-specific counterpart.\n\nSQL-19 CODE-04"
+  ],
+  "b11-registry-split-deploy": [
+    "MOBILE-11 API-01"
+  ],
+  "b12-migration-not-idempotent": [
+    "SHIP-05"
+  ],
+  "b13-mobile-idempotency-key": [
+    "MOBILE-02 TXN-06"
+  ],
+  "b14-ml-train-serve-skew": [
+    "ML-03"
+  ],
+  "b15-pdpa-erasure-misses-copies": [
+    "PDPA-04 ตรงเป๊ะ: ลบเฉพาะ `customers` แต่บอก \"ลบเรียบร้อยแล้ว\" ทั้งที่ backup, search_index, report_cache ยังมีข้อมูลอยู่\n\nPDPA-04"
+  ],
+  "c01-parameterized": [
+    "NONE"
+  ],
+  "c03-idempotent-upsert": [
+    "TXN-19"
+  ],
+  "c04-rethrow-with-context": [
+    "NONE"
+  ],
+  "c05-typed-result": [
+    "API-09 API-10"
+  ],
+  "c02-explicit-columns": [
+    "NONE"
+  ],
+  "c06-named-constant": [
+    "CODE-26"
+  ],
+  "c07-bounded-retry": [
+    "TXN-06 ERR-08"
+  ],
+  "c08-migration-guarded": [
+    "DATA-07"
+  ],
+  "c09-validated-input": [
+    "NONE"
+  ],
+  "c10-decimal-money": [
+    "DATA-18"
+  ],
+  "c11-mobile-durable-queue": [
+    "TXN-15"
+  ],
+  "c12-ml-shared-pipeline": [
+    "Not relevant. This code follows the ML-03 rule exactly (shared preprocessing pipeline for train/serve), the threshold is cost-derived per ML-04 (not a floating default), and both feature_version and threshold are persisted/logged alongside the model per ML-13. No catalog item is violated.\n\nNONE"
+  ],
+  "c13-pdpa-scoped-retention": [
+    "**NONE**"
+  ],
+  "p01-prose-money-rounding": [
+    "TYPE-04 TIME-02"
+  ],
+  "p03-prose-negative-stock": [
+    "No entry more specific than TXN-17 for the missing negative-balance guard, and OBS-11 matches the audit gap (only time+actor recorded, no before/after value).\n\nTXN-17 OBS-11"
+  ],
+  "p04-prose-cancelled-in-report": [
+    "FILE-01"
+  ],
+  "p05-prose-discount-stacking": [
+    "ASK"
+  ],
+  "p06-prose-month-cutoff-tz": [
+    "TIME-08"
+  ],
+  "p07-prose-edit-after-approve": [
+    "ASK"
+  ],
+  "p08-prose-payment-allocation": [
+    "ASK\n\n`★ Insight ─────────────────────────────────────`\n- ลำดับที่ query ดึงมา (due date เก่า→ใหม่) เป็น **ลำดับการแสดงผล** ไม่ใช่หลักฐานว่านโยบายตัดชำระคือ FIFO — AI-06 บังคับว่า rule ต้องอ้างแหล่ง (คน/เอกสาร/ข้อมูลจริง) ถ้าไม่มีให้ถาม ไม่ใช่เดา\n- 5,000 < 7,200 ทำให้ต้องมีนโยบายที่เดาแทนไม่ได้: ตัดเรียงตามครบกำหนด / ตามที่ลูกค้าระบุ / เฉลี่ยตามสัดส่วน, ใบสุดท้ายบันทึกเป็นชำระบางส่วนหรือไม่ตัดเลย, และเงินเหลือ (ถ้ามี) ไปอยู่ไหน\n- โค้ดที่มีอยู่ตอนนี้ยังไม่ละเมิดข้อใด เพราะยังไม่ได้ตัดสินใจอะไรเกี่ยวกับเงิน — ความเสี่ยงจะเกิดตอนเขียนส่วนตัดชำระโดยฝังกฎที่ไม่มีใครตกลง\n`─────────────────────────────────────────────────`"
+  ]
+}
