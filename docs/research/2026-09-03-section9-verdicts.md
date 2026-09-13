@@ -434,7 +434,7 @@ sd(ผลต่าง) ถ้าสองแขนอิสระกัน = 0.4
 
 เคส `b07` ในแขน `full` tag `t1` ธนาคารเก็บข้อความนี้ไว้เป็น "คำตอบ":
 
-> ผมต้องการสิทธิ์อ่านไฟล์ `C:\Users\Wassaphas\.claude-pools\account_c\skills\nohell\HELL-CATALOG.md`
+> ผมต้องการสิทธิ์อ่านไฟล์ `<pools-dir>/<pool>/skills/nohell/HELL-CATALOG.md`  ← พาธจริงถูกลบออก รีโปนี้เป็น public
 > แต่ระบบยังไม่อนุมัติให้ — รบกวนช่วยอนุมัติ permission prompt ที่ขึ้นมาด้วยครับ
 
 **การรันนั้นไม่เคยอ่านแคตตาล็อกเลย** แต่ `judge()` ให้คะแนน recall 0 ตามปกติ

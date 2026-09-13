@@ -25,7 +25,7 @@ from run import BLOCKED_RE, parse_answer  # noqa: E402
 SAMPLES = [
     # ── ต้องถูกทิ้ง: คำตอบจริงที่ธนาคารเคยเก็บ ──────────────────────────
     ('ไทย · ขอสิทธิ์ตรง ๆ (b07 · full/t1)',
-     'ผมต้องการสิทธิ์อ่านไฟล์ `C:\\Users\\x\\.claude-pools\\account_c\\skills\\nohell\\'
+     'ผมต้องการสิทธิ์อ่านไฟล์ `C:\\Users\\<user>\\.claude-pools\\<pool>\\skills\\nohell\\'
      'HELL-CATALOG.md` แต่ระบบยังไม่อนุมัติให้ — รบกวนช่วยอนุมัติ permission prompt', True),
     ('ไทย · ขออนุญาต (b05 · full_ask/c9)',
      'ต้องขออนุญาตอ่านไฟล์ `skills/nohell/HELL-CATALOG.md` ก่อน '

@@ -57,7 +57,7 @@
 - 37 เคสใน `eval/cases/` · `full` 3 รอบ · `routed` 1 รอบ
 - `--jobs 2` สำหรับ `routed` (4 พร้อมกันทำให้เครื่องพัง `paging file is too small`)
 - `routed` รันผ่าน claude-orchestrator บน pool `account_c`
-  (ยืนยันด้วย `CLAUDE_CONFIG_DIR=C:/Users/Wassaphas/.claude-pools/account_c`)
+  (ยืนยันด้วย `CLAUDE_CONFIG_DIR=<pools-dir>/<pool>`)
   หั่นเป็น 10 คำสั่ง foreground ละ 4 เคส เพราะ Bash tool มี timeout สูงสุด 10 นาที
 - ให้คะแนนด้วยเฉลยและ parser ชุดเดียวกันหลังเก็บครบ ⇒ ไม่มีแขนไหนถูกวัดด้วยไม้บรรทัดต่างกัน
 

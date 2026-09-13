@@ -1593,9 +1593,9 @@ non-reproducible, research-task-specific figure, not a code-review benchmark"
 ### 12.4 ตำแหน่งไฟล์หลักฐาน (อ่านเท่านั้น ไม่ถูกแก้)
 
 - journal 216 บรรทัด:
-  `C:/Users/Wassaphas/.claude/projects/C--Users-Wassaphas-Desktop-nohell-skill/69d68f48-9dfb-4c53-894e-d3b5828fca49/subagents/workflows/wf_c10b83f9-bd6/journal.jsonl`
+  `<CLAUDE_CONFIG_DIR>/projects/<project-slug>/<session-id>/subagents/workflows/wf_c10b83f9-bd6/journal.jsonl`
 - ผลลัพธ์ที่หลุดออกมาได้บางส่วน (มี `confirmed` 5 / `refuted` 9 / `unverified` 11 / `sources` 26 พร้อมฟิลด์ `source`):
-  `C:/Users/WASSAP~1/AppData/Local/Temp/claude/C--Users-Wassaphas-Desktop-nohell-skill/69d68f48-9dfb-4c53-894e-d3b5828fca49/tasks/wvx7bvns1.output`
+  `<TEMP>/claude/<project-slug>/<session-id>/tasks/wvx7bvns1.output`
 - ตัวเลข workflow: `totalTokens` 5,234,939 · `totalToolCalls` 691 · `agentCount` 108
 - `stats` ที่บันทึกไว้: angles 5 · sources 26 · claims 130 · verified 25 · confirmed 5 · killed 9 ·
   unverified 11 · **afterSynthesis 0**
